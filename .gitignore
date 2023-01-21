@@ -1,0 +1,14 @@
+# Mac Files
+*.DS_Store
+
+# Build Files
+build
+release
+debug
+
+# Cached Files
+.cache
+
+# Kanban Board
+taskell.md
+

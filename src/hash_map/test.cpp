@@ -1,0 +1,40 @@
+/*===============================*
+ * Author/s:
+ *  - silentrald
+ * Version: 1.0
+ * Created: 2022-12-27
+ * Updated: 2022-12-29
+ *===============================*/
+
+#include "../error.hpp"
+#include "../string/def.hpp"
+#include "../types.hpp"
+#include "./def.hpp"
+#include "catch2/catch_message.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "ds/test.hpp"
+
+using namespace ds_test;
+
+TEST_CASE("hash_map", "ds") { // NOLINT
+  ds::opt_error error{};
+
+  SECTION("Primitive Key and Value") {
+    ds::hash_map<ds::i32, ds::i32> map{};
+
+    CHECK(handle_error(map.insert(100, 200)));
+    CHECK(handle_error(map.insert(200, 500)));
+    CHECK(handle_error(map.insert(100, 300)));
+  }
+
+  SECTION("Key String and Value String") {
+    ds::hash_map<ds::string, ds::string> map{};
+
+    ds::string hi{};
+
+    CHECK(handle_error(map.insert("hello", "hi")));
+    CHECK(handle_error(map.insert("hi", "hello")));
+    CHECK(handle_error(map.insert(hi, "SUCC")));
+  }
+}
+
