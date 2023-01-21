@@ -18,35 +18,35 @@ const char* const STRING_BAD_ALLOC = "string:bad_alloc";
 const char* const STRING_OUT_OF_RANGE = "string:out_of_range";
 const char* const STRING_EMPTY = "string:empty";
 
-// === Initializers ===
-ds::opt_error string::init(const char* str) noexcept {
+// === Initializers === //
+opt_err string::init(const char* str) noexcept {
   if (str[0] == '\0') { // Empty string check
-    return ds::null;
+    return null;
   }
 
   try_opt(this->allocate(std::strlen(str)));
   this->_size = this->_max_size;
   strcpy(this->str, str);
 
-  return ds::null;
+  return null;
 }
 
-// === Copy ===
-ds::opt_error string::copy(const string& other) noexcept {
+// === Copy === //
+opt_err string::copy(const string& other) noexcept {
   if (&other == this) {
-    return ds::null;
+    return null;
   }
 
   if (other._size == 0) {
     this->clear();
-    return ds::null;
+    return null;
   }
 
   if (this->str == nullptr) {
     try_opt(this->allocate(other._size));
     this->_size = other._size;
     std::strcpy(this->str, other.str);
-    return ds::null;
+    return null;
   }
 
   if (this->_max_size < other._max_size) {
@@ -57,10 +57,10 @@ ds::opt_error string::copy(const string& other) noexcept {
   this->_size = other._size;
   std::strcpy(this->str, other.str);
 
-  return ds::null;
+  return null;
 }
 
-ds::opt_error string::copy(const char* str) noexcept {
+opt_err string::copy(const char* str) noexcept {
   if (this->str == nullptr) {
     return this->init(str);
   }
@@ -71,10 +71,10 @@ ds::opt_error string::copy(const char* str) noexcept {
   }
   std::strcpy(this->str, str);
 
-  return ds::null;
+  return null;
 }
 
-// === Move ===
+// === Move === //
 string::string(string&& rhs) noexcept
     : str(rhs.str), _size(rhs._size), _max_size(rhs._max_size) {
   rhs.str = nullptr;
@@ -97,7 +97,7 @@ string& string::operator=(string&& rhs) noexcept {
   return *this;
 }
 
-// === Destructor ===
+// === Destructor === //
 string::~string() {
   if (this->str) {
 #if DS_TEST
@@ -111,81 +111,81 @@ string::~string() {
   }
 }
 
-// Private Functions
-ds::opt_error string::allocate(ds::i32 size) noexcept {
+// === Memory === //
+opt_err string::allocate(i32 size) noexcept {
   // Allocate the \0
   // NOLINTNEXTLINE
   this->str =
       // NOLINTNEXTLINE
       static_cast<char*>(std::malloc((size + 1) * sizeof(char)));
   if (this->str == nullptr) {
-    return ds::error{STRING_BAD_ALLOC};
+    return error{STRING_BAD_ALLOC};
   }
   this->_max_size = size;
 
-  return ds::null;
+  return null;
 }
 
-ds::opt_error string::reallocate(ds::i32 size) noexcept {
+opt_err string::reallocate(i32 size) noexcept {
   // Allocate the \0
   // NOLINTNEXTLINE
   void* ptr = std::realloc(this->str, (size + 1) * sizeof(char));
   if (ptr == nullptr) {
-    return ds::error{STRING_BAD_ALLOC};
+    return error{STRING_BAD_ALLOC};
   }
   this->str = static_cast<char*>(ptr);
   this->_max_size = size;
-  return ds::null;
+  return null;
 }
 
-// === Element Access ===
-ds::expected_ptr<char> string::at_ptr(ds::i32 index) noexcept {
+// === Element Access === //
+exp_ptr_err<char> string::at_ptr(i32 index) noexcept {
   if (index < 0 || index >= this->_size) {
-    return ds::unexpected(ds::error{STRING_OUT_OF_RANGE});
+    return unexpected{error{STRING_OUT_OF_RANGE, def_err_vals}};
   }
 
   return this->str + index;
 }
 
-ds::expected<char> string::at(ds::i32 index) noexcept {
+exp_err<char> string::at(i32 index) noexcept {
   if (index < 0 || index >= this->_size) {
-    return ds::unexpected(ds::error{STRING_OUT_OF_RANGE});
+    return unexpected{error{STRING_OUT_OF_RANGE, def_err_vals}};
   }
 
   return this->str[index];
 }
 
-char& string::operator[](ds::i32 index) noexcept {
+char& string::operator[](i32 index) noexcept {
   return this->str[index];
 }
 
-ds::expected_ptr<char> string::front_ptr() noexcept {
+exp_ptr_err<char> string::front_ptr() noexcept {
   if (this->_size == 0) {
-    return ds::unexpected(ds::error{STRING_EMPTY});
+    return unexpected{error{STRING_EMPTY, def_err_vals}};
   }
 
   return this->str;
 }
 
-ds::expected<char> string::front() noexcept {
+exp_err<char> string::front() noexcept {
   if (this->_size == 0) {
-    return ds::unexpected(ds::error{STRING_EMPTY});
+    return unexpected{error{STRING_EMPTY, def_err_vals}};
   }
 
   return this->str[0];
 }
 
-ds::expected_ptr<char> string::back_ptr() noexcept {
+exp_ptr_err<char> string::back_ptr() noexcept {
   if (this->_size == 0) {
-    return ds::unexpected(ds::error{STRING_EMPTY});
+    return unexpected{error{STRING_EMPTY, def_err_vals}};
   }
 
   return this->str + this->_size - 1;
 }
 
-ds::expected<char> string::back() noexcept {
+exp_err<char> string::back() noexcept {
   if (this->_size == 0) {
-    return ds::unexpected(ds::error{STRING_EMPTY});
+    return unexpected{error{STRING_EMPTY, def_err_vals}};
   }
 
   return this->str[this->_size - 1];
@@ -199,24 +199,24 @@ const char* string::c_str() const noexcept {
   return this->str;
 }
 
-// === Capacity ===
+// === Capacity === //
 bool string::empty() const noexcept {
   return this->_size == 0;
 }
 
-ds::i32 string::size() const noexcept {
+i32 string::size() const noexcept {
   return this->_size;
 }
 
-ds::i32 string::length() const noexcept {
+i32 string::length() const noexcept {
   return this->_size;
 }
 
-ds::i32 string::max_size() const noexcept {
+i32 string::max_size() const noexcept {
   return this->_max_size;
 }
 
-ds::opt_error string::reserve(ds::i32 size) noexcept {
+opt_err string::reserve(i32 size) noexcept {
   if (this->str == nullptr) {
     return this->allocate(size);
   }
@@ -225,10 +225,10 @@ ds::opt_error string::reserve(ds::i32 size) noexcept {
     return this->reallocate(size);
   }
 
-  return ds::null;
+  return null;
 }
 
-// === Modifiers ===
+// === Modifiers === //
 void string::clear() noexcept {
   if (this->str == nullptr) {
     return;
@@ -238,7 +238,7 @@ void string::clear() noexcept {
   this->str[0] = '\0';
 }
 
-ds::opt_error string::push_back(char c) noexcept {
+opt_err string::push_back(char c) noexcept {
   if (this->_size == this->_max_size) {
     try_opt(this->reallocate(this->_max_size + 10));
   }
@@ -246,12 +246,12 @@ ds::opt_error string::push_back(char c) noexcept {
   this->str[this->_size++] = c;
   this->str[this->_size] = '\0';
 
-  return ds::null;
+  return null;
 }
 
-ds::expected<char> string::pop_back() noexcept {
+exp_err<char> string::pop_back() noexcept {
   if (this->_size == 0) {
-    return ds::unexpected(ds::error{STRING_EMPTY});
+    return unexpected(error{STRING_EMPTY});
   }
 
   char c = this->str[--this->_size];
@@ -259,12 +259,12 @@ ds::expected<char> string::pop_back() noexcept {
   return c;
 }
 
-ds::opt_error string::append(const char* str) noexcept {
+opt_err string::append(const char* str) noexcept {
   if (this->str == nullptr) {
     return this->init(str);
   }
 
-  ds::i32 new_size = this->_size + std::strlen(str);
+  i32 new_size = this->_size + std::strlen(str);
   if (new_size > this->_max_size) {
     try_opt(this->reallocate(new_size));
   }
@@ -272,15 +272,15 @@ ds::opt_error string::append(const char* str) noexcept {
   std::strcpy(this->str + this->_size, str);
   this->_size = new_size;
 
-  return ds::null;
+  return null;
 }
 
-ds::opt_error string::append(const string& str) noexcept {
+opt_err string::append(const string& str) noexcept {
   if (this->str == nullptr) {
     return this->copy(str);
   }
 
-  ds::i32 new_size = this->_size + str._size;
+  i32 new_size = this->_size + str._size;
   if (new_size > this->_max_size) {
     try_opt(this->reallocate(new_size + 10));
   }
@@ -288,10 +288,10 @@ ds::opt_error string::append(const string& str) noexcept {
   std::strcpy(this->str + this->_size, str.c_str());
   this->_size = new_size;
 
-  return ds::null;
+  return null;
 }
 
-// === Operators ===
+// === Operators === //
 bool string::operator==(const string& rhs) const noexcept {
   if (this->_size != rhs._size)
     return false;
@@ -318,7 +318,7 @@ bool string::operator!=(const char* rhs) const noexcept {
   return !(*this == rhs);
 }
 
-// === Non-member functions ===
+// === Non-member functions === //
 bool operator==(const char* lhs, const string& rhs) noexcept {
   if (lhs == nullptr)
     return false;

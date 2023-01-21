@@ -9,7 +9,7 @@
 #ifndef DS_TYPE_TRAITS_HPP
 #define DS_TYPE_TRAITS_HPP
 
-/* #include "./string/def.hpp" */
+#include "./string/def.hpp"
 #include "error.hpp"
 #include <tuple>
 #include <type_traits>
@@ -30,21 +30,16 @@ using all_same_type = typename std::enable_if<
 /**
  * Check if type T is a string type
  **/
-/* template <typename T> */
-/* using is_string_type = typename std::disjunction< */
-    /* same_type<const char*, T>, */
-    /* same_type<ds::string, T> */
-    /* std::is_convertible<T, const char*>,      // */
-    /* std::is_convertible<T, ds::string>,       // */
-    /* std::is_convertible<T, const ds::string&> // */
-    /* >::type; */
+template <typename T>
+using is_string_type = typename std::disjunction<
+    same_type<const char*, T>, same_type<string, T>>::type;
 
 /**
  * Check if all passed arguments are string type
  **/
-/* template <typename... Args> */
-/* using all_string_type = typename std::enable_if< */
-/*     std::conjunction<is_string_type<Args>...>::value>::type; */
+template <typename... Args>
+using all_string_type = typename std::enable_if<
+    std::conjunction<is_string_type<Args>...>::value>::type;
 
 template <typename T>
 using is_class_type = typename std::enable_if<std::is_class<T>::value>::type;
@@ -59,7 +54,7 @@ using is_int = typename std::enable_if<std::is_integral<T>::value>::type;
 template <typename T> struct has_copy_method {
 private:
   template <typename U>
-  static auto test(opt_error)
+  static auto test(opt_err)
       -> decltype(std::declval<U>().copy() == 1, std::__true_type());
   template <typename> static std::__false_type test(...);
 

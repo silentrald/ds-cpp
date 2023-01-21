@@ -28,7 +28,7 @@ void print_error(const ds::error& error) noexcept {
   }
 }
 
-bool handle_error(const ds::opt_error& error) noexcept {
+bool handle_error(const ds::opt_err& error) noexcept {
   if (!error) {
     return true;
   }
@@ -40,7 +40,7 @@ bool handle_error(const ds::opt_error& error) noexcept {
 // Define the test class
 
 // === Copy ===
-ds::opt_error Test::copy(const Test& other) noexcept {
+ds::opt_err Test::copy(const Test& other) noexcept {
   if (&other == this) {
     return ds::null;
   }

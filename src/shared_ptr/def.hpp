@@ -41,7 +41,7 @@ private:
 
   // === Initializers === //
   template <typename Data_>
-  [[nodiscard]] ds::opt_error set_impl(Data_ data) noexcept;
+  [[nodiscard]] opt_err set_impl(Data_ data) noexcept;
 
 public:
   shared_ptr() noexcept = default;
@@ -49,7 +49,7 @@ public:
   shared_ptr& operator=(const shared_ptr&) = delete;
 
   // === Copy === //
-  [[nodiscard]] ds::opt_error copy(const shared_ptr& other) noexcept;
+  [[nodiscard]] opt_err copy(const shared_ptr& other) noexcept;
 
   // === Move === //
   shared_ptr(shared_ptr&& rhs) noexcept;
@@ -59,11 +59,11 @@ public:
   ~shared_ptr() noexcept;
 
   // === Modifiers === //
-  [[nodiscard]] ds::opt_error set(cref data) noexcept {
+  [[nodiscard]] opt_err set(cref data) noexcept {
     return this->set_impl<cref>(data);
   }
 
-  [[nodiscard]] ds::opt_error set(rref data) noexcept {
+  [[nodiscard]] opt_err set(rref data) noexcept {
     return this->set_impl<rref>(std::move(data));
   }
 
@@ -73,7 +73,7 @@ public:
   [[nodiscard]] ptr get() const noexcept;
   [[nodiscard]] ref operator*() const noexcept;
   ptr operator->() const noexcept;
-  [[nodiscard]] ds::i32 count() const noexcept;
+  [[nodiscard]] i32 count() const noexcept;
   explicit operator bool() const noexcept;
 
   // === Non-member Operators === //

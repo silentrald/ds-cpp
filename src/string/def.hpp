@@ -24,12 +24,12 @@ class string {
 public:
 private:
   char* str = nullptr;
-  ds::i32 _size = 0;
-  ds::i32 _max_size = 0;
+  i32 _size = 0;
+  i32 _max_size = 0;
 
-  // === Memory ===
-  [[nodiscard]] ds::opt_error allocate(ds::i32 size) noexcept;
-  [[nodiscard]] ds::opt_error reallocate(ds::i32 size) noexcept;
+  // === Memory === //
+  [[nodiscard]] opt_err allocate(i32 size) noexcept;
+  [[nodiscard]] opt_err reallocate(i32 size) noexcept;
 
   /**
    * Initializes the string with the passed const char*
@@ -37,21 +37,21 @@ private:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] ds::opt_error init(const char* str) noexcept;
+  [[nodiscard]] opt_err init(const char* str) noexcept;
 
 public:
   string() noexcept = default;
   string(const string& rhs) = delete;
   string& operator=(const string& rhs) = delete;
 
-  // === Copy ===
+  // === Copy === //
   /**
    * Copies the string
    *
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] ds::opt_error copy(const string& other) noexcept;
+  [[nodiscard]] opt_err copy(const string& other) noexcept;
 
   /**
    * Copies the const char* string
@@ -59,55 +59,55 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] ds::opt_error copy(const char* str) noexcept;
+  [[nodiscard]] opt_err copy(const char* str) noexcept;
 
-  // === Move ===
+  // === Move === //
   /**
    * Initializes the string and moves the passed string
    **/
   string(string&& rhs) noexcept;
   string& operator=(string&& rhs) noexcept;
 
-  // === Destructor ===
+  // === Destructor === //
   ~string();
 
-  // === Element Access ===
+  // === Element Access === //
   /**
    * Returns a pointer from the indexed passed
    **/
-  [[nodiscard]] ds::expected_ptr<char> at_ptr(ds::i32 index) noexcept;
-  [[nodiscard]] ds::expected<char> at(ds::i32 index) noexcept;
-  [[nodiscard]] char& operator[](ds::i32 index) noexcept;
-  [[nodiscard]] ds::expected_ptr<char> front_ptr() noexcept;
-  [[nodiscard]] ds::expected<char> front() noexcept;
-  [[nodiscard]] ds::expected_ptr<char> back_ptr() noexcept;
-  [[nodiscard]] ds::expected<char> back() noexcept;
+  [[nodiscard]] exp_ptr_err<char> at_ptr(i32 index) noexcept;
+  [[nodiscard]] exp_err<char> at(i32 index) noexcept;
+  [[nodiscard]] char& operator[](i32 index) noexcept;
+  [[nodiscard]] exp_ptr_err<char> front_ptr() noexcept;
+  [[nodiscard]] exp_err<char> front() noexcept;
+  [[nodiscard]] exp_ptr_err<char> back_ptr() noexcept;
+  [[nodiscard]] exp_err<char> back() noexcept;
   [[nodiscard]] char* data() noexcept;
   [[nodiscard]] const char* c_str() const noexcept;
 
-  // === Iterators ===
+  // === Iterators === //
 
-  // === Capacity ===
+  // === Capacity === //
   [[nodiscard]] bool empty() const noexcept;
-  [[nodiscard]] ds::i32 size() const noexcept;
-  [[nodiscard]] ds::i32 length() const noexcept;
-  [[nodiscard]] ds::i32 max_size() const noexcept;
-  [[nodiscard]] ds::opt_error reserve(ds::i32 size) noexcept;
+  [[nodiscard]] i32 size() const noexcept;
+  [[nodiscard]] i32 length() const noexcept;
+  [[nodiscard]] i32 max_size() const noexcept;
+  [[nodiscard]] opt_err reserve(i32 size) noexcept;
 
-  // === Modifiers ===
+  // === Modifiers === //
   void clear() noexcept;
-  [[nodiscard]] ds::opt_error push_back(char c) noexcept;
-  [[nodiscard]] ds::expected<char> pop_back() noexcept;
-  [[nodiscard]] ds::opt_error append(const char* str) noexcept;
-  [[nodiscard]] ds::opt_error append(const string& str) noexcept;
+  [[nodiscard]] opt_err push_back(char c) noexcept;
+  [[nodiscard]] exp_err<char> pop_back() noexcept;
+  [[nodiscard]] opt_err append(const char* str) noexcept;
+  [[nodiscard]] opt_err append(const string& str) noexcept;
 
-  // === Operators ===
+  // === Operators === //
   bool operator==(const string& rhs) const noexcept;
   bool operator==(const char* rhs) const noexcept;
   bool operator!=(const string& rhs) const noexcept;
   bool operator!=(const char* rhs) const noexcept;
 
-  // === Non-member functions ===
+  // === Non-member functions === //
   friend bool operator==(const char* lhs, const string& rhs) noexcept;
   friend bool operator!=(const char* lhs, const string& rhs) noexcept;
   friend std::ostream&

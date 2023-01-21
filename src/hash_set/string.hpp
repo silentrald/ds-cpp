@@ -9,10 +9,8 @@
 #ifndef DS_HASH_SET_STRING_HPP
 #define DS_HASH_SET_STRING_HPP
 
-#include "../hash/def.hpp"
-#include "../hash_set/def.hpp"
 #include "../string/def.hpp"
-#include "ds/equal/def.hpp"
+#include "./def.hpp"
 
 namespace ds {
 
@@ -46,7 +44,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] ds::opt_error insert(key_cref key) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key) noexcept {
     return this->template insert_impl<key_cref>(key);
   }
 
@@ -57,7 +55,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] ds::opt_error insert(key_rref key) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key) noexcept {
     return this->template insert_impl<key_rref>(std::move(key));
   }
 
@@ -68,7 +66,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] ds::opt_error insert(const char* key) noexcept {
+  [[nodiscard]] opt_err insert(const char* key) noexcept {
     return this->template insert_impl<const char*>(key);
   }
 

@@ -10,11 +10,7 @@
 #define DS_VECTOR_STRING_HPP
 
 #include "../string/def.hpp"
-#include "../type_traits.hpp"
-#include "../types.hpp"
 #include "./def.hpp"
-#include <cstring>
-#include <utility>
 
 namespace ds {
 
@@ -22,7 +18,7 @@ template <> class vector<string> : public base_vector<vector<string>, string> {
 private:
   // * Insert * //
   template <typename... Args>
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert_helper(i32 index, cref first, Args&&... args) noexcept {
     try_opt(this->arr[index].copy(first));
 
@@ -34,7 +30,7 @@ private:
   }
 
   template <typename... Args>
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert_helper(i32 index, rref first, Args&&... args) noexcept {
     this->arr[index] = std::move(first);
 
@@ -46,7 +42,7 @@ private:
   }
 
   template <typename... Args>
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert_helper(i32 index, const char* first, Args&&... args) noexcept {
     try_opt(this->arr[index].copy(first));
 
@@ -58,8 +54,7 @@ private:
   }
 
   template <typename... Args>
-  [[nodiscard]] opt_error
-  push_back_helper(cref first, Args&&... args) noexcept {
+  [[nodiscard]] opt_err push_back_helper(cref first, Args&&... args) noexcept {
     try_opt(this->arr[this->top].copy(first));
     ++this->top;
 
@@ -71,8 +66,7 @@ private:
   }
 
   template <typename... Args>
-  [[nodiscard]] opt_error
-  push_back_helper(rref first, Args&&... args) noexcept {
+  [[nodiscard]] opt_err push_back_helper(rref first, Args&&... args) noexcept {
     this->arr[this->top++] = std::move(first);
 
     if constexpr (sizeof...(Args)) {
@@ -83,7 +77,7 @@ private:
   }
 
   template <typename... Args>
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   push_back_helper(const char* first, Args&&... args) noexcept {
     try_opt(this->arr[this->top].copy(first));
     ++this->top;
@@ -96,8 +90,8 @@ private:
   }
 
 public:
-  opt_error insert(const iterator& it) noexcept = delete;
-  opt_error push_back() noexcept = delete;
+  opt_err insert(const iterator& it) noexcept = delete;
+  opt_err push_back() noexcept = delete;
 
   /**
    * Inserts an element starting from the iterator
@@ -107,8 +101,7 @@ public:
    *  - index out of range
    **/
   template <typename... Args, typename = all_string_type<Args...>>
-  [[nodiscard]] opt_error
-  insert(const iterator& it, Args&&... args) noexcept {
+  [[nodiscard]] opt_err insert(const iterator& it, Args&&... args) noexcept {
     return this->insert(it - this->begin(), std::forward<Args>(args)...);
   }
 
@@ -120,8 +113,7 @@ public:
    *  - index out of range
    **/
   template <typename... Args, typename = all_string_type<Args...>>
-  [[nodiscard]] opt_error
-  insert(i32 index, Args&&... args) noexcept {
+  [[nodiscard]] opt_err insert(i32 index, Args&&... args) noexcept {
     if (index < 0 || index > this->top) {
       return error{VECTOR_OUT_OF_RANGE};
     }
@@ -143,7 +135,7 @@ public:
    *  - bad allocation
    **/
   template <typename... Args, typename = all_string_type<Args...>>
-  [[nodiscard]] opt_error push_back(Args&&... args) noexcept {
+  [[nodiscard]] opt_err push_back(Args&&... args) noexcept {
     try_opt(this->grow(this->top + sizeof...(Args)));
 
     return this->push_back_helper(std::forward<Args>(args)...);

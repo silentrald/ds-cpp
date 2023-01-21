@@ -9,8 +9,8 @@
 #ifndef DS_UNIQUE_PTR_DEF_HPP
 #define DS_UNIQUE_PTR_DEF_HPP
 
-#include "error.hpp"
-#include "optional/def.hpp"
+#include "../error.hpp"
+#include "../optional/def.hpp"
 
 namespace ds {
 
@@ -43,8 +43,8 @@ public:
   ~unique_ptr() noexcept;
 
   // === Modifiers === //
-  [[nodiscard]] opt_error set(cref data) noexcept;
-  [[nodiscard]] opt_error set(rref data) noexcept;
+  [[nodiscard]] opt_err set(cref data) noexcept;
+  [[nodiscard]] opt_err set(rref data) noexcept;
 
   [[nodiscard]] ptr release() noexcept;
   void reset() noexcept;

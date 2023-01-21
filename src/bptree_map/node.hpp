@@ -9,15 +9,11 @@
 #ifndef DS_BPTREE_MAP_NODE_HPP
 #define DS_BPTREE_MAP_NODE_HPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
-#include "../types.hpp"
 #include "../vector/def.hpp"
 #include "./def.hpp"
 #include <cstdlib>
 #include <new>
 #include <type_traits>
-#include <utility>
 
 // * === Leaf Node === * //
 namespace ds {
@@ -25,7 +21,7 @@ namespace ds {
 // === Initializers === //
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_error
+opt_err
 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
 ) noexcept {
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
@@ -423,7 +419,7 @@ namespace ds {
 
 // === Initializers === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_error base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
     i32 capacity, void* child
 ) noexcept {
 

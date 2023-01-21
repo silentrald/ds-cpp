@@ -10,6 +10,7 @@
 #define DS_ERROR_HPP
 
 #include "./types.hpp"
+#include "expected/def.hpp"
 #include "optional/def.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -156,7 +157,9 @@ public:
   }
 };
 
-using opt_error = optional<error>;
+using opt_err = optional<error>;
+template <typename T> using exp_err = expected<T, error>;
+template <typename T> using exp_ptr_err = expected_ptr<T, error>;
 
 } // namespace ds
 

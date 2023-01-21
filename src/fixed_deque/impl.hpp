@@ -10,14 +10,12 @@
 #define DS_FIXED_DEQUE_IMPL_HPP
 
 #include "./def.hpp"
-#include "ds/types.hpp"
 #include <type_traits>
 
 namespace ds {
 
 // === Memory ===
-template <typename T>
-opt_error fixed_deque<T>::allocate(i32 capacity) noexcept {
+template <typename T> opt_err fixed_deque<T>::allocate(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   this->arr = static_cast<pointer>(std::malloc((capacity + 1) * sizeof(T)));
   if (this->arr == nullptr) {
@@ -29,7 +27,7 @@ opt_error fixed_deque<T>::allocate(i32 capacity) noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::reallocate(i32 capacity) noexcept {
+opt_err fixed_deque<T>::reallocate(i32 capacity) noexcept {
   if (this->_capacity == capacity) {
     return null;
   }
@@ -47,7 +45,7 @@ opt_error fixed_deque<T>::reallocate(i32 capacity) noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
+opt_err fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
   if constexpr (std::is_class<value>::value) {
     for (i32 i = capacity + 1; i <= this->_capacity; ++i) {
       this->arr[i].~T();
@@ -77,7 +75,7 @@ opt_error fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
 // |__HxT_| -> |HxT___|
 // +------+    +------+
 template <typename T>
-opt_error fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
+opt_err fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
   i32 i = 0;
   for (i32 j = this->head; j <= this->tail; ++i, ++j) {
     this->arr[i] = std::move(this->arr[j]);
@@ -118,7 +116,7 @@ opt_error fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
 // +-------+    +-----+
 // Move to the new container
 template <typename T>
-opt_error fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
+opt_err fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   pointer ptr = static_cast<pointer>(std::malloc((capacity + 1) * sizeof(T)));
   if (ptr == nullptr) {
@@ -176,7 +174,7 @@ opt_error fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
 
 // === Copy ===
 template <typename T>
-opt_error fixed_deque<T>::copy_center(const fixed_deque& rhs) noexcept {
+opt_err fixed_deque<T>::copy_center(const fixed_deque& rhs) noexcept {
   for (i32 i = this->head; i <= this->tail; ++i) {
     if constexpr (std::is_class<value>::value) {
       try_opt(this->arr[i].copy(rhs.arr[i]));
@@ -189,7 +187,7 @@ opt_error fixed_deque<T>::copy_center(const fixed_deque& rhs) noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
+opt_err fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
   i32 i = 0;
   for (; i <= this->tail; ++i) {
     if constexpr (std::is_class<value>::value) {
@@ -211,7 +209,7 @@ opt_error fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::copy(const fixed_deque& other) noexcept {
+opt_err fixed_deque<T>::copy(const fixed_deque& other) noexcept {
   if (&other == this) {
     return null;
   }
@@ -302,7 +300,7 @@ template <typename T> fixed_deque<T>::~fixed_deque() {
 }
 
 // === Element Access ===
-template <typename T> expected_ptr<T> fixed_deque<T>::at(i32 index) noexcept {
+template <typename T> exp_ptr_err<T> fixed_deque<T>::at(i32 index) noexcept {
   if (this->empty()) {
     return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
   }
@@ -329,7 +327,7 @@ typename fixed_deque<T>::ref fixed_deque<T>::operator[](i32 index) noexcept {
   return this->arr[(this->head + index) % (this->_capacity + 1)];
 }
 
-template <typename T> expected_ptr<T> fixed_deque<T>::front() noexcept {
+template <typename T> exp_ptr_err<T> fixed_deque<T>::front() noexcept {
   if (this->empty()) {
     return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
   }
@@ -337,7 +335,7 @@ template <typename T> expected_ptr<T> fixed_deque<T>::front() noexcept {
   return this->arr + this->head;
 }
 
-template <typename T> expected_ptr<T> fixed_deque<T>::back() noexcept {
+template <typename T> exp_ptr_err<T> fixed_deque<T>::back() noexcept {
   if (this->empty()) {
     return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
   }
@@ -353,7 +351,8 @@ typename fixed_deque<T>::iterator fixed_deque<T>::begin() noexcept {
 
 template <typename T>
 typename fixed_deque<T>::citerator fixed_deque<T>::cbegin() const noexcept {
-  return citerator{this->arr, this->head > -1 ? this->head : 1, this->_capacity};
+  return citerator{
+      this->arr, this->head > -1 ? this->head : 1, this->_capacity};
 }
 
 template <typename T>
@@ -423,7 +422,7 @@ template <typename T> void fixed_deque<T>::clear() noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::push_front(rref element) noexcept {
+opt_err fixed_deque<T>::push_front(rref element) noexcept {
   if (this->full()) {
     return error{FDEQUE_FULL, def_err_vals};
   }
@@ -441,7 +440,7 @@ opt_error fixed_deque<T>::push_front(rref element) noexcept {
 }
 
 template <typename T>
-opt_error fixed_deque<T>::push_front(cref element) noexcept {
+opt_err fixed_deque<T>::push_front(cref element) noexcept {
   if (this->full()) {
     return error{FDEQUE_FULL, def_err_vals};
   }
@@ -463,8 +462,7 @@ opt_error fixed_deque<T>::push_front(cref element) noexcept {
   return null;
 }
 
-template <typename T>
-opt_error fixed_deque<T>::push_back(rref element) noexcept {
+template <typename T> opt_err fixed_deque<T>::push_back(rref element) noexcept {
   if (this->full()) {
     return error{FDEQUE_FULL, def_err_vals};
   }
@@ -482,8 +480,7 @@ opt_error fixed_deque<T>::push_back(rref element) noexcept {
   return null;
 }
 
-template <typename T>
-opt_error fixed_deque<T>::push_back(cref element) noexcept {
+template <typename T> opt_err fixed_deque<T>::push_back(cref element) noexcept {
   if (this->full()) {
     return error{FDEQUE_FULL, def_err_vals};
   }
@@ -505,7 +502,7 @@ opt_error fixed_deque<T>::push_back(cref element) noexcept {
   return null;
 }
 
-template <typename T> expected<T> fixed_deque<T>::pop_front() noexcept {
+template <typename T> exp_err<T> fixed_deque<T>::pop_front() noexcept {
   if (this->empty()) {
     return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
   }
@@ -525,7 +522,7 @@ template <typename T> expected<T> fixed_deque<T>::pop_front() noexcept {
   return t;
 }
 
-template <typename T> opt_error fixed_deque<T>::pop_front_disc() noexcept {
+template <typename T> opt_err fixed_deque<T>::pop_front_disc() noexcept {
   if (this->empty()) {
     return error{FDEQUE_EMPTY, def_err_vals};
   }
@@ -545,7 +542,7 @@ template <typename T> opt_error fixed_deque<T>::pop_front_disc() noexcept {
   return null;
 }
 
-template <typename T> expected<T> fixed_deque<T>::pop_back() noexcept {
+template <typename T> exp_err<T> fixed_deque<T>::pop_back() noexcept {
   if (this->empty()) {
     return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
   }
@@ -565,7 +562,7 @@ template <typename T> expected<T> fixed_deque<T>::pop_back() noexcept {
   return t;
 }
 
-template <typename T> opt_error fixed_deque<T>::pop_back_disc() noexcept {
+template <typename T> opt_err fixed_deque<T>::pop_back_disc() noexcept {
   if (this->empty()) {
     return error{FDEQUE_EMPTY, def_err_vals};
   }
@@ -584,7 +581,7 @@ template <typename T> opt_error fixed_deque<T>::pop_back_disc() noexcept {
   return null;
 }
 
-template <typename T> opt_error fixed_deque<T>::remove_front(i32 n) noexcept {
+template <typename T> opt_err fixed_deque<T>::remove_front(i32 n) noexcept {
   if (this->empty()) {
     return error{FDEQUE_EMPTY, def_err_vals};
   }
@@ -607,7 +604,7 @@ template <typename T> opt_error fixed_deque<T>::remove_front(i32 n) noexcept {
   return null;
 }
 
-template <typename T> opt_error fixed_deque<T>::remove_back(i32 n) noexcept {
+template <typename T> opt_err fixed_deque<T>::remove_back(i32 n) noexcept {
   if (this->empty()) {
     return error{FDEQUE_EMPTY, def_err_vals};
   }
@@ -630,7 +627,7 @@ template <typename T> opt_error fixed_deque<T>::remove_back(i32 n) noexcept {
   return null;
 }
 
-template <typename T> opt_error fixed_deque<T>::resize(i32 size) noexcept {
+template <typename T> opt_err fixed_deque<T>::resize(i32 size) noexcept {
   if (size < 0) {
     return error{FDEQUE_NEGATIVE_CAP, def_err_vals};
   }

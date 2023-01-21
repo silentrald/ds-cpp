@@ -23,7 +23,7 @@ void transaction::rollback() noexcept {
   this->rollbacks.clear();
 }
 
-opt_error transaction::push_fail(function<void()>&& callback) noexcept {
+opt_err transaction::push_fail(function<void()>&& callback) noexcept {
   auto error = this->rollbacks.push_back(nullptr);
   if (error) {
     callback();
@@ -32,7 +32,7 @@ opt_error transaction::push_fail(function<void()>&& callback) noexcept {
   }
 
   // Should not throw an error
-  (**this->rollbacks.back()) = std::move(callback);
+  *this->rollbacks.back() = std::move(callback);
   return null;
 }
 

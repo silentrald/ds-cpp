@@ -83,7 +83,7 @@ public:
      * @errors
      *  - bad allocation in creating the arrays
      **/
-    opt_error init(i32 capacity) noexcept;
+    opt_err init(i32 capacity) noexcept;
 
     // === Move === //
 
@@ -155,7 +155,7 @@ public:
 
     // === Initializers === //
 
-    [[nodiscard]] opt_error init(i32 capacity, void* child) noexcept;
+    [[nodiscard]] opt_err init(i32 capacity, void* child) noexcept;
 
     // === Move === //
 
@@ -290,9 +290,9 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    *
-   * @return expected<inner_ptr> the pointer to the right parent
+   * @return exp_err<inner_ptr> the pointer to the right parent
    **/
-  [[nodiscard]] expected<inner_ptr> split_inner_node(inner_ptr left_node
+  [[nodiscard]] exp_err<inner_ptr> split_inner_node(inner_ptr left_node
   ) noexcept;
 
   /**
@@ -302,10 +302,10 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_error split_leaf_node(leaf_ptr left_leaf) noexcept;
+  [[nodiscard]] opt_err split_leaf_node(leaf_ptr left_leaf) noexcept;
 
   template <typename Value_>
-  [[nodiscard]] opt_error insert_impl(key_type key, Value_ value) noexcept;
+  [[nodiscard]] opt_err insert_impl(key_type key, Value_ value) noexcept;
 
   // * Erase Helpers * //
 
@@ -349,9 +349,9 @@ public:
    *  - tree is empty
    *  - key is not found in the tree
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at(key_type key) const noexcept;
 
   /**
    * Get the first element less than the key
@@ -360,9 +360,9 @@ public:
    *  - tree is empty
    *  - key is smaller than the smallest element
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at_smaller(key_type key
+  [[nodiscard]] exp_ptr_err<value_type> at_smaller(key_type key
   ) const noexcept;
 
   /**
@@ -372,9 +372,9 @@ public:
    *  - tree is empty
    *  - key is larger than the largest element
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at_larger(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at_larger(key_type key) const noexcept;
 
   /**
    * Get the first element not less than (greater than or equal) the key
@@ -383,9 +383,9 @@ public:
    *  - tree is empty
    *  - key is larger than the greater element
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at_not_smaller(key_type key
+  [[nodiscard]] exp_ptr_err<value_type> at_not_smaller(key_type key
   ) const noexcept;
 
   /**
@@ -395,9 +395,9 @@ public:
    *  - tree is empty
    *  - key is smaller than the smallest element
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at_not_larger(key_type key
+  [[nodiscard]] exp_ptr_err<value_type> at_not_larger(key_type key
   ) const noexcept;
 
   /**
@@ -480,7 +480,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key or value
    **/
-  [[nodiscard]] opt_error insert(key_type key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_type key, value_cref value) noexcept {
     return this->insert_impl<value_cref>(key, value);
   }
 
@@ -491,7 +491,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_error insert(key_type key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_type key, value_rref value) noexcept {
     return this->insert_impl<value_rref>(key, std::move(value));
   }
 

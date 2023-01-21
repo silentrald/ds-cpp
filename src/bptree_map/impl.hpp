@@ -75,7 +75,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_leaf_node_containing(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected_ptr<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key
 ) const noexcept {
@@ -94,7 +94,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected_ptr<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_smaller(key_type key
 ) const noexcept {
@@ -113,7 +113,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at_smaller(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected_ptr<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_larger(key_type key
 ) const noexcept {
@@ -137,7 +137,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at_larger(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected_ptr<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_smaller(key_type key
 ) const noexcept {
@@ -161,7 +161,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_smaller(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected_ptr<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_larger(key_type key
 ) const noexcept {
@@ -402,7 +402,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::create_leaf_node() noexcept {
 
 // TODO: Turn this into an iterative call to not stackoverflow
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected<typename base_bptree_map<Derived, Key, Value, KeyCompare>::inner_ptr>
+exp_err<typename base_bptree_map<Derived, Key, Value, KeyCompare>::inner_ptr>
 base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     inner_ptr left_node
 ) noexcept {
@@ -464,7 +464,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_error base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
     leaf_ptr left_leaf
 ) noexcept {
   // Create the left leaf and the parent node
@@ -526,7 +526,7 @@ opt_error base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 template <typename Value_>
-opt_error base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     key_type key, Value_ value
 ) noexcept {
   Value value_copy{};

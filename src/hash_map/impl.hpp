@@ -11,16 +11,15 @@
 
 #include "../prime.hpp"
 #include "./def.hpp"
-#include <iostream>
 #include <new>
 
 namespace ds {
 
-// === Copy ===
+// === Copy === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
-opt_error base_hash_map<Derived, Key, Value, Hash, KeyEqual>::copy(
+opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::copy(
     const base_hash_map& other
 ) noexcept {
   if (&other == this) {
@@ -30,7 +29,7 @@ opt_error base_hash_map<Derived, Key, Value, Hash, KeyEqual>::copy(
   return error{"not_implemented", def_err_vals};
 }
 
-// === Move ===
+// === Move === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -64,7 +63,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::operator=(
   return *this;
 }
 
-// === Destructor ===
+// === Destructor === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -78,7 +77,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::~base_hash_map() noexcept {
   this->buckets.clear();
 }
 
-// === Hashing ===
+// === Hashing === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -95,7 +94,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::calculate_hash_index(
   return index;
 }
 
-// === Iterators ===
+// === Iterators === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -128,7 +127,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::cend() const noexcept {
   return citerator{};
 }
 
-// === Capacity ===
+// === Capacity === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -144,7 +143,7 @@ i32 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::size() const noexcept {
   return this->_size;
 }
 
-// === Modifiers ===
+// === Modifiers === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -164,7 +163,7 @@ void base_hash_map<Derived, Key, Value, Hash, KeyEqual>::clear() noexcept {
   this->_size = 0;
 }
 
-// * Inserts *
+// * Inserts * //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -209,7 +208,7 @@ template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
 template <typename Key_, typename Value_>
-opt_error base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
+opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
     Key_ key, Value_ value
 ) noexcept {
   if (this->_size + 1 > this->_max_size) {
@@ -315,7 +314,7 @@ void base_hash_map<Derived, Key, Value, Hash, KeyEqual>::erase_impl(Key_ key
   }
 }
 
-// === Lookup ===
+// === Lookup === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -348,7 +347,7 @@ bool base_hash_map<Derived, Key, Value, Hash, KeyEqual>::contains_impl(Key_ key
   return this->get_node<Key_>(key) != nullptr;
 }
 
-// === Bucket Interface ===
+// === Bucket Interface === //
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
@@ -360,7 +359,7 @@ i32 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::bucket_count(
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
-opt_error base_hash_map<Derived, Key, Value, Hash, KeyEqual>::rehash(i32 count
+opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::rehash(i32 count
 ) noexcept {
   if (count < 1) {
     count = 11;

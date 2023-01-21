@@ -15,13 +15,13 @@
 namespace ds_test {
 
 extern ds::i32 counter; // NOLINT
-extern void* free_ptr;     // NOLINT
+extern void* free_ptr;  // NOLINT
 
 void print_error(const ds::error& error) noexcept;
-[[nodiscard]] bool handle_error(const ds::opt_error& error) noexcept;
+[[nodiscard]] bool handle_error(const ds::opt_err& error) noexcept;
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::expected<T>& expected) noexcept {
+[[nodiscard]] bool handle_error(const ds::exp_err<T>& expected) noexcept {
   if (expected) {
     return true;
   }
@@ -31,8 +31,7 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::expected_ptr<T>& expected
-) noexcept {
+[[nodiscard]] bool handle_error(const ds::exp_ptr_err<T>& expected) noexcept {
   if (expected) {
     return true;
   }
@@ -57,7 +56,7 @@ public:
   }
 
   // === Copy === //
-  [[nodiscard]] ds::opt_error copy(const Test& other) noexcept;
+  [[nodiscard]] ds::opt_err copy(const Test& other) noexcept;
 
   // === Move === //
   Test(Test&& rhs) noexcept;

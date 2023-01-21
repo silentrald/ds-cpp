@@ -49,7 +49,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key or value
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
     return this->template insert_impl<key_cref, value_cref>(key, value);
   }
 
@@ -61,7 +61,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
     return this->template insert_impl<key_cref, value_rref>(
         key, std::move(value)
     );
@@ -75,7 +75,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
     return this->template insert_impl<key_rref, value_cref>(
         std::move(key), value
     );
@@ -88,7 +88,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
     return this->template insert_impl<key_rref, value_rref>(
         std::move(key), std::move(value)
     );
@@ -102,7 +102,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert(const char* key, const char* value) noexcept {
     return this->template insert_impl<const char*, const char*>(key, value);
   }
@@ -115,7 +115,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert(const char* key, value_cref value) noexcept {
     return this->template insert_impl<const char*, value_cref>(key, value);
   }
@@ -128,7 +128,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert(const char* key, value_rref value) noexcept {
     return this->template insert_impl<const char*, value_rref>(
         key, std::move(value)
@@ -143,7 +143,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error insert(key_cref key, const char* value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, const char* value) noexcept {
     return this->template insert_impl<key_cref, const char*>(key, value);
   }
 
@@ -155,7 +155,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_error insert(key_rref key, const char* value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, const char* value) noexcept {
     return this->template insert_impl<key_rref, const char*>(
         std::move(key), value
     );
@@ -186,9 +186,9 @@ public:
    * @errors
    *   - key was not found
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(key_cref key) noexcept {
+  [[nodiscard]] exp_ptr_err<value_type> at(key_cref key) noexcept {
     auto* node = this->template get_node(key);
     if (node == nullptr) {
       return unexpected{error{HASH_MAP_NOT_FOUND, def_err_vals}};
@@ -206,9 +206,9 @@ public:
    * @errors
    *   - key was not found
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(const char* key) noexcept {
+  [[nodiscard]] exp_ptr_err<value_type> at(const char* key) noexcept {
     auto* node = this->get_node(key);
     if (node == nullptr) {
       return unexpected{error{HASH_MAP_NOT_FOUND, def_err_vals}};
@@ -295,7 +295,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key or value
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
     return this->template insert_impl<key_cref, value_cref>(key, value);
   }
 
@@ -307,7 +307,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
     return this->template insert_impl<key_cref, value_rref>(
         key, std::move(value)
     );
@@ -321,7 +321,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
     return this->template insert_impl<key_rref, value_cref>(
         std::move(key), value
     );
@@ -334,7 +334,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
     return this->template insert_impl<key_rref, value_rref>(
         std::move(key), std::move(value)
     );
@@ -348,7 +348,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert(const char* key, value_cref value) noexcept {
     return this->template insert_impl<const char*, value_cref>(key, value);
   }
@@ -361,7 +361,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error
+  [[nodiscard]] opt_err
   insert(const char* key, value_rref value) noexcept {
     return this->template insert_impl<const char*, value_rref>(
         key, std::move(value)
@@ -393,9 +393,9 @@ public:
    * @errors
    *   - key was not found
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(key_cref key) noexcept {
+  [[nodiscard]] exp_ptr_err<value_type> at(key_cref key) noexcept {
     auto* node = this->template get_node(key);
     if (node == nullptr) {
       return unexpected{error{HASH_MAP_NOT_FOUND, def_err_vals}};
@@ -413,9 +413,9 @@ public:
    * @errors
    *   - key was not found
    *
-   * @return expected_ptr<value_type>
+   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(const char* key) noexcept {
+  [[nodiscard]] exp_ptr_err<value_type> at(const char* key) noexcept {
     auto* node = this->get_node(key);
     if (node == nullptr) {
       return unexpected{error{HASH_MAP_NOT_FOUND, def_err_vals}};
@@ -502,7 +502,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key or value
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
     return this->template insert_impl<key_cref, value_cref>(key, value);
   }
 
@@ -514,7 +514,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  [[nodiscard]] opt_error insert(key_cref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
     return this->template insert_impl<key_cref, value_rref>(
         key, std::move(value)
     );
@@ -528,7 +528,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
     return this->template insert_impl<key_rref, value_cref>(
         std::move(key), value
     );
@@ -541,7 +541,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_error insert(key_rref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
     return this->template insert_impl<key_rref, value_rref>(
         std::move(key), std::move(value)
     );
@@ -555,7 +555,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key and value
    **/
-  [[nodiscard]] opt_error insert(key_cref key, const char* value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, const char* value) noexcept {
     return this->template insert_impl<key_cref, const char*>(key, value);
   }
 
@@ -567,7 +567,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_error insert(key_rref key, const char* value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, const char* value) noexcept {
     return this->template insert_impl<key_rref, const char*>(
         std::move(key), value
     );

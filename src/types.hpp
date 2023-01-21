@@ -10,6 +10,7 @@
 #define DS_TYPES_HPP
 
 #include <cstdint>
+#include <functional>
 
 namespace ds {
 
@@ -26,7 +27,9 @@ using i64 = long long;
 using f32 = float;
 using f64 = double;
 
-}  // namespace ds
+template <typename Signature> using function = std::function<Signature>;
+
+} // namespace ds
 
 #endif
 

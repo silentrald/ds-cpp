@@ -9,11 +9,9 @@
 #ifndef DS_UNIQUE_PTR_IMPL_HPP
 #define DS_UNIQUE_PTR_IMPL_HPP
 
+#include "../macro.hpp"
+#include "../type_traits.hpp"
 #include "./def.hpp"
-#include "error.hpp"
-#include "macro.hpp"
-#include "optional/def.hpp"
-#include "type_traits.hpp"
 #include <new>
 
 namespace ds {
@@ -50,7 +48,7 @@ template <typename T> void unique_ptr<T>::destroy() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> opt_error unique_ptr<T>::set(cref data) noexcept {
+template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
   if (!this->data) {
     this->data = new (std::nothrow) T(); // NOLINT
     if (this->data == nullptr) {
@@ -77,7 +75,7 @@ template <typename T> opt_error unique_ptr<T>::set(cref data) noexcept {
   return null;
 }
 
-template <typename T> opt_error unique_ptr<T>::set(rref data) noexcept {
+template <typename T> opt_err unique_ptr<T>::set(rref data) noexcept {
   if (this->data) {
     *this->data = std::move(data);
     return null;

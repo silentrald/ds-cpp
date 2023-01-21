@@ -17,21 +17,21 @@ namespace ds {
 
 // === Copy === //
 template <typename T>
-ds::opt_error shared_ptr<T>::copy(const shared_ptr& other) noexcept {
+opt_err shared_ptr<T>::copy(const shared_ptr& other) noexcept {
   if (&other == this || this->data == other.data) {
-    return ds::null;
+    return null;
   }
 
   this->destroy();
   if (other.data == nullptr) {
-    return ds::null;
+    return null;
   }
 
   this->data = other.data;
   this->counter = other.counter;
   ++(*this->counter);
 
-  return ds::null;
+  return null;
 }
 
 // === Move === //
@@ -98,20 +98,20 @@ template <typename T> shared_ptr<T>::~shared_ptr() noexcept {
 // === Modifiers === //
 template <typename T>
 template <typename Data_>
-ds::opt_error shared_ptr<T>::set_impl(Data_ data) noexcept {
+opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
   if (this->data) {
     this->destroy();
   }
 
   this->data = new value(); // NOLINT
   if (this->data == nullptr) {
-    return ds::error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+    return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
   }
 
   this->counter = new int(1); // NOLINT
   if (this->counter == nullptr) {
     this->destroy_data_ptr();
-    return ds::error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+    return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
   }
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
@@ -119,13 +119,13 @@ ds::opt_error shared_ptr<T>::set_impl(Data_ data) noexcept {
   } else if constexpr (std::is_class<value>::value) {
     if (this->data->copy(data)) {
       this->destroy_all_ptrs();
-      return ds::error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+      return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
     }
   } else {
     *this->data = data;
   }
 
-  return ds::null;
+  return null;
 }
 
 template <typename T> void shared_ptr<T>::release() noexcept {
@@ -148,7 +148,7 @@ typename shared_ptr<T>::ptr shared_ptr<T>::operator->() const noexcept {
   return this->data;
 }
 
-template <typename T> ds::i32 shared_ptr<T>::count() const noexcept {
+template <typename T> i32 shared_ptr<T>::count() const noexcept {
   return this->counter != nullptr ? *this->counter : 0;
 }
 

@@ -22,8 +22,9 @@ namespace ds {
 
 // === Copy ===
 template <typename Derived, typename Key, typename Hash, typename Equal>
-opt_error
-base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other) noexcept {
+opt_err
+base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other
+) noexcept {
   if (&other == this) {
     return null;
   }
@@ -68,7 +69,8 @@ base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other) noexc
 
 // === Move ===
 template <typename Derived, typename Key, typename Hash, typename Equal>
-base_hash_set<Derived, Key, Hash, Equal>::base_hash_set(base_hash_set&& rhs) noexcept
+base_hash_set<Derived, Key, Hash, Equal>::base_hash_set(base_hash_set&& rhs
+) noexcept
     : buckets(std::move(rhs.buckets)),
       _size(rhs._size),
       _max_size(rhs._max_size),
@@ -79,7 +81,8 @@ base_hash_set<Derived, Key, Hash, Equal>::base_hash_set(base_hash_set&& rhs) noe
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
 base_hash_set<Derived, Key, Hash, Equal>&
-base_hash_set<Derived, Key, Hash, Equal>::operator=(base_hash_set&& rhs) noexcept {
+base_hash_set<Derived, Key, Hash, Equal>::operator=(base_hash_set&& rhs
+) noexcept {
   if (&rhs == this) {
     return *this;
   }
@@ -112,7 +115,8 @@ base_hash_set<Derived, Key, Hash, Equal>::~base_hash_set() noexcept {
 template <typename Derived, typename Key, typename Hash, typename Equal>
 template <typename Key_>
 typename base_hash_set<Derived, Key, Hash, Equal>::hash_type
-base_hash_set<Derived, Key, Hash, Equal>::calculate_hash_index(Key_ key) noexcept {
+base_hash_set<Derived, Key, Hash, Equal>::calculate_hash_index(Key_ key
+) noexcept {
   hash_type index = Hash{}(key);
   index %= this->buckets.size();
   if (index < 0)
@@ -200,7 +204,7 @@ base_hash_set<Derived, Key, Hash, Equal>::create_node(Key_ key) noexcept {
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
 template <typename Key_>
-opt_error base_hash_set<Derived, Key, Hash, Equal>::insert_impl(Key_ key
+opt_err base_hash_set<Derived, Key, Hash, Equal>::insert_impl(Key_ key
 ) noexcept {
   if (this->_size + 1 > this->_max_size) {
     try_opt(this->rehash(next_greater_prime_i32(this->_size)));
@@ -322,7 +326,8 @@ base_hash_set<Derived, Key, Hash, Equal>::find_impl(Key_ key) const noexcept {
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
 template <typename Key_>
-bool base_hash_set<Derived, Key, Hash, Equal>::contains_impl(Key_ key) noexcept {
+bool base_hash_set<Derived, Key, Hash, Equal>::contains_impl(Key_ key
+) noexcept {
   return this->get_node<Key_>(key) != nullptr;
 }
 
@@ -333,8 +338,7 @@ i32 base_hash_set<Derived, Key, Hash, Equal>::bucket_count() const noexcept {
 }
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
-opt_error base_hash_set<Derived, Key, Hash, Equal>::rehash(i32 count
-) noexcept {
+opt_err base_hash_set<Derived, Key, Hash, Equal>::rehash(i32 count) noexcept {
   if (count < 1) {
     count = 11;
   }
