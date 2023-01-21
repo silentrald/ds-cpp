@@ -11,6 +11,7 @@
 
 #include "../prime.hpp"
 #include "./def.hpp"
+#include <iostream>
 #include <new>
 
 namespace ds {
@@ -74,6 +75,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::~base_hash_map() noexcept {
       delete node; // NOLINT
     }
   }
+  this->buckets.clear();
 }
 
 // === Hashing ===
@@ -107,7 +109,7 @@ template <
     typename KeyEqual>
 typename base_hash_map<Derived, Key, Value, Hash, KeyEqual>::citerator
 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::cbegin() const noexcept {
-  return iterator{&this->buckets};
+  return citerator{&this->buckets};
 }
 
 template <
@@ -123,7 +125,7 @@ template <
     typename KeyEqual>
 typename base_hash_map<Derived, Key, Value, Hash, KeyEqual>::citerator
 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::cend() const noexcept {
-  return iterator{};
+  return citerator{};
 }
 
 // === Capacity ===
@@ -321,6 +323,10 @@ template <typename Key_>
 typename base_hash_map<Derived, Key, Value, Hash, KeyEqual>::node_ptr
 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::get_node(Key_ key
 ) const noexcept {
+  if (this->empty()) {
+    return nullptr;
+  }
+
   for (auto* node =
            this->buckets[this->calculate_hash_index<Key_>(std::forward<Key_>(key
            ))];

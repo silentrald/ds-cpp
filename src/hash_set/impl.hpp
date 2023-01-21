@@ -131,7 +131,7 @@ base_hash_set<Derived, Key, Hash, Equal>::begin() noexcept {
 template <typename Derived, typename Key, typename Hash, typename Equal>
 typename base_hash_set<Derived, Key, Hash, Equal>::citerator
 base_hash_set<Derived, Key, Hash, Equal>::cbegin() const noexcept {
-  return iterator{&this->buckets};
+  return citerator{&this->buckets};
 }
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
@@ -143,7 +143,7 @@ base_hash_set<Derived, Key, Hash, Equal>::end() noexcept {
 template <typename Derived, typename Key, typename Hash, typename Equal>
 typename base_hash_set<Derived, Key, Hash, Equal>::citerator
 base_hash_set<Derived, Key, Hash, Equal>::cend() const noexcept {
-  return iterator{};
+  return citerator{};
 }
 
 // === Capacity ===

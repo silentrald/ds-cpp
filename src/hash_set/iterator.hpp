@@ -19,6 +19,7 @@ public:
   using key_ptr = key_type*;
   using key_ref = key_type&;
   using key_cref = const key_type&;
+  using key_cptr = const key_type*;
 
   using node_type = typename HashSet::node_type;
   using nodeptr = node_type*;
@@ -82,7 +83,7 @@ public:
     return this->ptr->key;
   }
 
-  key_ptr operator->() noexcept {
+  key_cptr operator->() const noexcept {
     return &this->ptr->key;
   }
 

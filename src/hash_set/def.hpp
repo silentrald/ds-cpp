@@ -37,7 +37,7 @@ public:
   using key_rref = Key&&;
 
   using iterator = hash_set_iterator<base_hash_set<Derived, Key, Hash, Equal>>;
-  using citerator = const iterator;
+  using citerator = hash_set_iterator<const base_hash_set<Derived, Key, Hash, Equal>>;
 
   using hash_type = typename Hash::hash_return;
 

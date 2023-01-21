@@ -48,7 +48,7 @@ public:
   using ptr = T*;
 
   using iterator = vector_iterator<base_vector<Derived, T>>;
-  using citerator = iterator;
+  using citerator = vector_iterator<const base_vector<Derived, T>>;
 
 protected:
   ptr arr = nullptr;
@@ -151,7 +151,7 @@ public:
    *
    * @return expected_ptr<value>
    **/
-  [[nodiscard]] ds::expected_ptr<T> at(ds::i32 index) noexcept;
+  [[nodiscard]] ds::expected_ptr<T> at(ds::i32 index) const noexcept;
 
   /**
    * Unsafe index accessing
@@ -168,7 +168,7 @@ public:
    *
    *  @return expected_ptr<value>
    **/
-  [[nodiscard]] ds::expected_ptr<T> front() noexcept;
+  [[nodiscard]] ds::expected_ptr<T> front() const noexcept;
 
   /**
    * Returns the expected ptr at the end of the vector
@@ -178,14 +178,7 @@ public:
    *
    *  @return expected_ptr<value>
    **/
-  [[nodiscard]] ds::expected_ptr<T> back() noexcept;
-
-  /**
-   * Returns the ptr of the vector container
-   *
-   * @return ptr
-   **/
-  [[nodiscard]] ptr data() noexcept;
+  [[nodiscard]] ds::expected_ptr<T> back() const noexcept;
 
   /**
    * Returns the ptr of the vector container

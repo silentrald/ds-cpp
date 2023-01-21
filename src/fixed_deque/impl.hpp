@@ -348,22 +348,22 @@ template <typename T> expected_ptr<T> fixed_deque<T>::back() noexcept {
 // === Iterators ===
 template <typename T>
 typename fixed_deque<T>::iterator fixed_deque<T>::begin() noexcept {
-  return iterator(this->arr, this->head > -1 ? this->head : 1, this->_capacity);
+  return iterator{this->arr, this->head > -1 ? this->head : 1, this->_capacity};
 }
 
 template <typename T>
 typename fixed_deque<T>::citerator fixed_deque<T>::cbegin() const noexcept {
-  return iterator(this->arr, this->head > -1 ? this->head : 1, this->_capacity);
+  return citerator{this->arr, this->head > -1 ? this->head : 1, this->_capacity};
 }
 
 template <typename T>
 typename fixed_deque<T>::iterator fixed_deque<T>::end() noexcept {
-  return iterator(this->arr, this->tail + 1, this->_capacity);
+  return iterator{this->arr, this->tail + 1, this->_capacity};
 }
 
 template <typename T>
 typename fixed_deque<T>::citerator fixed_deque<T>::cend() const noexcept {
-  return iterator(this->arr, this->tail + 1, this->_capacity);
+  return citerator{this->arr, this->tail + 1, this->_capacity};
 }
 
 // === Capacity ===

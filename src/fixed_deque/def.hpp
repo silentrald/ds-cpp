@@ -47,7 +47,7 @@ public:
   using pointer = T*;
 
   using iterator = fixed_deque_iterator<fixed_deque<T>>;
-  using citerator = const fixed_deque_iterator<fixed_deque<T>>;
+  using citerator = fixed_deque_iterator<const fixed_deque<T>>;
 
 private:
   pointer arr = nullptr;

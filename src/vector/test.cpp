@@ -295,9 +295,14 @@ TEST_CASE("vector", "ds") {
       }
 
       CHECK(handle_error(vec.push_back(2, 3, 4, 5)));
-      ds::i32 ei = 1;
+      ds::i32 ei = 0;
       for (auto i : vec) {
-        REQUIRE(i == ei++);
+        REQUIRE(i == ++ei);
+      }
+
+      ei = 0;
+      for (const auto i : vec) {
+        REQUIRE(i == ++ei);
       }
     }
 
@@ -709,9 +714,14 @@ TEST_CASE("vector", "ds") {
       }
 
       CHECK(handle_error(vec.push_back(Test{2}, Test{3}, Test{4}, Test{5})));
-      ds::i32 ei = 1;
+      ds::i32 ei = 0;
       for (auto& c : vec) {
-        REQUIRE(c == ei++);
+        REQUIRE(c == ++ei);
+      }
+
+      ei = 0;
+      for (const auto& c : vec) {
+        REQUIRE(c == ++ei);
       }
 
       vec.~vector();

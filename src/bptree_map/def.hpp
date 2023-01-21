@@ -53,7 +53,8 @@ public:
 
   using iterator =
       bptree_map_iterator<base_bptree_map<Derived, Key, Value, KeyCompare>>;
-  using citerator = const iterator;
+  using citerator = bptree_map_iterator<
+      const base_bptree_map<Derived, Key, Value, KeyCompare>>;
 
   class leaf_node {
   private:
@@ -65,8 +66,7 @@ public:
     leaf_node* next = nullptr;
     leaf_node* prev = nullptr;
 
-    void
-    insert_indexed(i32 index, key_type key, value_rref value) noexcept;
+    void insert_indexed(i32 index, key_type key, value_rref value) noexcept;
 
   public:
     leaf_node() = default;
@@ -112,6 +112,8 @@ public:
     // === Element Access === //
 
     [[nodiscard]] key_type at_key(i32 index) const noexcept;
+    [[nodiscard]] key_type front_key() const noexcept;
+    [[nodiscard]] key_type back_key() const noexcept;
     [[nodiscard]] Value& at_value(i32 index) const noexcept;
 
     // === Modifiers === //
@@ -132,8 +134,7 @@ public:
     [[nodiscard]] i32 find_index(key_type key) const noexcept;
     [[nodiscard]] i32 find_smaller_index(key_type key) const noexcept;
     [[nodiscard]] i32 find_larger_index(key_type key) const noexcept;
-    [[nodiscard]] i32 find_not_smaller_index(key_type key
-    ) const noexcept;
+    [[nodiscard]] i32 find_not_smaller_index(key_type key) const noexcept;
     [[nodiscard]] i32 find_not_larger_index(key_type key) const noexcept;
   };
 
@@ -154,8 +155,7 @@ public:
 
     // === Initializers === //
 
-    [[nodiscard]] opt_error
-    init(i32 capacity, void* child) noexcept;
+    [[nodiscard]] opt_error init(i32 capacity, void* child) noexcept;
 
     // === Move === //
 
@@ -202,7 +202,7 @@ public:
     void push_back(key_type key, void* child) noexcept;
     void pop_back() noexcept;
     void erase(i32 index) noexcept;
-    void set_key(i32 index, void* child) noexcept;
+    void set_key(i32 index, key_type key) noexcept;
 
     // === Reparenting === //
 
@@ -305,8 +305,7 @@ protected:
   [[nodiscard]] opt_error split_leaf_node(leaf_ptr left_leaf) noexcept;
 
   template <typename Value_>
-  [[nodiscard]] opt_error
-  insert_impl(key_type key, Value_ value) noexcept;
+  [[nodiscard]] opt_error insert_impl(key_type key, Value_ value) noexcept;
 
   // * Erase Helpers * //
 
@@ -352,7 +351,7 @@ public:
    *
    * @return expected_ptr<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at(key_type key) noexcept;
+  [[nodiscard]] expected_ptr<value_type> at(key_type key) const noexcept;
 
   /**
    * Get the first element less than the key
@@ -364,7 +363,7 @@ public:
    * @return expected_ptr<value_type>
    **/
   [[nodiscard]] expected_ptr<value_type> at_smaller(key_type key
-  ) noexcept;
+  ) const noexcept;
 
   /**
    * Get the first element greater than the key
@@ -375,8 +374,7 @@ public:
    *
    * @return expected_ptr<value_type>
    **/
-  [[nodiscard]] expected_ptr<value_type> at_larger(key_type key
-  ) noexcept;
+  [[nodiscard]] expected_ptr<value_type> at_larger(key_type key) const noexcept;
 
   /**
    * Get the first element not less than (greater than or equal) the key
@@ -388,7 +386,7 @@ public:
    * @return expected_ptr<value_type>
    **/
   [[nodiscard]] expected_ptr<value_type> at_not_smaller(key_type key
-  ) noexcept;
+  ) const noexcept;
 
   /**
    * Get the first element not greater than (less than or equal) the key
@@ -400,7 +398,7 @@ public:
    * @return expected_ptr<value_type>
    **/
   [[nodiscard]] expected_ptr<value_type> at_not_larger(key_type key
-  ) noexcept;
+  ) const noexcept;
 
   /**
    * Unsafe Element Access
@@ -482,8 +480,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key or value
    **/
-  [[nodiscard]] opt_error
-  insert(key_type key, value_cref value) noexcept {
+  [[nodiscard]] opt_error insert(key_type key, value_cref value) noexcept {
     return this->insert_impl<value_cref>(key, value);
   }
 
@@ -494,8 +491,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_error
-  insert(key_type key, value_rref value) noexcept {
+  [[nodiscard]] opt_error insert(key_type key, value_rref value) noexcept {
     return this->insert_impl<value_rref>(key, std::move(value));
   }
 
@@ -509,11 +505,22 @@ public:
   // === Lookup === //
 
   /**
-   * Returns the iterator with the corresponding key
+   * Returns the iterator with the corresponding key.
+   * If it does not find an exact match, it will return
+   * the end of the iterator.
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find(key_type key) const noexcept;
+  [[nodiscard]] iterator find(key_type key) noexcept;
+
+  /**
+   * Returns the iterator with the corresponding key.
+   * If it does not find an exact match, it will return
+   * the end of the iterator.
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator find(key_type key) const noexcept;
 
   /**
    * Returns an iterator to the first element less than the key.
@@ -522,7 +529,16 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_smaller(key_type key) const noexcept;
+  [[nodiscard]] iterator find_smaller(key_type key) noexcept;
+
+  /**
+   * Returns an iterator to the first element less than the key.
+   * If the key is smaller than the smallest key, then this returns
+   * the end iterator.
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator find_smaller(key_type key) const noexcept;
 
   /**
    * Returns an iterator to the first element greater than the key.
@@ -531,7 +547,16 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_larger(key_type key) const noexcept;
+  [[nodiscard]] iterator find_larger(key_type key) noexcept;
+
+  /**
+   * Returns an iterator to the first element greater than the key.
+   * If the key is larger than the largest key, then this returns
+   * the end iterator.
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator find_larger(key_type key) const noexcept;
 
   /**
    * Returns an iterator to the first element not less than (greater than or
@@ -540,7 +565,16 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_not_smaller(key_type key) const noexcept;
+  [[nodiscard]] iterator find_not_smaller(key_type key) noexcept;
+
+  /**
+   * Returns an iterator to the first element not less than (greater than or
+   * equal) the key. If the key is larger than the largest key, then this
+   *returns the end iterator
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator find_not_smaller(key_type key) const noexcept;
 
   /**
    * Returns an iterator to the first element not greater than (less than or
@@ -549,7 +583,16 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_not_larger(key_type key) const noexcept;
+  [[nodiscard]] iterator find_not_larger(key_type key) noexcept;
+
+  /**
+   * Returns an iterator to the first element not greater than (less than or
+   * equal) the key. If the key is smaller than the smallest key, then this
+   * returns the end iterator
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator find_not_larger(key_type key) const noexcept;
 
   /**
    * Checks if the key exists in the bptree_map

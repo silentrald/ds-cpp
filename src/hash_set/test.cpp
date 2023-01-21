@@ -8,9 +8,9 @@
 
 #include "../test.hpp"
 #include "../error.hpp"
+#include "../string/def.hpp"
 #include "./def.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "../string/def.hpp"
 
 using namespace ds_test;
 
@@ -236,6 +236,19 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       ds::i32 count = 0;
       bool expected[] = {true, true, true, true, true}; // NOLINT
       // Ordering does not matter
+      for (auto& i : set) { // NOLINT
+        REQUIRE(expected[i]);
+        expected[i] = false;
+        ++count;
+      }
+
+      for (ds::i32 i = 0; i < 5; ++i) { // NOLINT
+        expected[i] = true;
+      }
+
+      REQUIRE(count == 5);
+      count = 0;
+
       for (const auto& i : set) {
         REQUIRE(expected[i]);
         expected[i] = false;

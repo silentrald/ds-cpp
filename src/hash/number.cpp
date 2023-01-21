@@ -58,5 +58,14 @@ i32 hash<u64>::operator()(u64 data) const noexcept {
   return data;
 }
 
+template <>
+i32 hash<void*>::operator()(void *data) const noexcept {
+  u64 value = (u64)data;
+  value = (value ^ (value >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+  value = (value ^ (value >> 27)) * UINT64_C(0x94d049bb133111eb);
+  value = value ^ (value >> 31);
+  return value;
+}
+
 } // namespace ds
 

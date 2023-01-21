@@ -58,8 +58,8 @@ public:
 
   using iterator =
       hash_map_iterator<base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
-  using citerator = const iterator;
-
+  using citerator = hash_map_const_iterator<
+      base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
 
 protected:
   bucket_container buckets{};

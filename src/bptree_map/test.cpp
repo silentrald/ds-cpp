@@ -8,11 +8,15 @@
 
 #include "../types.hpp"
 #include "./def.hpp"
-#include "ds/error.hpp"
-#include "ds/shared_ptr/def.hpp"
-#include <iostream>
 
 int main() {
+  ds::bptree_map<ds::i32, ds::i32> map{};
+
+  auto error = map.insert(100, 200);
+  error = map.insert(200, 200);
+
+  for (auto it = map.cbegin(); it != map.cend(); ++it) {}
+
   return 0;
 }
 

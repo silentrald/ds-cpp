@@ -25,6 +25,11 @@ TEST_CASE("hash_map", "ds") { // NOLINT
     CHECK(handle_error(map.insert(100, 200)));
     CHECK(handle_error(map.insert(200, 500)));
     CHECK(handle_error(map.insert(100, 300)));
+
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+      REQUIRE(map.contains(it.key()));
+      REQUIRE(*map[it.key()] == it.value());
+    }
   }
 
   SECTION("Key String and Value String") {

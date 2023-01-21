@@ -18,6 +18,8 @@ public:
   using value = typename Vector::value;
   using ptr = value*;
   using ref = value&;
+  using cref = const value&;
+  using cptr = const value*;
 
 private:
   ptr pointer = nullptr;
@@ -25,11 +27,19 @@ private:
 public:
   explicit vector_iterator(ptr pointer) noexcept : pointer(pointer) {}
 
-  ref operator*() const noexcept {
+  ref operator*() noexcept {
+    return *this->pointer;
+  }
+
+  cref operator*() const noexcept {
     return *this->pointer;
   }
 
   ptr operator->() noexcept {
+    return this->pointer;
+  }
+
+  cptr operator->() const noexcept {
     return this->pointer;
   }
 

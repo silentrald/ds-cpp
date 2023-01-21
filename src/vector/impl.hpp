@@ -191,7 +191,7 @@ void base_vector<Derived, T>::shift(ds::i32 start, ds::i32 n) noexcept {
 
 // === Element Access ===
 template <typename Derived, typename T>
-ds::expected_ptr<T> base_vector<Derived, T>::at(ds::i32 index) noexcept {
+ds::expected_ptr<T> base_vector<Derived, T>::at(ds::i32 index) const noexcept {
   if (index < 0 || index >= this->top) {
     return ds::unexpected(ds::error{VECTOR_OUT_OF_RANGE});
   }
@@ -206,7 +206,7 @@ base_vector<Derived, T>::operator[](ds::i32 index) const noexcept {
 }
 
 template <typename Derived, typename T>
-ds::expected_ptr<T> base_vector<Derived, T>::front() noexcept {
+ds::expected_ptr<T> base_vector<Derived, T>::front() const noexcept {
   if (this->empty()) {
     return ds::unexpected(ds::error{VECTOR_EMPTY});
   }
@@ -215,17 +215,12 @@ ds::expected_ptr<T> base_vector<Derived, T>::front() noexcept {
 }
 
 template <typename Derived, typename T>
-ds::expected_ptr<T> base_vector<Derived, T>::back() noexcept {
+ds::expected_ptr<T> base_vector<Derived, T>::back() const noexcept {
   if (this->empty()) {
     return ds::unexpected(ds::error{VECTOR_EMPTY});
   }
 
   return this->arr + this->top - 1;
-}
-
-template <typename Derived, typename T>
-typename base_vector<Derived, T>::ptr base_vector<Derived, T>::data() noexcept {
-  return this->arr;
 }
 
 template <typename Derived, typename T>
@@ -244,7 +239,7 @@ base_vector<Derived, T>::begin() noexcept {
 template <typename Derived, typename T>
 typename base_vector<Derived, T>::citerator
 base_vector<Derived, T>::cbegin() const noexcept {
-  return iterator(this->arr);
+  return citerator(this->arr);
 }
 
 template <typename Derived, typename T>
@@ -256,7 +251,7 @@ base_vector<Derived, T>::end() noexcept {
 template <typename Derived, typename T>
 typename base_vector<Derived, T>::citerator
 base_vector<Derived, T>::cend() const noexcept {
-  return iterator(this->arr + this->top);
+  return citerator(this->arr + this->top);
 }
 
 template <typename Derived, typename T>

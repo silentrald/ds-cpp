@@ -77,7 +77,8 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_leaf_node_containing(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 expected_ptr<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
-base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key) noexcept {
+base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key
+) const noexcept {
   if (this->height == 0) {
     return unexpected{error{BPTREE_MAP_EMPTY, def_err_vals}};
   }
@@ -96,7 +97,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 expected_ptr<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_smaller(key_type key
-) noexcept {
+) const noexcept {
   if (this->height == 0) {
     return unexpected{error{BPTREE_MAP_EMPTY, def_err_vals}};
   }
@@ -115,7 +116,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 expected_ptr<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_larger(key_type key
-) noexcept {
+) const noexcept {
   if (this->height == 0) {
     return unexpected{error{BPTREE_MAP_EMPTY, def_err_vals}};
   }
@@ -139,7 +140,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 expected_ptr<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_smaller(key_type key
-) noexcept {
+) const noexcept {
   if (this->height == 0) {
     return unexpected{error{BPTREE_MAP_EMPTY, def_err_vals}};
   }
@@ -163,7 +164,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 expected_ptr<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_larger(key_type key
-) noexcept {
+) const noexcept {
   if (this->height == 0) {
     return unexpected{error{BPTREE_MAP_EMPTY, def_err_vals}};
   }
@@ -185,7 +186,6 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::operator[](key_type key
   if (this->height == 0) {
     return nullptr;
   }
-
 
   leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
                                     : this->find_leaf_node_containing(key);
@@ -216,11 +216,11 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
 base_bptree_map<Derived, Key, Value, KeyCompare>::cbegin() const noexcept {
   if (this->height == 0) {
-    return iterator{};
+    return citerator{};
   }
 
   if (this->height == 1) {
-    return iterator{static_cast<leaf_ptr>(this->root)};
+    return citerator{static_cast<leaf_ptr>(this->root)};
   }
 
   auto* node = static_cast<inner_ptr>(this->root);
@@ -228,7 +228,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::cbegin() const noexcept {
     node = static_cast<inner_ptr>(node->front_child());
   }
 
-  return iterator{static_cast<leaf_ptr>(node->front_child())};
+  return citerator{static_cast<leaf_ptr>(node->front_child())};
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -240,7 +240,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::end() noexcept {
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
 base_bptree_map<Derived, Key, Value, KeyCompare>::cend() const noexcept {
-  return iterator{};
+  return citerator{};
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -302,8 +302,7 @@ bool base_bptree_map<Derived, Key, Value, KeyCompare>::empty() const noexcept {
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32
-base_bptree_map<Derived, Key, Value, KeyCompare>::size() const noexcept {
+i32 base_bptree_map<Derived, Key, Value, KeyCompare>::size() const noexcept {
   return this->_size;
 }
 
@@ -403,8 +402,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::create_leaf_node() noexcept {
 
 // TODO: Turn this into an iterative call to not stackoverflow
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-expected<
-    typename base_bptree_map<Derived, Key, Value, KeyCompare>::inner_ptr>
+expected<typename base_bptree_map<Derived, Key, Value, KeyCompare>::inner_ptr>
 base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     inner_ptr left_node
 ) noexcept {
@@ -424,8 +422,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     parent = this->create_inner_node(left_node);
     if (parent) {
       delete right_node; // NOLINT
-      return unexpected{
-          error{BPTREE_MAP_BAD_ALLOC, def_err_vals}};
+      return unexpected{error{BPTREE_MAP_BAD_ALLOC, def_err_vals}};
     }
   }
 
@@ -467,8 +464,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_error
-base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
+opt_error base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
     leaf_ptr left_leaf
 ) noexcept {
   // Create the left leaf and the parent node
@@ -722,7 +718,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::borrow_or_merge_leaf(
     return;
   }
 
-  this->borrow_or_merge_inner(parent);
+  this->borrow_or_merge_inner(parent, key);
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -813,39 +809,37 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::erase(key_type key
   }
   auto* leaf = static_cast<leaf_ptr>(node->get_children()[index]);
 
-  keys = leaf->get_keys();
   if (grandparent) {
     if (this->degree > 3) {
       grandparent->get_keys()[grandparent_index] = keys[1];
     }
 
-    this->erase_leaf(leaf, 0);
+    --this->_size;
+
+    leaf->erase(0);
+    if (leaf->get_size() < this->min_leaf_children()) {
+      this->borrow_or_merge_leaf(leaf);
+    }
     return;
   }
 
-  sz = leaf->get_size();
-  for (index = 0; index < sz; ++index) {
-    if (KeyCompare{}(key, keys[index]) == 0) {
-      --this->_size;
-      leaf->erase(index);
-
-      if (leaf->get_size() >= this->min_leaf_children()) {
-        return;
-      }
-
-      this->borrow_or_merge_leaf(leaf);
-      return;
-    }
+  index = leaf->find_index(key);
+  if (index == -1) {
+    // Nothing is deleted
+    return;
   }
 
-  // Nothing is deleted
+  --this->_size;
+  leaf->erase(index);
+  if (leaf->get_size() < this->min_leaf_children()) {
+    this->borrow_or_merge_leaf(leaf);
+  }
 }
 
 // === Lookup === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::iterator
-base_bptree_map<Derived, Key, Value, KeyCompare>::find(key_type key
-) const noexcept {
+base_bptree_map<Derived, Key, Value, KeyCompare>::find(key_type key) noexcept {
   if (this->height == 0) {
     return iterator{};
   }
@@ -857,9 +851,23 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
+typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
+base_bptree_map<Derived, Key, Value, KeyCompare>::find(key_type key
+) const noexcept {
+  if (this->height == 0) {
+    return citerator{};
+  }
+
+  leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
+                                    : this->find_leaf_node_containing(key);
+  i32 index = leaf->find_index(key);
+  return index > -1 ? citerator{leaf, index} : citerator{};
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::iterator
 base_bptree_map<Derived, Key, Value, KeyCompare>::find_smaller(key_type key
-) const noexcept {
+) noexcept {
   if (this->height == 0) {
     return iterator{};
   }
@@ -871,9 +879,23 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_smaller(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
+typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
+base_bptree_map<Derived, Key, Value, KeyCompare>::find_smaller(key_type key
+) const noexcept {
+  if (this->height == 0) {
+    return citerator{};
+  }
+
+  leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
+                                    : this->find_leaf_node_containing(key);
+  i32 index = leaf->find_smaller_index(key);
+  return index > -1 ? citerator{leaf, index} : citerator{};
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::iterator
 base_bptree_map<Derived, Key, Value, KeyCompare>::find_larger(key_type key
-) const noexcept {
+) noexcept {
   if (this->height == 0) {
     return iterator{};
   }
@@ -890,9 +912,28 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_larger(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
+typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
+base_bptree_map<Derived, Key, Value, KeyCompare>::find_larger(key_type key
+) const noexcept {
+  if (this->height == 0) {
+    return citerator{};
+  }
+
+  leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
+                                    : this->find_leaf_node_containing(key);
+  i32 index = leaf->find_larger_index(key);
+  if (index > -1) {
+    return citerator{leaf, index};
+  }
+
+  leaf = leaf->get_next();
+  return leaf ? citerator{leaf, 0} : citerator{};
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::iterator
 base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_smaller(key_type key
-) const noexcept {
+) noexcept {
   if (this->height == 0) {
     return iterator{};
   }
@@ -909,9 +950,28 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_smaller(key_type key
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
+typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
+base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_smaller(key_type key
+) const noexcept {
+  if (this->height == 0) {
+    return citerator{};
+  }
+
+  leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
+                                    : this->find_leaf_node_containing(key);
+  i32 index = leaf->find_not_smaller_index(key);
+  if (index > -1) {
+    return citerator{leaf, index};
+  }
+
+  leaf = leaf->get_next();
+  return leaf ? citerator{leaf, 0} : citerator{};
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
 typename base_bptree_map<Derived, Key, Value, KeyCompare>::iterator
 base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_larger(key_type key
-) const noexcept {
+) noexcept {
   if (this->height == 0) {
     return iterator{};
   }
@@ -920,6 +980,20 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_larger(key_type key
                                     : this->find_leaf_node_containing(key);
   i32 index = leaf->find_not_larger_index(key);
   return index > -1 ? iterator{leaf, index} : iterator{};
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
+typename base_bptree_map<Derived, Key, Value, KeyCompare>::citerator
+base_bptree_map<Derived, Key, Value, KeyCompare>::find_not_larger(key_type key
+) const noexcept {
+  if (this->height == 0) {
+    return citerator{};
+  }
+
+  leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
+                                    : this->find_leaf_node_containing(key);
+  i32 index = leaf->find_not_larger_index(key);
+  return index > -1 ? citerator{leaf, index} : citerator{};
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>

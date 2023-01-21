@@ -171,6 +171,18 @@ Key base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_key(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
+Key base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::front_key(
+) const noexcept {
+  return this->keys[0];
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
+Key base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::back_key(
+) const noexcept {
+  return this->keys[this->size - 1];
+}
+
+template <typename Derived, typename Key, typename Value, typename KeyCompare>
 Value&
 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_value(i32 index
 ) const noexcept {
@@ -633,9 +645,9 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::erase(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::set_key(
-    i32 index, void* child
+    i32 index, key_type key
 ) noexcept {
-  this->children[index] = child;
+  this->keys[index] = key;
 }
 
 // === Reparenting === //
