@@ -6,21 +6,31 @@
  * Updated: 2023-xx-xx
  *===============================*/
 
+#include "../error.hpp"
+#include "../optional/def.hpp"
 #include "../types.hpp"
 #include "./def.hpp"
-#include "optional/def.hpp"
-#include <iostream>
+
+struct Data {
+  ds::i64 x = 0;
+  ds::i64 y = 0;
+  ds::i64 z = 0;
+  ds::i64 w = 0;
+};
 
 int main() {
-  ds::bptree_map<ds::i32, ds::i32> map{};
+  ds::bptree_map<ds::i32, Data> map{};
+  ds::opt_err error{};
 
-  auto error = map.insert(100, 200);
-  std::cout << error->get_msg() << '\n';
-  error = map.insert(200, 200);
-  std::cout << error->get_msg() << '\n';
-
-  for (auto it = map.cbegin(); it != map.cend(); ++it) {
+  const ds::i32 end = 100;
+  for (ds::i32 i = 0; i < end; ++i) {
+    error = map.insert(i, {});
+    if (error) {
+      break;
+    }
   }
+
+  for (auto it = map.cbegin(); it != map.cend(); ++it) {}
 
   return 0;
 }

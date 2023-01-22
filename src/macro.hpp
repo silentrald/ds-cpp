@@ -9,7 +9,8 @@
 #ifndef DS_MACRO_HPP
 #define DS_MACRO_HPP
 
-// TODO: Check if there is a way to make this inline instead of a macro
+#include "./expected/def.hpp"
+
 #define def_err_vals __FILE__, __FUNCTION__, __LINE__
 
 /**
@@ -27,7 +28,7 @@
 #define try_opt_unexp(opt)                                                     \
   if (auto err = opt) {                                                        \
     err->push_back_location(def_err_vals);                                     \
-    return types::unexpected(std::move(*err));                                 \
+    return ds::unexpected(std::move(*err));                                    \
   }
 
 #define try_exp(exp)                                                           \
@@ -64,7 +65,7 @@
     auto res = exp;                                                            \
     if (!res) {                                                                \
       res.error().push_back_location(def_err_vals);                            \
-      return types::unexpected(std::move(res.error()));                        \
+      return ds::unexpected(std::move(res.error()));                           \
     }                                                                          \
     *res;                                                                      \
   });

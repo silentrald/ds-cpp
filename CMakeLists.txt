@@ -7,6 +7,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 add_subdirectory(external/catch2)
 include_directories(src)
 
+add_library(ds
+  src/string/impl.cpp
+
+  src/transaction/impl.cpp
+  
+  src/hash/murmur3.cpp
+  src/hash/number.cpp
+
+  src/prime.cpp
+)
+
 set(DS_TEST "DS Test Cases" ON)
 
 if (DS_TEST)

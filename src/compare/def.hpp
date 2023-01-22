@@ -17,7 +17,8 @@ namespace ds {
 
 template <typename T> class compare {
 public:
-  [[nodiscard]] i32 operator()(const T& t1, const T& t2) const noexcept {
+  [[nodiscard]] i32
+  operator()(const T& t1, const T& t2) const noexcept {
     return t1 - t2;
   }
 };

@@ -293,6 +293,12 @@ public:
   [[nodiscard]] exp_err<T> pop_back() noexcept;
 
   /**
+   * Pops an element from the back and returns the element
+   * Should crash when this is empty
+   **/
+  [[nodiscard]] T&& pop_back_unsafe() noexcept;
+
+  /**
    * Pops an element from the back and discards it
    **/
   void pop_back_disc() noexcept;

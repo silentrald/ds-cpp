@@ -32,7 +32,7 @@ opt_err transaction::push_fail(function<void()>&& callback) noexcept {
   }
 
   // Should not throw an error
-  *this->rollbacks.back() = std::move(callback);
+  this->rollbacks[this->rollbacks.size() - 1] = std::move(callback);
   return null;
 }
 

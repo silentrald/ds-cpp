@@ -81,13 +81,13 @@ public:
   }
 
   // Postfix
-  const bptree_map_iterator& operator++(i32) noexcept {
+  const bptree_map_iterator operator++(i32) noexcept {
     bptree_map_iterator tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  const bptree_map_iterator& operator--(i32) noexcept {
+  const bptree_map_iterator operator--(i32) noexcept {
     bptree_map_iterator tmp = *this;
     --(*this);
     return tmp;

@@ -58,7 +58,7 @@ public:
 
   class leaf_node {
   private:
-    Key* keys = nullptr;        // size
+    key_ptr keys = nullptr;     // size
     value_ptr values = nullptr; // size
     i32 size = 0;
 
@@ -102,7 +102,7 @@ public:
 
     // === Getters === //
 
-    [[nodiscard]] Key* get_keys() const noexcept;
+    [[nodiscard]] key_ptr get_keys() const noexcept;
     [[nodiscard]] value_ptr get_values() const noexcept;
     [[nodiscard]] i32 get_size() const noexcept;
     [[nodiscard]] inner_node* get_parent() const noexcept;
@@ -292,8 +292,7 @@ protected:
    *
    * @return exp_err<inner_ptr> the pointer to the right parent
    **/
-  [[nodiscard]] exp_err<inner_ptr> split_inner_node(inner_ptr left_node
-  ) noexcept;
+  [[nodiscard]] opt_err split_inner_node(inner_ptr left_node) noexcept;
 
   /**
    * Splits the leaf node
@@ -362,8 +361,7 @@ public:
    *
    * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at_smaller(key_type key
-  ) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at_smaller(key_type key) const noexcept;
 
   /**
    * Get the first element greater than the key

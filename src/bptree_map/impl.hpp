@@ -9,6 +9,9 @@
 #ifndef DS_BPTREE_MAP_IMPL_HPP
 #define DS_BPTREE_MAP_IMPL_HPP
 
+#include "../error.hpp"
+#include "../macro.hpp"
+#include "../vector/def.hpp"
 #include "./def.hpp"
 #include <cstdlib>
 #include <new>
@@ -400,67 +403,86 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::create_leaf_node() noexcept {
   return leaf;
 }
 
-// TODO: Turn this into an iterative call to not stackoverflow
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_err<typename base_bptree_map<Derived, Key, Value, KeyCompare>::inner_ptr>
-base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     inner_ptr left_node
 ) noexcept {
   i32 mid = this->middle();
+  inner_ptr parent = nullptr;
+  inner_ptr right_node = nullptr;
+  key_type key;
+  vector<inner_ptr> stack{};
 
-  // Create the right and parent internal node
-  auto* right_node =
-      this->create_inner_node(left_node->get_children()[mid + 1]);
-  if (right_node == nullptr) {
-    return unexpected{error{BPTREE_MAP_BAD_ALLOC, def_err_vals}};
-  }
-
-  auto* parent = left_node->get_parent();
-  bool created = false;
-  if (parent == nullptr) {
-    created = true;
-    parent = this->create_inner_node(left_node);
-    if (parent) {
-      delete right_node; // NOLINT
-      return unexpected{error{BPTREE_MAP_BAD_ALLOC, def_err_vals}};
+  while (true) {
+    // Create the right and parent internal node
+    right_node = this->create_inner_node(left_node->get_children()[mid + 1]);
+    if (right_node == nullptr) {
+      return error{BPTREE_MAP_BAD_ALLOC, def_err_vals};
     }
-  }
 
-  // Get the middle node(right bias) and move it to the parent
-  auto key = left_node->get_keys()[mid];
+    parent = left_node->get_parent();
+    if (parent == nullptr) {
+      parent = this->create_inner_node(left_node);
+      if (parent == nullptr) {
+        delete right_node; // NOLINT
+        while (!stack.empty()) {
+          stack.pop_back_disc();          // Left node
+          delete stack.pop_back_unsafe(); // NOLINT
+        }
+        return error{BPTREE_MAP_BAD_ALLOC, def_err_vals};
+      }
+    }
 
-  // Set the nodes parents
-  left_node->set_parent(parent);
-  right_node->set_parent(parent);
+    // Get the middle node(right bias) and move it to the parent
+    key = left_node->get_keys()[mid];
 
-  parent->insert(key, right_node);
-  if (parent->get_size() == this->degree) {
-    auto exp = this->split_inner_node(parent);
-    if (!exp) {
-      delete right_node; // NOLINT
-      if (created) {
-        delete parent; // NOLINT
-        left_node->set_parent(nullptr);
+    // Set the nodes parents
+    left_node->set_parent(parent);
+    right_node->set_parent(parent);
+
+    parent->insert(key, right_node);
+    if (parent->get_size() == this->degree) { // parent will split
+      auto err = stack.push_back(right_node, left_node);
+      if (err) {
+        delete right_node; // NOLINT
+        if (parent->get_size() == 1) {
+          delete parent; // NOLINT
+        }
+
+        while (!stack.empty()) {
+          stack.pop_back_disc();
+          delete stack.pop_back_unsafe(); // NOLINT
+        }
+
+        return err;
       }
 
-      return exp;
+      left_node = parent;
+      continue;
     }
 
-    // Reparents the right parent's child to its own
-    (*exp)->reparent_children();
+    // Move and reparent starting with mid+1
+    left_node->redistribute(right_node, mid + 1);
+    right_node->reparent_children();
+
+    // If the root node was split, reparent and add to the height by 1
+    if (left_node == this->root) {
+      this->root = parent;
+      ++this->height;
+    }
+    break;
   }
 
-  // Move the data from m + 1 to end
-  left_node->redistribute(right_node, mid + 1);
+  // Empty the stack
+  while (!stack.empty()) {
+    left_node = stack.pop_back_unsafe();
+    right_node = stack.pop_back_unsafe();
 
-  // If the root node was split, reparent and add to the height by 1
-  if (left_node == this->root) {
-    this->root = parent;
-    ++this->height;
+    left_node->redistribute(right_node, mid + 1);
+    right_node->reparent_children();
   }
 
-  // Needs to return the right parent to be parented by the leaf/internal nodes
-  return right_node;
+  return null;
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -474,9 +496,7 @@ opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
   }
 
   auto* parent = left_leaf->get_parent();
-  bool created = false;
   if (parent == nullptr) {
-    created = true;
     parent = this->create_inner_node(left_leaf);
     if (parent == nullptr) {
       delete right_leaf; // NOLINT
@@ -495,19 +515,16 @@ opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
   // Try to insert the middle node to the parent
   parent->insert(key, right_leaf);
   if (parent->get_size() == this->degree) {
-    auto exp = this->split_inner_node(parent);
-    if (!exp) {
+    auto err = this->split_inner_node(parent);
+    if (err) {
       delete right_leaf; // NOLINT
-      if (created) {
+      if (parent->get_size() == 1) {
         delete parent; // NOLINT
         left_leaf->set_parent(nullptr);
       }
 
-      return std::move(exp.error());
+      return std::move(err);
     }
-
-    // Reparents the right parent's children to itself
-    (*exp)->reparent_leaf_children();
   }
 
   // Setup the pointers

@@ -429,6 +429,11 @@ exp_err<T> base_vector<Derived, T>::pop_back() noexcept {
 }
 
 template <typename Derived, typename T>
+T&& base_vector<Derived, T>::pop_back_unsafe() noexcept {
+  return std::move(this->arr[--this->top]);
+}
+
+template <typename Derived, typename T>
 void base_vector<Derived, T>::pop_back_disc() noexcept {
   --this->top;
 }
