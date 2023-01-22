@@ -58,7 +58,7 @@ private:
   void destroy() noexcept;
 
 public:
-  expected() noexcept = default;
+  expected() noexcept {}; // NOLINT
   expected(const expected&) noexcept = delete;
   expected& operator=(const expected&) noexcept = delete;
 
@@ -75,8 +75,10 @@ public:
   ~expected() noexcept;
 
   // === Observers === //
-  [[nodiscard]] T* operator->() const noexcept;
-  [[nodiscard]] T& operator*() const& noexcept;
+  [[nodiscard]] T* operator->() noexcept;
+  [[nodiscard]] const T* operator->() const noexcept;
+  [[nodiscard]] T& operator*() & noexcept;
+  [[nodiscard]] const T& operator*() const& noexcept;
   explicit operator bool() const noexcept;
 
   [[nodiscard]] T& value() noexcept;
@@ -132,8 +134,10 @@ public:
   explicit operator bool() const noexcept;
   [[nodiscard]] bool is_null() const noexcept;
 
-  [[nodiscard]] T* operator->() const noexcept;
-  [[nodiscard]] T& operator*() const& noexcept;
+  [[nodiscard]] T* operator->() noexcept;
+  [[nodiscard]] const T* operator->() const noexcept;
+  [[nodiscard]] T& operator*() & noexcept;
+  [[nodiscard]] const T& operator*() const& noexcept;
 
   [[nodiscard]] T& value() noexcept;
   [[nodiscard]] const T& value() const noexcept;

@@ -27,13 +27,13 @@ private:
 public:
   optional() noexcept = default;
   optional(const optional&) noexcept = delete;
-  optional& operator=(const optional&) noexcept = delete;
-
+  optional& operator=(optional&) noexcept = delete;
+ 
   // === Move === //
   optional(optional&& rhs) noexcept;
-  [[nodiscard]] optional& operator=(optional&& rhs) noexcept;
+  optional& operator=(optional&& rhs) noexcept;
   optional(T&& rhs) noexcept; // NOLINT
-  [[nodiscard]] optional& operator=(T&& rhs) noexcept;
+  optional& operator=(T&& rhs) noexcept;
 
   // === Destructor === //
   ~optional() noexcept;
@@ -41,8 +41,8 @@ public:
   // === Null === //
   optional(const null_t& rhs) noexcept; // NOLINT
   optional(null_t&& rhs) noexcept;      // NOLINT
-  [[nodiscard]] optional& operator=(const null_t& rhs) noexcept;
-  [[nodiscard]] optional& operator=(null_t&& rhs) noexcept;
+  optional& operator=(const null_t& rhs) noexcept;
+  optional& operator=(null_t&& rhs) noexcept;
 
   // === Observers === //
 

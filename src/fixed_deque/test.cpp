@@ -3,7 +3,7 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-08
- * Updated: 2022-12-28
+ * Updated: 2023-01-22
  *===============================*/
 
 #include "../test.hpp"
@@ -20,9 +20,9 @@ using namespace ds_test;
 // NOLINTNEXTLINE
 TEST_CASE("fixed_deque", "ds") {
   SECTION("Integer Primitive") {
-    ds::fixed_deque<ds::i32> dq;
-    ds::exp_err<ds::i32> exp;
-    ds::exp_ptr_err<ds::i32> exp_ptr;
+    ds::fixed_deque<ds::i32> dq{};
+    ds::exp_err<ds::i32> exp{};
+    ds::exp_ptr_err<ds::i32> exp_ptr{};
 
     SECTION("Negative Size") {
       auto error = dq.resize(-1);
@@ -99,15 +99,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp = dq.pop_back();
           CHECK(handle_error(exp));
@@ -121,15 +124,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp = dq.pop_back();
           CHECK(handle_error(exp));
@@ -143,15 +149,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp = dq.pop_front();
           CHECK(handle_error(exp));
@@ -394,7 +403,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
 
@@ -418,13 +428,13 @@ TEST_CASE("fixed_deque", "ds") {
           REQUIRE(dq.capacity() == dq2.capacity());
           REQUIRE(dq.size() == dq2.size());
 
-          ds::exp_ptr_err<ds::i32> exp_ptr2;
+          ds::exp_ptr_err<ds::i32> exp_ptr2{};
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(exp_ptr2);
-            REQUIRE(**exp_ptr == **exp_ptr2);
+            CHECK(handle_error(exp_ptr2));
+            REQUIRE(*exp_ptr == *exp_ptr2);
           }
         }
 
@@ -463,8 +473,8 @@ TEST_CASE("fixed_deque", "ds") {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(exp_ptr2);
-            REQUIRE(**exp_ptr == **exp_ptr2);
+            CHECK(handle_error(exp_ptr2));
+            REQUIRE(*exp_ptr == *exp_ptr2);
           }
         }
 
@@ -498,7 +508,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
 
@@ -541,7 +552,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
       }
@@ -556,21 +568,28 @@ TEST_CASE("fixed_deque", "ds") {
 
         exp_ptr = dq.front();
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 0);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 0);
 
         exp_ptr = dq.back();
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 4);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 4);
 
         exp_ptr = dq.at(0);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 0);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 0);
+
         exp_ptr = dq.at(2);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 2);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 2);
+
         exp_ptr = dq.at(4);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 4);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 4);
       }
 
       SECTION("Iterator") {
@@ -645,7 +664,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 5; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
         }
 
@@ -667,7 +687,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 2; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
         }
 
@@ -690,7 +711,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
         }
 
@@ -715,7 +737,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
         }
       }
@@ -741,7 +764,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 5; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
 
@@ -759,7 +783,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 2; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
 
@@ -778,7 +803,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
 
@@ -799,7 +825,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
         }
       }
@@ -888,15 +915,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
 
           exp = dq.pop_back();
           CHECK(handle_error(exp));
@@ -914,15 +944,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 2);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 2);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 2);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 2);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 2);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 2);
 
           exp = dq.pop_front();
           CHECK(handle_error(exp));
@@ -940,15 +973,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
 
           exp = dq.pop_back();
           CHECK(handle_error(exp));
@@ -966,15 +1002,18 @@ TEST_CASE("fixed_deque", "ds") {
 
           exp_ptr = dq.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp_ptr = dq.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp_ptr = dq.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 4);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 4);
 
           exp = dq.pop_front();
           CHECK(handle_error(exp));
@@ -1228,7 +1267,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1265,8 +1305,8 @@ TEST_CASE("fixed_deque", "ds") {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(exp_ptr2);
-            REQUIRE(**exp_ptr == **exp_ptr2);
+            CHECK(handle_error(exp_ptr2));
+            REQUIRE(*exp_ptr == *exp_ptr2);
           }
 
           dq.~fixed_deque();
@@ -1312,8 +1352,8 @@ TEST_CASE("fixed_deque", "ds") {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(exp_ptr2);
-            REQUIRE(**exp_ptr == **exp_ptr2);
+            CHECK(handle_error(exp_ptr2));
+            REQUIRE(*exp_ptr == *exp_ptr2);
           }
 
           dq.~fixed_deque();
@@ -1355,7 +1395,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1415,7 +1456,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq2.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1434,21 +1476,28 @@ TEST_CASE("fixed_deque", "ds") {
 
         exp_ptr = dq.front();
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 0);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 0);
 
         exp_ptr = dq.back();
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 4);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 4);
 
         exp_ptr = dq.at(0);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 0);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 0);
+
         exp_ptr = dq.at(2);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 2);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 2);
+
         exp_ptr = dq.at(4);
         CHECK(handle_error(exp_ptr));
-        REQUIRE(**exp_ptr == 4);
+        REQUIRE_FALSE(exp_ptr.is_null());
+        REQUIRE(*exp_ptr == 4);
 
         exp.~expected();
         dq.~fixed_deque();
@@ -1539,7 +1588,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 5; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
 
           dq.~fixed_deque();
@@ -1565,7 +1615,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 2; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
 
           dq.~fixed_deque();
@@ -1592,7 +1643,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
 
           dq.~fixed_deque();
@@ -1621,7 +1673,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i + 1);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i + 1);
           }
 
           dq.~fixed_deque();
@@ -1651,7 +1704,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 5; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1672,7 +1726,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 2; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1694,7 +1749,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();
@@ -1718,7 +1774,8 @@ TEST_CASE("fixed_deque", "ds") {
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             CHECK(handle_error(exp_ptr));
-            REQUIRE(**exp_ptr == i);
+            REQUIRE_FALSE(exp_ptr.is_null());
+            REQUIRE(*exp_ptr == i);
           }
 
           dq.~fixed_deque();

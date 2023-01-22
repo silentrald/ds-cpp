@@ -6,18 +6,18 @@
  * Updated: 2022-12-29
  *===============================*/
 
+#include "../test.hpp"
 #include "../error.hpp"
 #include "../string/def.hpp"
 #include "../types.hpp"
 #include "./def.hpp"
 #include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "ds/test.hpp"
 
 using namespace ds_test;
 
 TEST_CASE("hash_map", "ds") { // NOLINT
-  ds::opt_error error{};
+  ds::opt_err error{};
 
   SECTION("Primitive Key and Value") {
     ds::hash_map<ds::i32, ds::i32> map{};

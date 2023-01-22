@@ -209,13 +209,18 @@ TEST_CASE("vector", "ds") {
 
           exp_ptr = vec.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
+
           exp_ptr = vec.at(2);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
+
           exp_ptr = vec.at(4);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 5);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 5);
 
           // Out of bounds
           exp_ptr = vec.at(5);
@@ -237,10 +242,13 @@ TEST_CASE("vector", "ds") {
 
           exp_ptr = vec.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 6);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 6);
+
           exp_ptr = vec.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 10);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 10);
         }
       }
     }
@@ -601,13 +609,18 @@ TEST_CASE("vector", "ds") {
 
           exp_ptr = vec.at(0);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 1);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 1);
+
           exp_ptr = vec.at(2);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 3);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 3);
+
           exp_ptr = vec.at(4);
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 5);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 5);
 
           // Out of bounds
           exp_ptr = vec.at(5);
@@ -638,13 +651,16 @@ TEST_CASE("vector", "ds") {
 
           exp_ptr = vec.front();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 6);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 6);
+
           exp_ptr = vec.back();
           CHECK(handle_error(exp_ptr));
-          REQUIRE(**exp_ptr == 10);
+          REQUIRE_FALSE(exp_ptr.is_null());
+          REQUIRE(*exp_ptr == 10);
 
           exp.~expected();
-          exp_ptr.~expected();
+          exp_ptr.~expected_ptr();
           vec.~vector();
           REQUIRE(counter == 0);
         }

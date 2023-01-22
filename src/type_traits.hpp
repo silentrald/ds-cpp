@@ -32,7 +32,10 @@ using all_same_type = typename std::enable_if<
  **/
 template <typename T>
 using is_string_type = typename std::disjunction<
-    same_type<const char*, T>, same_type<string, T>>::type;
+    std::is_convertible<T, const char*>,      //
+    std::is_convertible<T, ds::string>,       //
+    std::is_convertible<T, const ds::string&> //
+    >::type;
 
 /**
  * Check if all passed arguments are string type

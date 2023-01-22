@@ -15,24 +15,24 @@ using namespace ds_test;
 
 // NOLINTNEXTLINE
 TEST_CASE("string", "ds") {
-  ds::expected_ptr<char> exp_ptr{};
-  ds::expected<char> exp{};
+  ds::exp_ptr_err<char> exp_ptr{};
+  ds::exp_err<char> exp{};
   ds::string str{};
   free_ptr = nullptr;
 
   SECTION("Empty string") {
     SECTION("Defcopyion") {
       REQUIRE(str.empty());
-      REQUIRE(str.size() == 0);
+      REQUIRE(str.size() == 0); // NOLINT
       REQUIRE(str.length() == 0);
       REQUIRE(str.max_size() == 0);
     }
 
     SECTION("Comparison to const char*") {
-      REQUIRE(str == "");
-      REQUIRE("" == str);
-      REQUIRE_FALSE(str != "");
-      REQUIRE_FALSE("" != str);
+      REQUIRE(str == ""); // NOLINT
+      REQUIRE("" == str); // NOLINT
+      REQUIRE_FALSE(str != ""); // NOLINT
+      REQUIRE_FALSE("" != str); // NOLINT
       REQUIRE(str != "Hello World");
       REQUIRE("Hello World" != str);
 
@@ -50,7 +50,7 @@ TEST_CASE("string", "ds") {
       SECTION("Init Move") {
         ds::string str2 = std::move(str);
 
-        REQUIRE(str2 == "");
+        REQUIRE(str2.empty());
         REQUIRE(str2.max_size() == 0);
       }
 
@@ -71,7 +71,7 @@ TEST_CASE("string", "ds") {
         str2 = std::move(str);
         REQUIRE(ptr == free_ptr);
 
-        REQUIRE(str2 == "");
+        REQUIRE(str2.empty());
         REQUIRE(str2.max_size() == 0);
       }
     }

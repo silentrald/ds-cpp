@@ -38,6 +38,12 @@ expected<T, E>::expected(T&& rhs) noexcept : has_val(true) {
 }
 
 template <typename T, typename E>
+expected<T, E>::expected(const T& rhs) noexcept : has_val(true) {
+  new (&this->val) T;
+  this->val = rhs; // Will fail if not copyable
+}
+
+template <typename T, typename E>
 expected<T, E>::expected(unexpected<E>&& rhs) noexcept : has_err(true) {
   new (&this->err) E;
   this->err = std::move(rhs.error());
@@ -119,13 +125,21 @@ template <typename T, typename E> void expected<T, E>::destroy() noexcept {
 }
 
 // === Observers === //
-template <typename T, typename E>
-T* expected<T, E>::operator->() const noexcept {
+template <typename T, typename E> T* expected<T, E>::operator->() noexcept {
   return &this->val;
 }
 
 template <typename T, typename E>
-T& expected<T, E>::operator*() const& noexcept {
+const T* expected<T, E>::operator->() const noexcept {
+  return &this->val;
+}
+
+template <typename T, typename E> T& expected<T, E>::operator*() & noexcept {
+  return this->val;
+}
+
+template <typename T, typename E>
+const T& expected<T, E>::operator*() const& noexcept {
   return this->val;
 }
 
@@ -242,42 +256,51 @@ template <typename T, typename E> void expected_ptr<T, E>::destroy() noexcept {
 }
 
 // === Observers === //
-template <typename T, typename E>
-T* expected_ptr<T, E>::operator->() const noexcept {
-  return this->val;
+template <typename T, typename E> T* expected_ptr<T, E>::operator->() noexcept {
+  return this->ptr;
 }
 
 template <typename T, typename E>
-T& expected_ptr<T, E>::operator*() const& noexcept {
-  return *this->val;
+const T* expected_ptr<T, E>::operator->() const noexcept {
+  return this->ptr;
+}
+
+template <typename T, typename E>
+T& expected_ptr<T, E>::operator*() & noexcept {
+  return *this->ptr;
+}
+
+template <typename T, typename E>
+const T& expected_ptr<T, E>::operator*() const& noexcept {
+  return *this->ptr;
 }
 
 template <typename T, typename E>
 expected_ptr<T, E>::operator bool() const noexcept {
-  return this->has_val;
+  return this->has_ptr;
 }
 
 template <typename T, typename E>
 bool expected_ptr<T, E>::is_null() const noexcept {
-  return this->val == nullptr;
+  return this->ptr == nullptr;
 }
 
 template <typename T, typename E> T& expected_ptr<T, E>::value() noexcept {
-  return *this->val;
+  return *this->ptr;
 }
 
 template <typename T, typename E>
 const T& expected_ptr<T, E>::value() const noexcept {
-  return *this->val;
+  return *this->ptr;
 }
 
 template <typename T, typename E> T* expected_ptr<T, E>::data() noexcept {
-  return this->val;
+  return this->ptr;
 }
 
 template <typename T, typename E>
 const T* expected_ptr<T, E>::data() const noexcept {
-  return this->val;
+  return this->ptr;
 }
 
 template <typename T, typename E> E& expected_ptr<T, E>::error() noexcept {
@@ -300,7 +323,7 @@ constexpr bool operator==(
     const expected_ptr<T, E>& lhs, const expected_ptr<T, E>& rhs
 ) noexcept {
   if (lhs.has_ptr == rhs.has_ptr) {
-    return lhs.val == rhs.val;
+    return lhs.ptr == rhs.ptr;
   }
 
   if (lhs.has_err == rhs.has_err) {
@@ -313,13 +336,13 @@ constexpr bool operator==(
 template <typename T, typename E>
 constexpr bool
 operator==(const expected_ptr<T, E>& lhs, const T& rhs) noexcept {
-  return lhs.has_val ? *lhs.val == rhs : false;
+  return lhs.has_val ? *lhs.ptr == rhs : false;
 }
 
 template <typename T, typename E>
 constexpr bool
 operator==(const expected_ptr<T, E>& lhs, const T* rhs) noexcept {
-  return lhs.has_val ? lhs.val == rhs : false;
+  return lhs.has_val ? lhs.ptr == rhs : false;
 }
 
 template <typename T, typename E>
