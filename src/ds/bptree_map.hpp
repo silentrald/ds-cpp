@@ -9,12 +9,12 @@
 #ifndef DS_BPTREE_MAP_HPP
 #define DS_BPTREE_MAP_HPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
-#include "../types.hpp"
 #include "./bptree_map_iterator.hpp"
 #include "./compare.hpp"
+#include "./error.hpp"
 #include "./hash.hpp"
+#include "./macro.hpp"
+#include "./types.hpp"
 #include <utility>
 
 namespace ds {

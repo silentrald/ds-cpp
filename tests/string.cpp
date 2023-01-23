@@ -8,7 +8,7 @@
 
 #include "ds/string.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "error.hpp"
+#include "ds/error.hpp"
 #include <cstdlib>
 
 using namespace ds_test;

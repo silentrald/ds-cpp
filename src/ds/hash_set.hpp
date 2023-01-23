@@ -9,13 +9,13 @@
 #ifndef DS_HASH_SET_HPP
 #define DS_HASH_SET_HPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
-#include "../prime.hpp"
-#include "../types.hpp"
 #include "./equal.hpp"
+#include "./error.hpp"
 #include "./hash.hpp"
 #include "./hash_set_iterator.hpp"
+#include "./macro.hpp"
+#include "./prime.hpp"
+#include "./types.hpp"
 #include "./vector.hpp"
 #include <new>
 

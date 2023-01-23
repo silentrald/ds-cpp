@@ -7,11 +7,11 @@
  *===============================*/
 
 #include "ds/vector.hpp"
+#include "./main.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/error.hpp"
 #include "ds/string.hpp"
-#include "error.hpp"
-#include "test.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 
 using namespace ds_test;
 
@@ -24,7 +24,7 @@ TEST_CASE("vector", "ds") {
 
     SECTION("Empty initialization") {
       REQUIRE(vec.empty());
-      REQUIRE(vec.size() == 0);
+      REQUIRE(vec.size() == 0); // NOLINT
     }
 
     SECTION("Single element initialization") {

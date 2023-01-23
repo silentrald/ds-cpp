@@ -9,12 +9,12 @@
 #ifndef DS_STRING_BUILD_HPP
 #define DS_STRING_BUILD_HPP
 
-#include "../error.hpp"
-#include "../types.hpp"
+#include "./error.hpp"
+#include "./types.hpp"
 #include <ostream>
 
 #if DS_TEST
-#include "../test.hpp"
+#include "../../tests/main.hpp"
 #endif
 
 namespace ds {

@@ -9,11 +9,11 @@
 #ifndef DS_VECTOR_HPP
 #define DS_VECTOR_HPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
-#include "../type_traits.hpp"
-#include "../types.hpp"
+#include "./error.hpp"
+#include "./macro.hpp"
 #include "./string.hpp"
+#include "./type_traits.hpp"
+#include "./types.hpp"
 #include "./vector_iterator.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -22,7 +22,7 @@
 #include <utility>
 
 #ifndef DS_TEST
-#include "../test.hpp"
+#include "../../tests/main.hpp"
 #endif
 
 namespace ds {

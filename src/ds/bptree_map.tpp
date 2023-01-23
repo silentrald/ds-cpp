@@ -9,8 +9,6 @@
 #ifndef DS_BPTREE_MAP_TPP
 #define DS_BPTREE_MAP_TPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
 #include "./bptree_map.hpp"
 #include "./vector.hpp"
 #include <cstdlib>

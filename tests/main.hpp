@@ -6,11 +6,11 @@
  * Updated: 2022-12-30
  *===============================*/
 
-#ifndef DS_TEST_HPP
-#define DS_TEST_HPP
+#ifndef DS_TEST_MAIN_HPP
+#define DS_TEST_MAIN_HPP
 
-#include "./error.hpp"
-#include "./types.hpp"
+#include "ds/error.hpp"
+#include "ds/types.hpp"
 
 namespace ds_test {
 

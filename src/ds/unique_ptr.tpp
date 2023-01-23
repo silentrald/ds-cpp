@@ -9,8 +9,8 @@
 #ifndef DS_UNIQUE_PTR_TPP
 #define DS_UNIQUE_PTR_TPP
 
-#include "../macro.hpp"
-#include "../type_traits.hpp"
+#include "./macro.hpp"
+#include "./type_traits.hpp"
 #include "./unique_ptr.hpp"
 #include <new>
 

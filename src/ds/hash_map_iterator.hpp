@@ -9,7 +9,7 @@
 #ifndef DS_HASH_MAP_ITERATOR_HPP
 #define DS_HASH_MAP_ITERATOR_HPP
 
-#include "../types.hpp"
+#include "./types.hpp"
 
 namespace ds {
 

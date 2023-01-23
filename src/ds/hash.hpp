@@ -10,9 +10,9 @@
 #define DS_HASH_HPP
 
 #include "../hash/murmur3.h"
-#include "../type_traits.hpp"
-#include "../types.hpp"
 #include "./string.hpp"
+#include "./type_traits.hpp"
+#include "./types.hpp"
 #include <cstring>
 
 namespace ds {

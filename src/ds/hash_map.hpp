@@ -9,13 +9,13 @@
 #ifndef DS_HASH_MAP_HPP
 #define DS_HASH_MAP_HPP
 
-#include "../error.hpp"
-#include "../macro.hpp"
-#include "../types.hpp"
 #include "./equal.hpp"
+#include "./error.hpp"
 #include "./hash.hpp"
 #include "./hash_map_iterator.hpp"
+#include "./macro.hpp"
 #include "./string.hpp"
+#include "./types.hpp"
 #include "./vector.hpp"
 #include <utility>
 

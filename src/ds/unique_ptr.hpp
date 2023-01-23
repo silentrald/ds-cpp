@@ -9,7 +9,7 @@
 #ifndef DS_UNIQUE_PTR_HPP
 #define DS_UNIQUE_PTR_HPP
 
-#include "../error.hpp"
+#include "./error.hpp"
 #include "./optional.hpp"
 
 namespace ds {

@@ -9,7 +9,7 @@
 #ifndef DS_MACRO_HPP
 #define DS_MACRO_HPP
 
-#include "ds/expected.hpp"
+#include "./expected.hpp"
 
 #define def_err_vals __FILE__, __FUNCTION__, __LINE__
 

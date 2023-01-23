@@ -7,9 +7,9 @@
  *===============================*/
 
 #include "ds/bptree_map.hpp"
+#include "ds/error.hpp"
 #include "ds/optional.hpp"
-#include "error.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 
 struct Data {
   ds::i64 x = 0;

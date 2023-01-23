@@ -6,8 +6,8 @@
  * Updated: 2022-12-27
  *===============================*/
 
-#include "../macro.hpp"
 #include "./string.hpp"
+#include "./macro.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>

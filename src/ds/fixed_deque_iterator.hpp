@@ -9,7 +9,7 @@
 #ifndef DS_DEQUE_FIXED_ITERATOR_HPP
 #define DS_DEQUE_FIXED_ITERATOR_HPP
 
-#include "../types.hpp"
+#include "./types.hpp"
 
 namespace ds {
 

@@ -6,7 +6,7 @@
  * Updated: 2022-01-07
  *===============================*/
 
-#include "./test.hpp"
+#include "./main.hpp"
 #include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
 

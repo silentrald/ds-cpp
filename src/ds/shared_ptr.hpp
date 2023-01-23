@@ -9,11 +9,11 @@
 #ifndef DS_SHARED_PTR_HPP
 #define DS_SHARED_PTR_HPP
 
-#include "../error.hpp"
-#include "../types.hpp"
+#include "./error.hpp"
+#include "./types.hpp"
 
 #if DS_TEST
-#include "../test.hpp"
+#include "../../tests/main.hpp"
 #endif
 
 namespace ds {
@@ -40,8 +40,7 @@ private:
   void destroy_all_ptrs() noexcept;
 
   // === Initializers === //
-  template <typename Data_>
-  [[nodiscard]] opt_err set_impl(Data_ data) noexcept;
+  template <typename Data_> [[nodiscard]] opt_err set_impl(Data_ data) noexcept;
 
 public:
   shared_ptr() noexcept = default;

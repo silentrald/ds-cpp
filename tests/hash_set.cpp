@@ -7,10 +7,10 @@
  *===============================*/
 
 #include "ds/hash_set.hpp"
+#include "./main.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/error.hpp"
 #include "ds/string.hpp"
-#include "error.hpp"
-#include "test.hpp"
 
 using namespace ds_test;
 

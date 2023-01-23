@@ -9,7 +9,7 @@
 #ifndef DS_SHARED_PTR_TPP
 #define DS_SHARED_PTR_TPP
 
-#include "../macro.hpp"
+#include "./macro.hpp"
 #include "./shared_ptr.hpp"
 #include <type_traits>
 
