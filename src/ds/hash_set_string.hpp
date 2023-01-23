@@ -9,8 +9,8 @@
 #ifndef DS_HASH_SET_STRING_HPP
 #define DS_HASH_SET_STRING_HPP
 
-#include "./string.hpp"
 #include "./hash_set.hpp"
+#include "./string.hpp"
 
 namespace ds {
 

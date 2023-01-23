@@ -28,7 +28,7 @@ public:
   optional() noexcept = default;
   optional(const optional&) noexcept = delete;
   optional& operator=(optional&) noexcept = delete;
- 
+
   // === Move === //
   optional(optional&& rhs) noexcept;
   optional& operator=(optional&& rhs) noexcept;

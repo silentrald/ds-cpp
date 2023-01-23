@@ -13,10 +13,10 @@
 #include "../macro.hpp"
 #include "../prime.hpp"
 #include "../types.hpp"
-#include "./vector.hpp"
 #include "./equal.hpp"
 #include "./hash.hpp"
 #include "./hash_set_iterator.hpp"
+#include "./vector.hpp"
 #include <new>
 
 namespace ds {
