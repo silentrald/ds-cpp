@@ -10,8 +10,8 @@
 #define DS_ERROR_HPP
 
 #include "./types.hpp"
-#include "expected/def.hpp"
-#include "optional/def.hpp"
+#include "ds/expected.hpp"
+#include "ds/optional.hpp"
 #include <cstdlib>
 #include <cstring>
 

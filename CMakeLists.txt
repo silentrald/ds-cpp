@@ -3,14 +3,12 @@ project(ds)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-# Unit Testing
-add_subdirectory(external/catch2)
 include_directories(src)
 
 add_library(ds
-  src/string/impl.cpp
+  src/ds/string.cpp
 
-  src/transaction/impl.cpp
+  src/ds/transaction.cpp
   
   src/hash/murmur3.cpp
   src/hash/number.cpp
@@ -18,11 +16,13 @@ add_library(ds
   src/prime.cpp
 )
 
-set(DS_TEST "DS Test Cases" ON)
+option(DS_TEST "DS Test Cases" OFF)
 
 if (DS_TEST)
+  add_subdirectory(external/catch2)
+  
   # Bptree Map
-  add_executable(bptree_map src/bptree_map/test.cpp)
+  add_executable(bptree_map tests/bptree_map.cpp)
   set_target_properties(bptree_map PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
   )
@@ -32,7 +32,7 @@ if (DS_TEST)
   # )
 
   # Fixed Deque
-  add_executable(fixed_deque src/fixed_deque/test.cpp src/test.cpp)
+  add_executable(fixed_deque tests/fixed_deque.cpp src/test.cpp)
   set_target_properties(fixed_deque PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
   )
@@ -42,11 +42,11 @@ if (DS_TEST)
   )
 
   # Hash Map
-  add_executable(hash_map src/hash_map/test.cpp src/test.cpp
+  add_executable(hash_map tests/hash_map.cpp src/test.cpp
     src/hash/number.cpp
     src/hash/murmur3.cpp
     
-    src/string/impl.cpp
+    src/ds/string.cpp
 
     src/prime.cpp
   )
@@ -59,11 +59,11 @@ if (DS_TEST)
   )
 
   # Hash Set
-  add_executable(hash_set src/hash_set/test.cpp src/test.cpp
+  add_executable(hash_set tests/hash_set.cpp src/test.cpp
     src/hash/number.cpp
     src/hash/murmur3.cpp
     
-    src/string/impl.cpp
+    src/ds/string.cpp
 
     src/prime.cpp
   )
@@ -75,7 +75,7 @@ if (DS_TEST)
     Catch2::Catch2WithMain
   )
 
-  add_executable(shared_ptr src/shared_ptr/test.cpp src/test.cpp)
+  add_executable(shared_ptr tests/shared_ptr.cpp src/test.cpp)
   set_target_properties(shared_ptr PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
   )
@@ -85,8 +85,8 @@ if (DS_TEST)
   )
 
   # String
-  add_executable(string src/string/test.cpp src/test.cpp
-    src/string/impl.cpp
+  add_executable(string tests/string.cpp src/test.cpp
+    src/ds/string.cpp
   )
   target_compile_definitions(string PRIVATE DS_TEST)
   set_target_properties(string PROPERTIES
@@ -98,8 +98,8 @@ if (DS_TEST)
   )
 
   # Vector
-  add_executable(vector src/vector/test.cpp src/test.cpp
-    src/string/impl.cpp
+  add_executable(vector tests/vector.cpp src/test.cpp
+    src/ds/string.cpp
   )
   target_compile_definitions(vector PRIVATE DS_TEST)
   set_target_properties(vector PROPERTIES

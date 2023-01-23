@@ -9,7 +9,7 @@
 #ifndef DS_TYPE_TRAITS_HPP
 #define DS_TYPE_TRAITS_HPP
 
-#include "./string/def.hpp"
+#include "./ds/string.hpp"
 #include "error.hpp"
 #include <tuple>
 #include <type_traits>
