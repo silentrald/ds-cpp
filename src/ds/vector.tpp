@@ -223,6 +223,16 @@ exp_ptr_err<T> base_vector<Derived, T>::back() const noexcept {
 }
 
 template <typename Derived, typename T>
+T* base_vector<Derived, T>::front_unsafe() const noexcept {
+  return this->arr;
+}
+
+template <typename Derived, typename T>
+T* base_vector<Derived, T>::back_unsafe() const noexcept {
+  return this->arr + this->top - 1;
+}
+
+template <typename Derived, typename T>
 typename base_vector<Derived, T>::ptr
 base_vector<Derived, T>::data() const noexcept {
   return this->arr;

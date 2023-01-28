@@ -178,6 +178,20 @@ public:
   [[nodiscard]] exp_ptr_err<T> back() const noexcept;
 
   /**
+   * Returns the expected ptr at the start of the vector
+   *
+   *  @return ptr
+   **/
+  [[nodiscard]] ptr front_unsafe() const noexcept;
+
+  /**
+   * Returns the expected ptr at the end of the vector
+   *
+   *  @return ptr
+   **/
+  [[nodiscard]] ptr back_unsafe() const noexcept;
+
+  /**
    * Returns the ptr of the vector container
    *
    * @return ptr
