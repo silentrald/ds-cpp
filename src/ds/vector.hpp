@@ -180,16 +180,16 @@ public:
   /**
    * Returns the expected ptr at the start of the vector
    *
-   *  @return ptr
+   *  @return ref
    **/
-  [[nodiscard]] ptr front_unsafe() const noexcept;
+  [[nodiscard]] ref front_unsafe() const noexcept;
 
   /**
    * Returns the expected ptr at the end of the vector
    *
-   *  @return ptr
+   *  @return ref
    **/
-  [[nodiscard]] ptr back_unsafe() const noexcept;
+  [[nodiscard]] ref back_unsafe() const noexcept;
 
   /**
    * Returns the ptr of the vector container
