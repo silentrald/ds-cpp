@@ -65,8 +65,8 @@ public:
   [[nodiscard]] constexpr explicit operator bool() const noexcept;
 
   // === Polymorphism === //
-  template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  explicit unique_ptr(unique_ptr<D>&& rhs) noexcept : data(rhs.data) {
+  template <typename D>
+  unique_ptr(unique_ptr<D>&& rhs) noexcept : data(rhs.data) { // NOLINT
     rhs.data = nullptr;
   }
 

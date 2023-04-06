@@ -32,12 +32,11 @@ public:
 
 // NOLINTNEXTLINE
 TEST_CASE("unique_ptr", "ds") {
-  ds::unique_ptr<Base> base{};
   ds::unique_ptr<Derived> derived{};
   ds::opt_err err = derived.init();
   derived->i = 100;
 
-  base = std::move(derived);
+  ds::unique_ptr<Base> base = std::move(derived);
   std::cout << "Derived: " << base.get_ref_unsafe<Derived>().i << '\n';
 }
 
