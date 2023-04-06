@@ -166,7 +166,7 @@ public:
    *
    * @return bool
    **/
-  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept;
 
   /**
    * Returns the current size of the hash map

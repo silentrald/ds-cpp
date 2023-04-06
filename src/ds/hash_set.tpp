@@ -152,7 +152,7 @@ base_hash_set<Derived, Key, Hash, Equal>::cend() const noexcept {
 
 // === Capacity ===
 template <typename Derived, typename Key, typename Hash, typename Equal>
-bool base_hash_set<Derived, Key, Hash, Equal>::empty() const noexcept {
+bool base_hash_set<Derived, Key, Hash, Equal>::is_empty() const noexcept {
   return this->_size == 0;
 }
 

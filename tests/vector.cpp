@@ -23,14 +23,14 @@ TEST_CASE("vector", "ds") {
     ds::exp_ptr_err<ds::i32> exp_ptr{};
 
     SECTION("Empty initialization") {
-      REQUIRE(vec.empty());
+      REQUIRE(vec.is_empty());
       REQUIRE(vec.size() == 0); // NOLINT
     }
 
     SECTION("Single element initialization") {
       CHECK(handle_error(vec.push_back(1)));
 
-      REQUIRE(!vec.empty());
+      REQUIRE(!vec.is_empty());
       REQUIRE(vec.size() == 1);
       REQUIRE(vec[0] == 1);
     }
@@ -38,7 +38,7 @@ TEST_CASE("vector", "ds") {
     SECTION("Multi element initialization") {
       CHECK(handle_error(vec.push_back(1, 2, 3)));
 
-      REQUIRE(!vec.empty());
+      REQUIRE(!vec.is_empty());
       REQUIRE(vec.size() == 3);
       REQUIRE(vec[0] == 1);
       REQUIRE(vec[1] == 2);
@@ -52,7 +52,7 @@ TEST_CASE("vector", "ds") {
         ds::vector<ds::i32> vec2 = std::move(vec);
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
       }
 
       SECTION("Init Move (non-empty move)") {
@@ -62,7 +62,7 @@ TEST_CASE("vector", "ds") {
         ds::vector<ds::i32> vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2.size() == 3);
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
@@ -76,7 +76,7 @@ TEST_CASE("vector", "ds") {
         CHECK(handle_error(vec2.copy(vec)));
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
       }
 
       SECTION("Copy (non-empty -> empty)") {
@@ -101,7 +101,7 @@ TEST_CASE("vector", "ds") {
         CHECK(handle_error(vec2.copy(vec)));
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
       }
 
       SECTION("Copy (smaller non-empty -> bigger non-empty)") {
@@ -143,7 +143,7 @@ TEST_CASE("vector", "ds") {
 
         vec2 = std::move(vec);
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
       }
 
       SECTION("Move (non-empty -> empty)") {
@@ -155,7 +155,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
         REQUIRE(vec2[2] == 3);
@@ -171,7 +171,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec.data() == nullptr);
         REQUIRE(ptr == free_ptr);
       }
@@ -187,7 +187,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
         REQUIRE(vec2[2] == 3);
@@ -285,10 +285,10 @@ TEST_CASE("vector", "ds") {
 
       SECTION("Clearing") {
         CHECK(handle_error(vec.push_back(1, 2, 3, 4, 5)));
-        REQUIRE_FALSE(vec.empty());
+        REQUIRE_FALSE(vec.is_empty());
 
         vec.clear();
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
       }
     }
 
@@ -367,7 +367,7 @@ TEST_CASE("vector", "ds") {
     counter = 0;
 
     SECTION("Empty initialization") {
-      REQUIRE(vec.empty());
+      REQUIRE(vec.is_empty());
       REQUIRE(vec.size() == 0);
 
       vec.~vector();
@@ -377,7 +377,7 @@ TEST_CASE("vector", "ds") {
     SECTION("Single element initialization") {
       CHECK(handle_error(vec.push_back(Test{1})));
 
-      REQUIRE(!vec.empty());
+      REQUIRE(!vec.is_empty());
       REQUIRE(vec.size() == 1);
       REQUIRE(vec[0] == 1);
 
@@ -388,7 +388,7 @@ TEST_CASE("vector", "ds") {
     SECTION("Multi element initialization") {
       CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
 
-      REQUIRE(!vec.empty());
+      REQUIRE(!vec.is_empty());
       REQUIRE(vec.size() == 3);
       REQUIRE(vec[0] == 1);
       REQUIRE(vec[1] == 2);
@@ -404,7 +404,7 @@ TEST_CASE("vector", "ds") {
         ds::vector<Test> vec2 = std::move(vec);
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
 
         vec.~vector();
         vec2.~vector();
@@ -417,7 +417,7 @@ TEST_CASE("vector", "ds") {
         ds::vector<Test> vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2.size() == 3);
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
@@ -435,7 +435,7 @@ TEST_CASE("vector", "ds") {
         CHECK(handle_error(vec2.copy(vec)));
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
       }
 
       SECTION("Copy (non-empty -> empty)") {
@@ -465,7 +465,7 @@ TEST_CASE("vector", "ds") {
         CHECK(handle_error(vec2.copy(vec)));
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
 
         vec.~vector();
         vec2.~vector();
@@ -523,7 +523,7 @@ TEST_CASE("vector", "ds") {
 
         vec2 = std::move(vec);
         REQUIRE(vec == vec2);
-        REQUIRE(vec2.empty());
+        REQUIRE(vec2.is_empty());
 
         vec.~vector();
         vec2.~vector();
@@ -539,7 +539,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
         REQUIRE(vec2[2] == 3);
@@ -559,7 +559,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec == vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec.data() == nullptr);
         REQUIRE(ptr == free_ptr);
 
@@ -579,7 +579,7 @@ TEST_CASE("vector", "ds") {
         vec2 = std::move(vec);
 
         REQUIRE(vec != vec2);
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
         REQUIRE(vec2[0] == 1);
         REQUIRE(vec2[1] == 2);
         REQUIRE(vec2[2] == 3);
@@ -709,10 +709,10 @@ TEST_CASE("vector", "ds") {
         CHECK(handle_error(
             vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5})
         ));
-        REQUIRE_FALSE(vec.empty());
+        REQUIRE_FALSE(vec.is_empty());
 
         vec.clear();
-        REQUIRE(vec.empty());
+        REQUIRE(vec.is_empty());
 
         vec.~vector();
         REQUIRE(counter == 0);
@@ -859,7 +859,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[0] == "hello");
         REQUIRE(vec[1] == str_copy);
         REQUIRE(vec[2] == "owo");
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
       }
 
       SECTION("Init (copy last)") {
@@ -868,7 +868,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[0] == "hello");
         REQUIRE(vec[1] == "owo");
         REQUIRE(vec[2] == str_copy);
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
 
         // NOLINTNEXTLINE
         const char* exp_strings[] = {"hello", "owo", "uwu", "<>", "<>"};
@@ -884,7 +884,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[0] == "hi");
         REQUIRE(vec[1] == str_copy);
         REQUIRE(vec[2] == "owo");
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
 
         // NOLINTNEXTLINE
         const char* exp_strings[] = {"hi", "uwu", "owo", "<>", "<>"};
@@ -899,7 +899,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[0] == "hi");
         REQUIRE(vec[1] == "owo");
         REQUIRE(vec[2] == str_copy);
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
 
         // NOLINTNEXTLINE
         const char* exp_strings[] = {"hi", "owo", "uwu", "<>", "<>"};
@@ -918,7 +918,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[1] == ":^)");
         REQUIRE(vec[2] == str_copy);
         REQUIRE(vec[3] == "owo");
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
 
         // NOLINTNEXTLINE
         const char* exp_strings[] = {"some",   ":^)", "uwu", "owo",
@@ -938,7 +938,7 @@ TEST_CASE("vector", "ds") {
         REQUIRE(vec[1] == ":^)");
         REQUIRE(vec[2] == "owo");
         REQUIRE(vec[3] == str_copy);
-        REQUIRE(str_move.empty());
+        REQUIRE(str_move.is_empty());
 
         // NOLINTNEXTLINE
         const char* exp_strings[] = {"some",   ":^)", "owo", "uwu",

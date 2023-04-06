@@ -297,7 +297,8 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::crend() const noexcept {
 
 // === Capacity === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-bool base_bptree_map<Derived, Key, Value, KeyCompare>::empty() const noexcept {
+bool base_bptree_map<Derived, Key, Value, KeyCompare>::is_empty(
+) const noexcept {
   return this->_size == 0;
 }
 
@@ -422,7 +423,7 @@ opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
       parent = this->create_inner_node(left_node);
       if (parent == nullptr) {
         delete right_node; // NOLINT
-        while (!stack.empty()) {
+        while (!stack.is_empty()) {
           stack.pop_back_disc();          // Left node
           delete stack.pop_back_unsafe(); // NOLINT
         }
@@ -446,7 +447,7 @@ opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
           delete parent; // NOLINT
         }
 
-        while (!stack.empty()) {
+        while (!stack.is_empty()) {
           stack.pop_back_disc();
           delete stack.pop_back_unsafe(); // NOLINT
         }
@@ -471,7 +472,7 @@ opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
   }
 
   // Empty the stack
-  while (!stack.empty()) {
+  while (!stack.is_empty()) {
     left_node = stack.pop_back_unsafe();
     right_node = stack.pop_back_unsafe();
 

@@ -19,7 +19,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
     ds::hash_set<ds::i32> set{};
 
     SECTION("Definition") {
-      REQUIRE(set.empty());
+      REQUIRE(set.is_empty());
     }
 
     // Insert elements
@@ -28,7 +28,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       CHECK(handle_error(set.insert(200)));
       CHECK(handle_error(set.insert(300)));
 
-      REQUIRE(!set.empty());
+      REQUIRE(!set.is_empty());
       REQUIRE(set.size() == 3);
       REQUIRE(set.contains(100));
       REQUIRE(set.contains(200));
@@ -43,7 +43,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       set.erase(100);
       REQUIRE_FALSE(set.contains(100));
 
-      REQUIRE(set.empty());
+      REQUIRE(set.is_empty());
     }
 
     SECTION("Same element insertion") {
@@ -71,8 +71,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       SECTION("Init Move (empty move)") {
         ds::hash_set<ds::i32> other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Init Move (non-empty move)") {
@@ -82,8 +82,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         ds::hash_set<ds::i32> other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains(100));
         REQUIRE(other.contains(200));
         REQUIRE(other.contains(300));
@@ -93,8 +93,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::i32> other{};
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Copy (non-empty -> empty)") {
@@ -105,12 +105,12 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::i32> other{};
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE_FALSE(set.empty());
+        REQUIRE_FALSE(set.is_empty());
         REQUIRE(other.contains(100));
         REQUIRE(other.contains(200));
         REQUIRE(other.contains(300));
 
-        REQUIRE_FALSE(other.empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains(100));
         REQUIRE(other.contains(200));
         REQUIRE(other.contains(300));
@@ -126,8 +126,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Copy (non-empty -> non-empty)") {
@@ -142,12 +142,12 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE_FALSE(set.empty());
+        REQUIRE_FALSE(set.is_empty());
         REQUIRE(set.contains(400));
         REQUIRE(set.contains(500));
         REQUIRE(set.contains(600));
 
-        REQUIRE_FALSE(other.empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains(400));
         REQUIRE(other.contains(500));
         REQUIRE(other.contains(600));
@@ -157,8 +157,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::i32> other{};
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Move (non-empty -> empty)") {
@@ -169,8 +169,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::i32> other{};
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains(100));
         REQUIRE(other.contains(200));
         REQUIRE(other.contains(300));
@@ -184,8 +184,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Move (non-empty -> non-empty)") {
@@ -200,8 +200,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains(400));
         REQUIRE(other.contains(500));
         REQUIRE(other.contains(600));
@@ -223,7 +223,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         set.erase(i);
       }
 
-      REQUIRE(set.empty());
+      REQUIRE(set.is_empty());
     }
 
     SECTION("Iterators") {
@@ -263,7 +263,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
     ds::hash_set<ds::string> set{};
 
     SECTION("Definition") {
-      REQUIRE(set.empty());
+      REQUIRE(set.is_empty());
     }
 
     // Insert elements
@@ -272,7 +272,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       CHECK(handle_error(set.insert("hello")));
       CHECK(handle_error(set.insert(":^)")));
 
-      REQUIRE(!set.empty());
+      REQUIRE(!set.is_empty());
       REQUIRE(set.size() == 3);
       REQUIRE(set.contains("hi"));
       REQUIRE(set.contains("hello"));
@@ -287,7 +287,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       set.erase("hi");
       REQUIRE_FALSE(set.contains("hi"));
 
-      REQUIRE(set.empty());
+      REQUIRE(set.is_empty());
     }
 
     SECTION("Same element insertion") {
@@ -315,8 +315,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
       SECTION("Init Move (empty move)") {
         ds::hash_set<ds::string> other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Init Move (non-empty move)") {
@@ -326,8 +326,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         ds::hash_set<ds::string> other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains("hi"));
         REQUIRE(other.contains("uwu"));
         REQUIRE(other.contains("owo"));
@@ -337,8 +337,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::string> other{};
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Copy (non-empty -> empty)") {
@@ -349,12 +349,12 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::string> other{};
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE_FALSE(set.empty());
+        REQUIRE_FALSE(set.is_empty());
         REQUIRE(other.contains("hi"));
         REQUIRE(other.contains("uwu"));
         REQUIRE(other.contains("owo"));
 
-        REQUIRE_FALSE(other.empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains("hi"));
         REQUIRE(other.contains("uwu"));
         REQUIRE(other.contains("owo"));
@@ -368,8 +368,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Copy (non-empty -> non-empty)") {
@@ -384,12 +384,12 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         CHECK(handle_error(other.copy(set)));
 
-        REQUIRE_FALSE(set.empty());
+        REQUIRE_FALSE(set.is_empty());
         REQUIRE(set.contains("HI"));
         REQUIRE(set.contains("OwO"));
         REQUIRE(set.contains("UwU"));
 
-        REQUIRE_FALSE(other.empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains("HI"));
         REQUIRE(other.contains("OwO"));
         REQUIRE(other.contains("UwU"));
@@ -399,8 +399,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::string> other{};
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Move (non-empty -> empty)") {
@@ -411,8 +411,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
         ds::hash_set<ds::string> other{};
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains("hi"));
         REQUIRE(other.contains("uwu"));
         REQUIRE(other.contains("owo"));
@@ -426,8 +426,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE(other.is_empty());
       }
 
       SECTION("Move (non-empty -> non-empty)") {
@@ -442,8 +442,8 @@ TEST_CASE("hash_set", "ds") { // NOLINT
 
         other = std::move(set);
 
-        REQUIRE(set.empty());
-        REQUIRE_FALSE(other.empty());
+        REQUIRE(set.is_empty());
+        REQUIRE_FALSE(other.is_empty());
         REQUIRE(other.contains("hi"));
         REQUIRE(other.contains("UwU"));
         REQUIRE(other.contains("OwO"));
@@ -466,7 +466,7 @@ TEST_CASE("hash_set", "ds") { // NOLINT
     /*     set.erase(i); */
     /*   } */
 
-    /*   REQUIRE(set.empty()); */
+    /*   REQUIRE(set.is_empty()); */
     /* } */
 
     SECTION("Iterators") {

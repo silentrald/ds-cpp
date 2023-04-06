@@ -92,7 +92,7 @@ public:
   // === Iterators === //
 
   // === Capacity === //
-  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept;
   [[nodiscard]] i32 size() const noexcept;
   [[nodiscard]] i32 length() const noexcept;
   [[nodiscard]] i32 max_size() const noexcept;

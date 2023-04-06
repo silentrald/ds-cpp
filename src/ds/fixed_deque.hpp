@@ -243,7 +243,7 @@ public:
    * |______| H = -1 ; T = 0
    * +------+
    */
-  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept;
 
   /**
    * Checks if the fdeque is full
@@ -254,7 +254,7 @@ public:
    * +------+ +------+ +------+
    * Rule: At least 1 space is not occupied
    */
-  [[nodiscard]] bool full() const noexcept;
+  [[nodiscard]] bool is_full() const noexcept;
 
   /**
    * Returns the current size of the fdeque

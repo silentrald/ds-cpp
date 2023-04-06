@@ -22,7 +22,7 @@ TEST_CASE("string", "ds") {
 
   SECTION("Empty string") {
     SECTION("Defcopyion") {
-      REQUIRE(str.empty());
+      REQUIRE(str.is_empty());
       REQUIRE(str.size() == 0); // NOLINT
       REQUIRE(str.length() == 0);
       REQUIRE(str.max_size() == 0);
@@ -50,7 +50,7 @@ TEST_CASE("string", "ds") {
       SECTION("Init Move") {
         ds::string str2 = std::move(str);
 
-        REQUIRE(str2.empty());
+        REQUIRE(str2.is_empty());
         REQUIRE(str2.max_size() == 0);
       }
 
@@ -71,7 +71,7 @@ TEST_CASE("string", "ds") {
         str2 = std::move(str);
         REQUIRE(ptr == free_ptr);
 
-        REQUIRE(str2.empty());
+        REQUIRE(str2.is_empty());
         REQUIRE(str2.max_size() == 0);
       }
     }

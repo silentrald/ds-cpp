@@ -196,7 +196,7 @@ const char* string::c_str() const noexcept {
 }
 
 // === Capacity === //
-bool string::empty() const noexcept {
+bool string::is_empty() const noexcept {
   return this->_size == 0;
 }
 

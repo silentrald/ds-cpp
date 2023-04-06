@@ -455,7 +455,7 @@ public:
    *
    * @return bool
    **/
-  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept;
 
   /**
    * Returns the number elements in the bptree

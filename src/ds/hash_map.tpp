@@ -131,7 +131,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::cend() const noexcept {
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
-bool base_hash_map<Derived, Key, Value, Hash, KeyEqual>::empty(
+bool base_hash_map<Derived, Key, Value, Hash, KeyEqual>::is_empty(
 ) const noexcept {
   return this->_size == 0;
 }
@@ -322,7 +322,7 @@ template <typename Key_>
 typename base_hash_map<Derived, Key, Value, Hash, KeyEqual>::node_ptr
 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::get_node(Key_ key
 ) const noexcept {
-  if (this->empty()) {
+  if (this->is_empty()) {
     return nullptr;
   }
 

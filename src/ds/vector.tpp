@@ -206,7 +206,7 @@ base_vector<Derived, T>::operator[](i32 index) const noexcept {
 
 template <typename Derived, typename T>
 exp_ptr_err<T> base_vector<Derived, T>::front() const noexcept {
-  if (this->empty()) {
+  if (this->is_empty()) {
     return unexpected(error{VECTOR_EMPTY});
   }
 
@@ -215,7 +215,7 @@ exp_ptr_err<T> base_vector<Derived, T>::front() const noexcept {
 
 template <typename Derived, typename T>
 exp_ptr_err<T> base_vector<Derived, T>::back() const noexcept {
-  if (this->empty()) {
+  if (this->is_empty()) {
     return unexpected(error{VECTOR_EMPTY});
   }
 
@@ -289,7 +289,7 @@ base_vector<Derived, T>::crend() const noexcept {
 
 // === Capacity ===
 template <typename Derived, typename T>
-bool base_vector<Derived, T>::empty() const noexcept {
+bool base_vector<Derived, T>::is_empty() const noexcept {
   return this->top == 0;
 }
 
@@ -431,7 +431,7 @@ void base_vector<Derived, T>::erase_impl(i32 index) noexcept {
 
 template <typename Derived, typename T>
 exp_err<T> base_vector<Derived, T>::pop_back() noexcept {
-  if (this->empty()) {
+  if (this->is_empty()) {
     return unexpected{error{VECTOR_EMPTY, def_err_vals}};
   }
 

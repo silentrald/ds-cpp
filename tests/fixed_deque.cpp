@@ -32,9 +32,9 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(0)));
 
       SECTION("Defresizeion checks") {
-        REQUIRE(dq.empty());
-        REQUIRE(dq.full());
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
+        REQUIRE(dq.is_full());
+        REQUIRE(dq.is_empty());
         REQUIRE(dq.capacity() == 0);
       }
 
@@ -85,8 +85,8 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(1)));
 
       SECTION("Defresizeion Check") {
-        REQUIRE(dq.empty());
-        REQUIRE_FALSE(dq.full());
+        REQUIRE(dq.is_empty());
+        REQUIRE_FALSE(dq.is_full());
         REQUIRE(dq.capacity() == 1);
       }
 
@@ -324,16 +324,16 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(5)));
 
       SECTION("Size Check") {
-        REQUIRE(dq.empty());
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
+        REQUIRE(dq.is_empty());
 
         // Head <= Tail
         CHECK(handle_error(dq.push_back(1)));
         CHECK(handle_error(dq.push_back(2)));
 
         REQUIRE(dq.size() == 2);
-        REQUIRE_FALSE(dq.empty());
-        REQUIRE_FALSE(dq.full());
+        REQUIRE_FALSE(dq.is_empty());
+        REQUIRE_FALSE(dq.is_full());
 
         CHECK(handle_error(dq.push_back(1)));
         CHECK(handle_error(dq.push_back(2)));
@@ -346,19 +346,19 @@ TEST_CASE("fixed_deque", "ds") {
         REQUIRE(error);
 
         REQUIRE(dq.size() == 5);
-        REQUIRE(dq.full());
+        REQUIRE(dq.is_full());
 
         dq.clear();
 
-        REQUIRE(dq.empty());
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
+        REQUIRE(dq.is_empty());
 
         // Try to underflow
         exp = dq.pop_back();
         exp = dq.pop_back();
         REQUIRE(error);
 
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
 
         // Head > Tail
         CHECK(handle_error(dq.push_front(1)));
@@ -378,8 +378,8 @@ TEST_CASE("fixed_deque", "ds") {
       SECTION("Passing") {
         SECTION("Move (empty)") {
           ds::fixed_deque<ds::i32> dq2 = std::move(dq);
-          REQUIRE(dq.empty());
-          REQUIRE(dq2.empty());
+          REQUIRE(dq.is_empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.capacity() == 5);
         }
@@ -390,7 +390,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(0)));
 
           ds::fixed_deque<ds::i32> dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
@@ -481,8 +481,8 @@ TEST_CASE("fixed_deque", "ds") {
           ds::fixed_deque<ds::i32> dq2;
           dq2 = std::move(dq);
 
-          REQUIRE(dq.empty());
-          REQUIRE(dq2.empty());
+          REQUIRE(dq.is_empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.capacity() == 5);
         }
@@ -495,7 +495,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(0)));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
@@ -521,9 +521,9 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq2.push_front(0)));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
-          REQUIRE(dq2.empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq2.capacity() == 5);
         }
 
@@ -539,7 +539,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(0)));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
@@ -846,9 +846,9 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(0)));
 
       SECTION("Defresizeion checks") {
-        REQUIRE(dq.empty());
-        REQUIRE(dq.full());
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
+        REQUIRE(dq.is_full());
+        REQUIRE(dq.is_empty());
         REQUIRE(dq.capacity() == 0);
       }
 
@@ -900,9 +900,9 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(1)));
 
       SECTION("Defresizeion Check") {
-        REQUIRE(dq.empty());
-        REQUIRE_FALSE(dq.full());
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
+        REQUIRE_FALSE(dq.is_full());
+        REQUIRE(dq.is_empty());
         REQUIRE(dq.capacity() == 1);
       }
 
@@ -1182,15 +1182,15 @@ TEST_CASE("fixed_deque", "ds") {
       CHECK(handle_error(dq.resize(5)));
 
       SECTION("Size Check") {
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
 
         // Head <= Tail
         CHECK(handle_error(dq.push_back(Test{1})));
         CHECK(handle_error(dq.push_back(Test{2})));
 
         REQUIRE(dq.size() == 2);
-        REQUIRE_FALSE(dq.empty());
-        REQUIRE_FALSE(dq.full());
+        REQUIRE_FALSE(dq.is_empty());
+        REQUIRE_FALSE(dq.is_full());
 
         CHECK(handle_error(dq.push_back(Test{1})));
         CHECK(handle_error(dq.push_back(Test{2})));
@@ -1203,18 +1203,18 @@ TEST_CASE("fixed_deque", "ds") {
         REQUIRE(error);
 
         REQUIRE(dq.size() == 5);
-        REQUIRE(dq.full());
+        REQUIRE(dq.is_full());
 
         dq.clear();
 
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
 
         // Try to underflow
         exp = dq.pop_back();
         exp = dq.pop_back();
         REQUIRE_FALSE(exp);
 
-        REQUIRE(dq.empty());
+        REQUIRE(dq.is_empty());
 
         // Head > Tail
         CHECK(handle_error(dq.push_front(Test{1})));
@@ -1238,8 +1238,8 @@ TEST_CASE("fixed_deque", "ds") {
         SECTION("Init Move (empty)") {
           ds::fixed_deque<Test> dq2 = std::move(dq);
 
-          REQUIRE(dq.empty());
-          REQUIRE(dq2.empty());
+          REQUIRE(dq.is_empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.capacity() == 5);
 
@@ -1254,7 +1254,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(Test{0})));
 
           ds::fixed_deque<Test> dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
@@ -1364,8 +1364,8 @@ TEST_CASE("fixed_deque", "ds") {
           ds::fixed_deque<Test> dq2;
           dq2 = std::move(dq);
 
-          REQUIRE(dq.empty());
-          REQUIRE(dq2.empty());
+          REQUIRE(dq.is_empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.capacity() == 5);
 
@@ -1382,7 +1382,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(Test{0})));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
@@ -1412,9 +1412,9 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq2.push_front(Test{0})));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
-          REQUIRE(dq2.empty());
+          REQUIRE(dq2.is_empty());
           REQUIRE(dq2.capacity() == 5);
 
           for (auto& it : dq) {
@@ -1443,7 +1443,7 @@ TEST_CASE("fixed_deque", "ds") {
           CHECK(handle_error(dq.push_front(Test{0})));
 
           dq2 = std::move(dq);
-          REQUIRE(dq.empty());
+          REQUIRE(dq.is_empty());
           REQUIRE(dq.capacity() == 0);
           REQUIRE(dq2.size() == 3);
           REQUIRE(dq2.capacity() == 5);
