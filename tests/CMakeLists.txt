@@ -51,6 +51,12 @@ target_link_libraries(string PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
+# Unique_ptr
+add_executable(unique_ptr unique_ptr.cpp main.cpp)
+target_link_libraries(unique_ptr PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
+
 # Vector
 add_executable(vector vector.cpp main.cpp
   ../src/ds/string.cpp

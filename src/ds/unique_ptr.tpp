@@ -12,6 +12,7 @@
 #include "./macro.hpp"
 #include "./type_traits.hpp"
 #include "./unique_ptr.hpp"
+#include "ds/error.hpp"
 #include <new>
 
 namespace ds {
@@ -48,26 +49,41 @@ template <typename T> void unique_ptr<T>::destroy() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
-  if (!this->data) {
-    this->data = new (std::nothrow) T(); // NOLINT
-    if (this->data == nullptr) {
-      return error{UPTR_BAD_ALLOC, def_err_vals};
-    }
+template <typename T> opt_err unique_ptr<T>::init() noexcept {
+  if (this->data) {
+    return error{UPTR_SET, def_err_vals};
+  }
 
-    if constexpr (has_copy_method<value>::value) {
-      auto err = this->data->copy(data);
-      if (err) {
-        delete this->data;
-        this->data = nullptr;
-        return err;
-      }
-      return null;
-    }
+  this->data = new (std::nothrow) T(); // NOLINT
+  return null;
+}
+
+template <typename T> opt_err unique_ptr<T>::set(ptr data) noexcept {
+  if (this->data) {
+    return error{UPTR_SET, def_err_vals};
+  }
+
+  this->data = data;
+  return null;
+}
+
+template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
+  if (this->data) {
+    return error{UPTR_SET, def_err_vals};
+  }
+
+  this->data = new (std::nothrow) T(); // NOLINT
+  if (this->data == nullptr) {
+    return error{UPTR_BAD_ALLOC, def_err_vals};
   }
 
   if constexpr (has_copy_method<value>::value) {
-    try_opt(this->data->copy(data));
+    auto err = this->data->copy(data);
+    if (err) {
+      delete this->data;
+      this->data = nullptr;
+      return err;
+    }
   } else {
     *this->data = data;
   }
@@ -77,8 +93,7 @@ template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
 
 template <typename T> opt_err unique_ptr<T>::set(rref data) noexcept {
   if (this->data) {
-    *this->data = std::move(data);
-    return null;
+    return error{UPTR_SET, def_err_vals};
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
@@ -101,6 +116,10 @@ template <typename T> void unique_ptr<T>::reset() noexcept {
 }
 
 // === Observers === //
+template <typename T> T* unique_ptr<T>::get_ptr() const noexcept {
+  return this->data;
+}
+
 template <typename T> T* unique_ptr<T>::operator->() const noexcept {
   return this->data;
 }
