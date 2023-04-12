@@ -9,10 +9,22 @@
 #define DS_GEOM_RECT_TPP
 
 #include "./rect.hpp"
-#include "ds-geom/vec2.hpp"
+#include "./vec2.hpp"
+#include "ds/error.hpp"
+#include "ds/optional.hpp"
 #include <algorithm>
 
 namespace ds {
+
+template <typename T> opt_err rect<T>::copy(const rect& other) noexcept {
+  this->x = other.x;
+  this->y = other.y;
+  this->w = other.w;
+  this->h = other.h;
+  return null;
+}
+
+// === Operators === //
 
 template <typename T> void rect<T>::set_position(T x, T y) noexcept {
   this->x = x;

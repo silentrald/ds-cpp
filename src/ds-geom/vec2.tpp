@@ -9,9 +9,19 @@
 #define DS_GEOM_VEC2_TPP
 
 #include "./vec2.hpp"
+#include "ds/error.hpp"
+#include "ds/optional.hpp"
 #include <type_traits>
 
 namespace ds {
+
+template <typename T> opt_err vec2<T>::copy(const vec2& other) noexcept {
+  this->x = other.x;
+  this->y = other.y;
+  return null;
+}
+
+// === Operators === //
 
 template <typename T> bool vec2<T>::in_rect(const rect<T>& r) const noexcept {
   return (

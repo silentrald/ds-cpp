@@ -9,9 +9,20 @@
 #define DS_GEOM_VEC3_TPP
 
 #include "./vec3.hpp"
+#include "ds/error.hpp"
+#include "ds/optional.hpp"
 #include <type_traits>
 
 namespace ds {
+
+template <typename T> opt_err vec3<T>::copy(const vec3& other) noexcept {
+  this->x = other.x;
+  this->y = other.y;
+  this->z = other.z;
+  return null;
+}
+
+// === Operators === //
 
 template <typename T> vec3<T>& vec3<T>::operator+=(const vec3& v) noexcept {
   this->x += v.x;
@@ -50,6 +61,8 @@ vec3<T>& vec3<T>::operator/=(S s) noexcept {
   this->z /= s;
   return *this;
 }
+
+// === Non-Member === //
 
 template <typename T>
 bool operator==(const vec3<T>& lhs, const vec3<T>& rhs) noexcept {

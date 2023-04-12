@@ -8,7 +8,9 @@
 #ifndef DS_GEOM_RECT_HPP
 #define DS_GEOM_RECT_HPP
 
+#include "ds/error.hpp"
 #include <type_traits>
+
 namespace ds {
 
 template <typename T> struct vec2;
@@ -19,6 +21,8 @@ template <typename T> struct rect {
   T y;
   T w;
   T h;
+
+  opt_err copy(const rect& other) noexcept;
 
   void set_position(T x, T y) noexcept;
   void set_size(T w, T h) noexcept;

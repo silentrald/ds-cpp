@@ -20,6 +20,8 @@ template <typename T> struct vec2 {
   T x;
   T y;
 
+  opt_err copy(const vec2& other) noexcept;
+
   /**
    * Check if the vec2 is within the bounds of the rect. If the point touches
    *   the rect, it is also considered within bounds.

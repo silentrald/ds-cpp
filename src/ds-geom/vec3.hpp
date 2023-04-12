@@ -8,6 +8,7 @@
 #ifndef DS_GEOM_VEC3_HPP
 #define DS_GEOM_VEC3_HPP
 
+#include "ds/error.hpp"
 #include <type_traits>
 
 namespace ds {
@@ -17,6 +18,8 @@ template <typename T> struct vec3 {
   T x;
   T y;
   T z;
+
+  opt_err copy(const vec3& other) noexcept;
 
   // === Operators === //
 
