@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-26
- * Updated: 2022-12-27
  *===============================*/
 
 #ifndef DS_PRIME_HPP

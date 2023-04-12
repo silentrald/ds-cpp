@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-30
- * Updated: 2023-01-04
  *===============================*/
 
 #ifndef DS_BPTREE_MAP_NODE_HPP

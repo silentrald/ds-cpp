@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2023-01-05
- * Updated: 2023-01-05
  *===============================*/
 
 #ifndef DS_HASH_MAP_ITERATOR_HPP

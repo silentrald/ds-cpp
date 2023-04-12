@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2023-01-02
- * Updated: 2023-01-02
  *===============================*/
 
 #ifndef DS_BPTREE_MAP_ITERATOR_HPP

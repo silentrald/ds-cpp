@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-30
- * Updated: 2022-12-30
  *===============================*/
 
 #include "ds/shared_ptr.hpp"

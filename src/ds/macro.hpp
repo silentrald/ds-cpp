@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2023-01-20
- * Updated: 2023-01-20
  *===============================*/
 
 #ifndef DS_MACRO_HPP

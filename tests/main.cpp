@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-28
- * Updated: 2022-01-07
  *===============================*/
 
 #include "./main.hpp"

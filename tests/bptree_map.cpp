@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2023-xx-xx
- * Updated: 2023-xx-xx
  *===============================*/
 
 #include "ds/bptree_map.hpp"

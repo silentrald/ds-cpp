@@ -3,7 +3,6 @@
  *  - silentrald
  * Version: 1.0
  * Created: 2022-12-27
- * Updated: 2022-12-29
  *===============================*/
 
 #include "ds/hash_map.hpp"
