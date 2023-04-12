@@ -66,3 +66,7 @@ target_link_libraries(vector PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
+# Geometry
+add_executable(geom geom.cpp)
+
+
