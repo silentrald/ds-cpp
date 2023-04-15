@@ -5,8 +5,8 @@
  * Created: 2022-12-30
  *===============================*/
 
-#ifndef DS_SPTR_TPP
-#define DS_SPTR_TPP
+#ifndef DS_SHARED_PTR_TPP
+#define DS_SHARED_PTR_TPP
 
 #include "./macro.hpp"
 #include "./shared_ptr.hpp"
