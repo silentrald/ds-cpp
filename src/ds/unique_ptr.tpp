@@ -54,6 +54,9 @@ template <typename T> opt_err unique_ptr<T>::init() noexcept {
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
+  if (this->data == nullptr) {
+    return error{UPTR_BAD_ALLOC, def_err_vals};
+  }
   return null;
 }
 

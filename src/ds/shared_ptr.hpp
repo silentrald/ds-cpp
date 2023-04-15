@@ -17,7 +17,8 @@
 
 namespace ds {
 
-const char* const SHARED_PTR_BAD_ALLOC = "shared_ptr:bad_alloc";
+const char* const SPTR_BAD_ALLOC = "shared_ptr:bad_alloc";
+const char* const SPTR_SET = "shaped_ptr:already_set";
 
 // NOTE: Not thread safe
 template <typename T> class shared_ptr {
@@ -57,6 +58,8 @@ public:
   ~shared_ptr() noexcept;
 
   // === Modifiers === //
+  [[nodiscard]] opt_err init() noexcept;
+
   [[nodiscard]] opt_err set(cref data) noexcept {
     return this->set_impl<cref>(data);
   }

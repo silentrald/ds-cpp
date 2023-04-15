@@ -5,11 +5,12 @@
  * Created: 2022-12-30
  *===============================*/
 
-#ifndef DS_SHARED_PTR_TPP
-#define DS_SHARED_PTR_TPP
+#ifndef DS_SPTR_TPP
+#define DS_SPTR_TPP
 
 #include "./macro.hpp"
 #include "./shared_ptr.hpp"
+#include "ds/error.hpp"
 #include <type_traits>
 
 namespace ds {
@@ -95,6 +96,18 @@ template <typename T> shared_ptr<T>::~shared_ptr() noexcept {
 }
 
 // === Modifiers === //
+template <typename T> opt_err shared_ptr<T>::init() noexcept {
+  if (this->data) {
+    return error{SPTR_SET, def_err_vals};
+  }
+
+  this->data = new (std::nothrow) T(); // NOLINT
+  if (this->data == nullptr) {
+    return error{SPTR_BAD_ALLOC, def_err_vals};
+  }
+  return null;
+}
+
 template <typename T>
 template <typename Data_>
 opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
@@ -104,13 +117,13 @@ opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
 
   this->data = new value(); // NOLINT
   if (this->data == nullptr) {
-    return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+    return error{SPTR_BAD_ALLOC, def_err_vals};
   }
 
   this->counter = new int(1); // NOLINT
   if (this->counter == nullptr) {
     this->destroy_data_ptr();
-    return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+    return error{SPTR_BAD_ALLOC, def_err_vals};
   }
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
@@ -118,7 +131,7 @@ opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
   } else if constexpr (std::is_class<value>::value) {
     if (this->data->copy(data)) {
       this->destroy_all_ptrs();
-      return error{SHARED_PTR_BAD_ALLOC, def_err_vals};
+      return error{SPTR_BAD_ALLOC, def_err_vals};
     }
   } else {
     *this->data = data;
