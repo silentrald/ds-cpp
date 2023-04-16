@@ -266,8 +266,7 @@ fixed_deque<T>& fixed_deque<T>::operator=(fixed_deque&& rhs) noexcept {
   if (&rhs == this) {
     return *this;
   }
-
-  this->clear();
+  this->destroy();
 
   this->arr = rhs.arr;
   this->head = rhs.head;
@@ -283,7 +282,11 @@ fixed_deque<T>& fixed_deque<T>::operator=(fixed_deque&& rhs) noexcept {
 }
 
 // === Destructor ===
-template <typename T> fixed_deque<T>::~fixed_deque() {
+template <typename T> fixed_deque<T>::~fixed_deque() noexcept {
+  this->destroy();
+}
+
+template <typename T> void fixed_deque<T>::destroy() noexcept {
   if (this->arr) {
     if constexpr (std::is_class<value>::value) {
       for (i32 i = 0; i <= this->_capacity; ++i) {
@@ -628,6 +631,11 @@ template <typename T> opt_err fixed_deque<T>::remove_back(i32 n) noexcept {
 template <typename T> opt_err fixed_deque<T>::resize(i32 size) noexcept {
   if (size < 0) {
     return error{FDEQUE_NEGATIVE_CAP, def_err_vals};
+  }
+
+  if (size == 0) {
+    this->destroy();
+    return null;
   }
 
   if (this->arr) {

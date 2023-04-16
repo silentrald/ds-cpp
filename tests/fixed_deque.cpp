@@ -30,7 +30,7 @@ TEST_CASE("fixed_deque", "ds") {
     SECTION("Size 0") {
       CHECK(handle_error(dq.resize(0)));
 
-      SECTION("Defresizeion checks") {
+      SECTION("Definition checks") {
         REQUIRE(dq.is_empty());
         REQUIRE(dq.is_full());
         REQUIRE(dq.is_empty());
@@ -83,7 +83,7 @@ TEST_CASE("fixed_deque", "ds") {
     SECTION("Size 1") {
       CHECK(handle_error(dq.resize(1)));
 
-      SECTION("Defresizeion Check") {
+      SECTION("Definition Check") {
         REQUIRE(dq.is_empty());
         REQUIRE_FALSE(dq.is_full());
         REQUIRE(dq.capacity() == 1);
@@ -844,7 +844,7 @@ TEST_CASE("fixed_deque", "ds") {
     SECTION("Size 0") {
       CHECK(handle_error(dq.resize(0)));
 
-      SECTION("Defresizeion checks") {
+      SECTION("Definition checks") {
         REQUIRE(dq.is_empty());
         REQUIRE(dq.is_full());
         REQUIRE(dq.is_empty());
@@ -898,7 +898,7 @@ TEST_CASE("fixed_deque", "ds") {
       counter = 0;
       CHECK(handle_error(dq.resize(1)));
 
-      SECTION("Defresizeion Check") {
+      SECTION("Definition Check") {
         REQUIRE(dq.is_empty());
         REQUIRE_FALSE(dq.is_full());
         REQUIRE(dq.is_empty());

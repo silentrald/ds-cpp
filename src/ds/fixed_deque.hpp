@@ -48,6 +48,8 @@ public:
   using iterator = fixed_deque_iterator<fixed_deque<T>>;
   using citerator = fixed_deque_iterator<const fixed_deque<T>>;
 
+  void destroy() noexcept;
+
 private:
   pointer arr = nullptr;
   i32 head = -1;
@@ -142,7 +144,7 @@ public:
   fixed_deque& operator=(fixed_deque&& rhs) noexcept;
 
   // === Destructor === //
-  ~fixed_deque();
+  ~fixed_deque() noexcept;
 
   // === Element Access === //
   /**

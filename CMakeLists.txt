@@ -22,7 +22,7 @@ option(DS_THREAD "DS Thread Enabled" OFF)
 
 if (NOT DS_ERROR_MSG)
   set(DS_ERROR_MSG 256)
-endif (DS_ERROR_MSG)
+endif (NOT DS_ERROR_MSG)
 target_compile_definitions(${PROJECT_NAME} PRIVATE DS_ERROR_MSG=${DS_ERROR_MSG})
 
 if (DS_TEST)
