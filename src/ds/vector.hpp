@@ -8,19 +8,19 @@
 #ifndef DS_VECTOR_HPP
 #define DS_VECTOR_HPP
 
-#include "./error.hpp"
-#include "./macro.hpp"
-#include "./string.hpp"
-#include "./type_traits.hpp"
-#include "./types.hpp"
 #include "./vector_iterator.hpp"
+#include "ds-error/types.hpp"
+#include "ds/macro.hpp"
+#include "ds/string.hpp"
+#include "ds/type_traits.hpp"
+#include "ds/types.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <utility>
 
-#ifndef DS_TEST
+#ifdef DS_TEST
 #include "../../tests/main.hpp"
 #endif
 
@@ -52,7 +52,6 @@ protected:
   ptr arr = nullptr;
   i32 top = 0;
   i32 _max_size = 0;
-  i32 K = 2;
 
   void destroy() noexcept;
 

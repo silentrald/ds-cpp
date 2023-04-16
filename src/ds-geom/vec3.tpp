@@ -9,7 +9,7 @@
 #define DS_GEOM_VEC3_TPP
 
 #include "./vec3.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/optional.hpp"
 #include <type_traits>
 

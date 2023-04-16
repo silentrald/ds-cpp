@@ -8,7 +8,7 @@
 #ifndef DS_THREAD_MUTEX_HPP
 #define DS_THREAD_MUTEX_HPP
 
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include <pthread.h>
 
 // Linux threading

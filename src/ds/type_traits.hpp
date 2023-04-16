@@ -8,8 +8,8 @@
 #ifndef DS_TYPE_TRAITS_HPP
 #define DS_TYPE_TRAITS_HPP
 
-#include "./string.hpp"
-#include "error.hpp"
+#include "ds-error/types.hpp"
+#include "ds/string.hpp"
 #include <tuple>
 #include <type_traits>
 

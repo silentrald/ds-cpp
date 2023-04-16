@@ -8,8 +8,8 @@
 #ifndef DS_SHARED_PTR_HPP
 #define DS_SHARED_PTR_HPP
 
-#include "./error.hpp"
-#include "./types.hpp"
+#include "ds-error/types.hpp"
+#include "ds/types.hpp"
 
 #if DS_TEST
 #include "../../tests/main.hpp"

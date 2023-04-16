@@ -8,8 +8,8 @@
 #ifndef DS_VECTOR_STRING_HPP
 #define DS_VECTOR_STRING_HPP
 
-#include "./string.hpp"
 #include "./vector.hpp"
+#include "ds/string.hpp"
 
 namespace ds {
 

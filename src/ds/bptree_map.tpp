@@ -9,7 +9,7 @@
 #define DS_BPTREE_MAP_TPP
 
 #include "./bptree_map.hpp"
-#include "./vector.hpp"
+#include "ds/vector.hpp"
 #include <cstdlib>
 #include <new>
 

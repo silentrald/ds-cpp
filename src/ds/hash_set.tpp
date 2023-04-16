@@ -8,10 +8,10 @@
 #ifndef DS_HASH_SET_TPP
 #define DS_HASH_SET_TPP
 
-#include "./error.hpp"
 #include "./hash_set.hpp"
-#include "./macro.hpp"
-#include "./prime.hpp"
+#include "ds-error/types.hpp"
+#include "ds/macro.hpp"
+#include "../prime.hpp"
 #include <new>
 #include <type_traits>
 #include <utility>

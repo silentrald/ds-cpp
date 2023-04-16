@@ -8,7 +8,7 @@
 #ifndef DS_HASH_MAP_TPP
 #define DS_HASH_MAP_TPP
 
-#include "./prime.hpp"
+#include "../prime.hpp"
 #include "./hash_map.hpp"
 #include <new>
 

@@ -8,7 +8,7 @@
 #ifndef DS_TEST_MAIN_HPP
 #define DS_TEST_MAIN_HPP
 
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 
 namespace ds_test {

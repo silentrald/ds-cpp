@@ -8,7 +8,7 @@
 #ifndef DS_HASH_SET_ITERATOR_HPP
 #define DS_HASH_SET_ITERATOR_HPP
 
-#include "./types.hpp"
+#include "ds/types.hpp"
 
 namespace ds {
 

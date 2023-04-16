@@ -8,14 +8,14 @@
 #ifndef DS_HASH_MAP_HPP
 #define DS_HASH_MAP_HPP
 
-#include "./equal.hpp"
-#include "./error.hpp"
 #include "./hash.hpp"
 #include "./hash_map_iterator.hpp"
-#include "./macro.hpp"
-#include "./string.hpp"
-#include "./types.hpp"
-#include "./vector.hpp"
+#include "ds-error/types.hpp"
+#include "ds/equal.hpp"
+#include "ds/macro.hpp"
+#include "ds/string.hpp"
+#include "ds/types.hpp"
+#include "ds/vector.hpp"
 #include <utility>
 
 namespace ds {

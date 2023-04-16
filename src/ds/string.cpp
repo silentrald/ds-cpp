@@ -6,7 +6,7 @@
  *===============================*/
 
 #include "./string.hpp"
-#include "./macro.hpp"
+#include "ds/macro.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>

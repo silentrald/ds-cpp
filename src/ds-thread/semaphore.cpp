@@ -6,7 +6,6 @@
  *===============================*/
 
 #include "./semaphore.hpp"
-#include "ds/error.hpp"
 #include "ds/macro.hpp"
 #include "ds/optional.hpp"
 #include <semaphore.h>

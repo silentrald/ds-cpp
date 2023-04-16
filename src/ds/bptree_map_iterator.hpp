@@ -8,7 +8,7 @@
 #ifndef DS_BPTREE_MAP_ITERATOR_HPP
 #define DS_BPTREE_MAP_ITERATOR_HPP
 
-#include "./types.hpp"
+#include "ds/types.hpp"
 
 namespace ds {
 

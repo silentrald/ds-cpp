@@ -9,7 +9,7 @@
 #include "./main.hpp"
 #include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/string.hpp"
 #include "ds/types.hpp"
 

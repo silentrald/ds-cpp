@@ -8,8 +8,8 @@
 #ifndef DS_COMPARE_HPP
 #define DS_COMPARE_HPP
 
-#include "./types.hpp"
-#include "./string.hpp"
+#include "ds-error/types.hpp"
+#include "ds/string.hpp"
 #include <cstring>
 
 namespace ds {

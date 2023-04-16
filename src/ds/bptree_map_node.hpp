@@ -9,7 +9,7 @@
 #define DS_BPTREE_MAP_NODE_HPP
 
 #include "./bptree_map.hpp"
-#include "./vector.hpp"
+#include "ds/vector.hpp"
 #include <cstdlib>
 #include <new>
 #include <type_traits>

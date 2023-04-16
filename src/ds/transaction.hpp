@@ -8,9 +8,9 @@
 #ifndef DS_TRANSACTION_HPP
 #define DS_TRANSACTION_HPP
 
-#include "./error.hpp"
-#include "./types.hpp"
-#include "./vector.hpp"
+#include "ds-error/types.hpp"
+#include "ds/types.hpp"
+#include "ds/vector.hpp"
 
 namespace ds {
 

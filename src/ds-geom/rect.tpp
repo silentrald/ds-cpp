@@ -9,8 +9,8 @@
 #define DS_GEOM_RECT_TPP
 
 #include "./rect.hpp"
-#include "./vec2.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
+#include "ds-geom/vec2.hpp"
 #include "ds/optional.hpp"
 #include <algorithm>
 

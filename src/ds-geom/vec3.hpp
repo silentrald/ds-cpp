@@ -8,7 +8,7 @@
 #ifndef DS_GEOM_VEC3_HPP
 #define DS_GEOM_VEC3_HPP
 
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include <type_traits>
 
 namespace ds {

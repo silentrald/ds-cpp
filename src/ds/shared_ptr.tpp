@@ -8,9 +8,9 @@
 #ifndef DS_SHARED_PTR_TPP
 #define DS_SHARED_PTR_TPP
 
-#include "./macro.hpp"
 #include "./shared_ptr.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
+#include "ds/macro.hpp"
 #include <type_traits>
 
 namespace ds {

@@ -171,9 +171,9 @@ opt_err base_vector<Derived, T>::grow(i32 min_size) noexcept {
   }
 
   // TODO: Optimization for K = 2
-  i32 new_size = std::max(1, this->_max_size) * this->K;
+  i32 new_size = std::max(1, this->_max_size) * 2;
   while (new_size < min_size) {
-    new_size *= this->K;
+    new_size *= 2;
   }
 
   return this->reallocate(new_size);

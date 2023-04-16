@@ -8,8 +8,8 @@
 #ifndef DS_STRING_BUILD_HPP
 #define DS_STRING_BUILD_HPP
 
-#include "./error.hpp"
-#include "./types.hpp"
+#include "ds-error/types.hpp"
+#include "ds/types.hpp"
 #include <ostream>
 
 #if DS_TEST

@@ -8,9 +8,9 @@
 #ifndef DS_MACRO_HPP
 #define DS_MACRO_HPP
 
-#include "./expected.hpp"
+#include "ds-error/types.hpp"
 
-#define def_err_vals __FILE__, __FUNCTION__, __LINE__
+#define def_err_vals __FILE__, __LINE__
 
 /**
  * If the function returns an error, then the function caller will immmediately

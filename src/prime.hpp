@@ -8,7 +8,7 @@
 #ifndef DS_PRIME_HPP
 #define DS_PRIME_HPP
 
-#include "./types.hpp"
+#include "ds/types.hpp"
 #include <climits>
 
 namespace ds {

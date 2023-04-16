@@ -8,7 +8,7 @@
 #include "ds/hash_set.hpp"
 #include "./main.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/string.hpp"
 
 using namespace ds_test;

@@ -20,10 +20,7 @@ void print_error(const ds::error& error) noexcept {
   ds::error_location* location = nullptr;
   for (ds::i32 i = 0; i < error.get_size(); ++i) {
     location = error.get_location(i);
-    UNSCOPED_INFO(
-        i << " ~ " << location->file << '>' << location->function << ':'
-          << location->line
-    );
+    UNSCOPED_INFO(i << " ~ " << location->file << ':' << location->line);
   }
 }
 

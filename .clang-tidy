@@ -23,6 +23,7 @@ Checks: >
   -*-braces-around-statements,
   -*-pro-bounds-pointer-arithmetic,
   -*-pro-bounds-constant-array-index,
+  -*-pro-type-union-access,
   -bugprone-copy-constructor-init,
   -readability-const-return-type,
   -misc-no-recursion

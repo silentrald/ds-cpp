@@ -8,7 +8,7 @@
 #ifndef DS_THREAD_SEMAPHORE_HPP
 #define DS_THREAD_SEMAPHORE_HPP
 
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include <semaphore.h>
 

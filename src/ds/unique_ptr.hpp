@@ -8,9 +8,9 @@
 #ifndef DS_UNIQUE_PTR_HPP
 #define DS_UNIQUE_PTR_HPP
 
-#include "./error.hpp"
-#include "./optional.hpp"
+#include "ds-error/types.hpp"
 #include "ds/macro.hpp"
+#include "ds/optional.hpp"
 #include "ds/type_traits.hpp"
 #include <new>
 #include <type_traits>

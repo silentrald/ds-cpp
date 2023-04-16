@@ -8,7 +8,7 @@
 #ifndef DS_GEOM_VEC2_HPP
 #define DS_GEOM_VEC2_HPP
 
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
 #include "ds/string.hpp"
 
 namespace ds {
@@ -43,10 +43,8 @@ template <typename T> struct vec2 {
 
   vec2& operator+=(vec2 v) noexcept;
   vec2& operator-=(vec2 v) noexcept;
-  template <typename S>
-  vec2& operator*=(S s) noexcept;
-  template <typename S>
-  vec2& operator/=(S s) noexcept;
+  template <typename S> vec2& operator*=(S s) noexcept;
+  template <typename S> vec2& operator/=(S s) noexcept;
 
   // === Non-Member === //
 

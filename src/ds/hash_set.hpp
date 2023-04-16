@@ -8,14 +8,14 @@
 #ifndef DS_HASH_SET_HPP
 #define DS_HASH_SET_HPP
 
-#include "./equal.hpp"
-#include "./error.hpp"
+#include "../prime.hpp"
 #include "./hash.hpp"
 #include "./hash_set_iterator.hpp"
-#include "./macro.hpp"
-#include "./prime.hpp"
-#include "./types.hpp"
-#include "./vector.hpp"
+#include "ds-error/types.hpp"
+#include "ds/equal.hpp"
+#include "ds/macro.hpp"
+#include "ds/types.hpp"
+#include "ds/vector.hpp"
 #include <new>
 
 namespace ds {

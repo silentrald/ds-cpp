@@ -8,11 +8,11 @@
 #ifndef DS_FIXED_DEQUE_HPP
 #define DS_FIXED_DEQUE_HPP
 
-#include "./error.hpp"
 #include "./fixed_deque_iterator.hpp"
-#include "./macro.hpp"
-#include "./type_traits.hpp"
-#include "./types.hpp"
+#include "ds-error/types.hpp"
+#include "ds/macro.hpp"
+#include "ds/type_traits.hpp"
+#include "ds/types.hpp"
 #include <cstdlib>
 
 namespace ds {

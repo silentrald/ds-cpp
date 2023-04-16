@@ -8,10 +8,10 @@
 #ifndef DS_UNIQUE_PTR_TPP
 #define DS_UNIQUE_PTR_TPP
 
-#include "./macro.hpp"
-#include "./type_traits.hpp"
 #include "./unique_ptr.hpp"
-#include "ds/error.hpp"
+#include "ds-error/types.hpp"
+#include "ds/macro.hpp"
+#include "ds/type_traits.hpp"
 #include <new>
 
 namespace ds {
