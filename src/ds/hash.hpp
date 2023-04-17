@@ -16,7 +16,7 @@
 
 namespace ds {
 
-const int SEED = 69420;
+const i32 SEED = 69420;
 
 template <
     typename Derived, typename T, typename Return = i32,

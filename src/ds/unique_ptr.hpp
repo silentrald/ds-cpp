@@ -8,10 +8,10 @@
 #ifndef DS_UNIQUE_PTR_HPP
 #define DS_UNIQUE_PTR_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/macro.hpp"
 #include "ds/optional.hpp"
 #include "ds/type_traits.hpp"
+#include "ds/types.hpp"
 #include <new>
 #include <type_traits>
 
@@ -49,10 +49,10 @@ public:
   ~unique_ptr() noexcept;
 
   // === Modifiers === //
-  [[nodiscard]] opt_err init() noexcept;
-  [[nodiscard]] opt_err set(ptr data) noexcept;
-  [[nodiscard]] opt_err set(cref data) noexcept;
-  [[nodiscard]] opt_err set(rref data) noexcept;
+  [[nodiscard]] err_code init() noexcept;
+  [[nodiscard]] err_code set(ptr data) noexcept;
+  [[nodiscard]] err_code set(cref data) noexcept;
+  [[nodiscard]] err_code set(rref data) noexcept;
 
   [[nodiscard]] ptr release() noexcept;
   void reset() noexcept;
@@ -83,23 +83,23 @@ public:
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] opt_err init() noexcept {
+  [[nodiscard]] err_code init() noexcept {
     if (this->data) {
-      return error{UPTR_SET, def_err_vals};
+      return ec::ALREADY_SET;
     }
 
     this->data = new (std::nothrow) D(); // NOLINT
-    return null;
+    return ec::SUCCESS;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] opt_err set(ptr data) {
+  [[nodiscard]] err_code set(ptr data) {
     if (this->data) {
-      return error{UPTR_SET, def_err_vals};
+      return ec::ALREADY_SET;
     }
 
     this->data = data;
-    return null;
+    return ec::SUCCESS;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
@@ -124,23 +124,23 @@ public:
     }
 
     this->data = data_;
-    return null;
+    return ec::SUCCESS;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] opt_err set(D&& data) noexcept {
+  [[nodiscard]] err_code set(D&& data) noexcept {
     if (this->data) {
-      return error{UPTR_SET, def_err_vals};
+      return ec::ALREADY_SET;
     }
 
     D* data_ = new (std::nothrow) D(); // NOLINT
     if (data_ == nullptr) {
-      return error{UPTR_BAD_ALLOC, def_err_vals};
+      return ec::BAD_ALLOC;
     }
 
     *data_ = std::move(data); // NOLINT
     this->data = data_;
-    return null;
+    return ec::SUCCESS;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>

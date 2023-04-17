@@ -10,7 +10,6 @@
 
 #include "./hash.hpp"
 #include "./hash_map_iterator.hpp"
-#include "ds-error/types.hpp"
 #include "ds/equal.hpp"
 #include "ds/macro.hpp"
 #include "ds/string.hpp"
@@ -19,9 +18,6 @@
 #include <utility>
 
 namespace ds {
-
-const char* const HASH_MAP_BAD_ALLOC = "hash_map:bad_alloc";
-const char* const HASH_MAP_NOT_FOUND = "hash_map:not_found";
 
 template <
     typename Derived, typename Key, typename Value, typename Hash = hash<Key>,
@@ -89,7 +85,7 @@ protected:
   [[nodiscard]] node_ptr create_node(Key_ key, Value_ value) noexcept;
 
   template <typename Key_, typename Value_>
-  [[nodiscard]] opt_err insert_impl(Key_ key, Value_ value) noexcept;
+  [[nodiscard]] err_code insert_impl(Key_ key, Value_ value) noexcept;
   template <typename Key_> void erase_impl(Key_ key) noexcept;
 
   // * Lookup Helper *
@@ -119,7 +115,7 @@ public:
    *  - bad allocation resizing the bucket
    *  - bad allocation in node creation
    **/
-  [[nodiscard]] opt_err copy(const base_hash_map& other) noexcept;
+  [[nodiscard]] err_code copy(const base_hash_map& other) noexcept;
 
   // === Move ===
   base_hash_map(base_hash_map&& rhs) noexcept;
@@ -189,7 +185,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key or value
    **/
-  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
+  [[nodiscard]] err_code insert(key_cref key, value_cref value) noexcept {
     return this->insert_impl<key_cref, value_cref>(key, value);
   }
 
@@ -201,7 +197,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
+  [[nodiscard]] err_code insert(key_cref key, value_rref value) noexcept {
     return this->insert_impl<key_cref, value_rref>(key, std::move(value));
   }
 
@@ -213,7 +209,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
+  [[nodiscard]] err_code insert(key_rref key, value_cref value) noexcept {
     return this->insert_impl<key_rref, value_cref>(std::move(key), value);
   }
 
@@ -224,7 +220,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
+  [[nodiscard]] err_code insert(key_rref key, value_rref value) noexcept {
     return this->insert_impl<key_rref, value_rref>(
         std::move(key), std::move(value)
     );
@@ -247,13 +243,11 @@ public:
    *
    * @errors
    *   - key was not found
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at(key_cref key) noexcept {
+  [[nodiscard]] exp_ptr_err_code<value_type> at(key_cref key) noexcept {
     auto* node = this->get_node<key_cref>(key);
     if (node == nullptr) {
-      return unexpected{error{HASH_MAP_NOT_FOUND, def_err_vals}};
+      return unexpected{ec::NOT_FOUND};
     }
 
     return &node->value;
@@ -294,7 +288,7 @@ public:
    * @errors
    *  - bad allocation in resizing the number of buckets
    **/
-  [[nodiscard]] opt_err rehash(i32 count) noexcept;
+  [[nodiscard]] err_code rehash(i32 count) noexcept;
 };
 
 } // namespace ds

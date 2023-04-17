@@ -8,29 +8,22 @@
 #include "./mutex.hpp"
 #include "ds/macro.hpp"
 #include "ds/optional.hpp"
+#include "ds/types.hpp"
 #include <pthread.h>
 #include <utility>
 
 namespace ds {
-
-opt_err mutex::init() noexcept {
-  // TODO: Can use the error code to make finer error msg
-  if (pthread_mutex_init(&this->_mutex, nullptr) != 0) {
-    return error{"Could not create mutex", def_err_vals};
-  }
-  return null;
-}
 
 mutex::~mutex() noexcept {
   // TODO: Not safe to destroy if locked
   pthread_mutex_destroy(&this->_mutex);
 }
 
-opt_err mutex::lock() noexcept {
+err_code mutex::lock() noexcept {
   if (pthread_mutex_lock(&this->_mutex) != 0) {
-    return error{"Lock error", def_err_vals};
+    return ec::THREAD_ERR;
   }
-  return null;
+  return ec::SUCCESS;
 }
 
 void mutex::try_lock() noexcept {

@@ -8,37 +8,28 @@
 #include "./main.hpp"
 #include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/types.hpp"
 
 namespace ds_test {
 
 ds::i32 counter = 0;      // NOLINT
 void* free_ptr = nullptr; // NOLINT
 
-void print_error(const ds::error& error) noexcept {
-  UNSCOPED_INFO("Msg: " << error.get_msg());
-
-  ds::error_location* location = nullptr;
-  for (ds::i32 i = 0; i < error.get_size(); ++i) {
-    location = error.get_location(i);
-    UNSCOPED_INFO(i << " ~ " << location->file << ':' << location->line);
-  }
-}
-
-bool handle_error(const ds::opt_err& error) noexcept {
-  if (!error) {
+bool handle_error(ds::err_code err) noexcept {
+  if (!err) {
     return true;
   }
 
-  print_error(*error);
+  UNSCOPED_INFO("Error Code: " << err);
   return false;
 }
 
 // Define the test class
 
 // === Copy ===
-ds::opt_err Test::copy(const Test& other) noexcept {
+ds::i32 Test::copy(const Test& other) noexcept {
   if (&other == this) {
-    return ds::null;
+    return ds::ec::SUCCESS;
   }
 
   if (!this->initialized && other.initialized) {
@@ -48,7 +39,7 @@ ds::opt_err Test::copy(const Test& other) noexcept {
   this->i = other.i;
   this->initialized = other.initialized;
 
-  return ds::null;
+  return ds::ec::SUCCESS;
 }
 
 // === Move ===

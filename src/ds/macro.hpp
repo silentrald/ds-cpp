@@ -12,6 +12,11 @@
 
 #define def_err_vals __FILE__, __LINE__
 
+#define try_err_code(func)                                                         \
+  if (auto code = func) {                                                      \
+    return code;                                                               \
+  }
+
 /**
  * If the function returns an error, then the function caller will immmediately
  * return the optional<error> value

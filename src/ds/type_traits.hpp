@@ -8,8 +8,8 @@
 #ifndef DS_TYPE_TRAITS_HPP
 #define DS_TYPE_TRAITS_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/string.hpp"
+#include "ds/types.hpp"
 #include <tuple>
 #include <type_traits>
 
@@ -56,7 +56,7 @@ using is_int = typename std::enable_if<std::is_integral<T>::value>::type;
 template <typename T> struct has_copy_method {
 private:
   template <typename U>
-  static auto test(opt_err)
+  static auto test(err_code)
       -> decltype(std::declval<U>().copy() == 1, std::__true_type());
   template <typename> static std::__false_type test(...);
 

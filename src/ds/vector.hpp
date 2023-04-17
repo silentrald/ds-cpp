@@ -9,7 +9,7 @@
 #define DS_VECTOR_HPP
 
 #include "./vector_iterator.hpp"
-#include "ds-error/types.hpp"
+#include "ds-error/expected.hpp"
 #include "ds/macro.hpp"
 #include "ds/string.hpp"
 #include "ds/type_traits.hpp"
@@ -25,10 +25,6 @@
 #endif
 
 namespace ds {
-
-const char* const VECTOR_BAD_ALLOC = "vector:bad_alloc";
-const char* const VECTOR_OUT_OF_RANGE = "vector:out_of_range";
-const char* const VECTOR_EMPTY = "vector:empty";
 
 /**
  * Vector class that uses expected as error handling
@@ -62,7 +58,7 @@ protected:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err allocate(i32 size) noexcept;
+  [[nodiscard]] i32 allocate(i32 size) noexcept;
 
   /**
    * Reallocates the old memory block
@@ -70,7 +66,7 @@ protected:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err reallocate(i32 size) noexcept;
+  [[nodiscard]] i32 reallocate(i32 size) noexcept;
 
   /**
    * Calculates the new size before allocation/reallocation
@@ -78,7 +74,7 @@ protected:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err grow(i32 min_size) noexcept;
+  [[nodiscard]] i32 grow(i32 min_size) noexcept;
 
   // Helper function for insert to move elements
   /**
@@ -91,19 +87,19 @@ protected:
 
   // === Insert === //
   template <typename... Args>
-  [[nodiscard]] opt_err
+  [[nodiscard]] err_code
   insert_helper(i32 index, cref first, Args&&... args) noexcept;
 
   template <typename... Args>
-  [[nodiscard]] opt_err
+  [[nodiscard]] err_code
   insert_helper(i32 index, rref first, Args&&... args) noexcept;
 
   // === Push Back === //
   template <typename... Args>
-  [[nodiscard]] opt_err push_back_helper(cref first, Args&&... args) noexcept;
+  [[nodiscard]] err_code push_back_helper(cref first, Args&&... args) noexcept;
 
   template <typename... Args>
-  [[nodiscard]] opt_err push_back_helper(rref first, Args&&... args) noexcept;
+  [[nodiscard]] err_code push_back_helper(rref first, Args&&... args) noexcept;
 
   void erase_impl(i32 index) noexcept;
 
@@ -120,7 +116,7 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err copy(const base_vector& rhs) noexcept;
+  [[nodiscard]] err_code copy(const base_vector& rhs) noexcept;
 
   // === Move === //
   /**
@@ -143,15 +139,11 @@ public:
    *
    * @errors
    *  - Out of range
-   *
-   * @return exp_ptr_err<value>
    **/
-  [[nodiscard]] exp_ptr_err<T> at(i32 index) const noexcept;
+  [[nodiscard]] exp_ptr_err_code<T> at(i32 index) const noexcept;
 
   /**
    * Unsafe index accessing
-   *
-   * @return ref
    **/
   [[nodiscard]] ref operator[](i32 index) const noexcept;
 
@@ -160,10 +152,8 @@ public:
    *
    * @errors
    *  - Out of range
-   *
-   *  @return exp_ptr_err<value>
    **/
-  [[nodiscard]] exp_ptr_err<T> front() const noexcept;
+  [[nodiscard]] exp_ptr_err_code<T> front() const noexcept;
 
   /**
    * Returns the expected ptr at the end of the vector
@@ -173,7 +163,7 @@ public:
    *
    *  @return exp_ptr_err<value>
    **/
-  [[nodiscard]] exp_ptr_err<T> back() const noexcept;
+  [[nodiscard]] exp_ptr_err_code<T> back() const noexcept;
 
   /**
    * Returns the expected ptr at the start of the vector
@@ -247,15 +237,11 @@ public:
 
   /**
    * Returns the current size of the vector
-   *
-   * @return i32
    **/
   [[nodiscard]] i32 size() const noexcept;
 
   /**
    * Returns the size of the memory block allocated
-   *
-   * @return i32
    **/
   [[nodiscard]] i32 max_size() const noexcept;
 
@@ -265,7 +251,7 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err reserve(i32 size) noexcept;
+  [[nodiscard]] err_code reserve(i32 size) noexcept;
 
   // === Modifiers === //
   /**
@@ -279,7 +265,7 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err resize(i32 size) noexcept;
+  [[nodiscard]] err_code resize(i32 size) noexcept;
 
   /**
    * Removes the element at the iterator
@@ -301,7 +287,7 @@ public:
    * @errors
    * - When the vector is empty
    **/
-  [[nodiscard]] exp_err<T> pop_back() noexcept;
+  [[nodiscard]] exp_err_code<T> pop_back() noexcept;
 
   /**
    * Pops an element from the back and returns the element
@@ -314,8 +300,8 @@ public:
    **/
   void pop_back_disc() noexcept;
 
-  opt_err insert(const iterator& it) noexcept = delete;
-  opt_err push_back() noexcept = delete;
+  err_code insert(const iterator& it) noexcept = delete;
+  err_code push_back() noexcept = delete;
 
   /**
    * Inserts an element starting from the iterator
@@ -325,7 +311,7 @@ public:
    *  - index out of range
    **/
   template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] opt_err insert(const iterator& it, Args&&... args) noexcept {
+  [[nodiscard]] err_code insert(const iterator& it, Args&&... args) noexcept {
     return this->insert(it - this->begin(), std::forward<Args>(args)...);
   }
 
@@ -337,16 +323,16 @@ public:
    *  - index out of range
    **/
   template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] opt_err insert(i32 index, Args&&... args) noexcept {
+  [[nodiscard]] err_code insert(i32 index, Args&&... args) noexcept {
     if (index < 0 || index > this->top) {
-      return error{VECTOR_OUT_OF_RANGE};
+      return ec::OUT_OF_RANGE;
     }
 
     if (index == this->top) {
       return this->push_back(std::forward<Args>(args)...);
     }
 
-    try_opt(this->grow(this->top + sizeof...(Args)));
+    try_err_code(this->grow(this->top + sizeof...(Args)));
     this->shift(index, sizeof...(Args));
 
     return this->insert_helper(index, std::forward<Args>(args)...);
@@ -359,8 +345,8 @@ public:
    *  - bad allocation
    **/
   template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] opt_err push_back(Args&&... args) noexcept {
-    try_opt(this->grow(this->top + sizeof...(Args)));
+  [[nodiscard]] err_code push_back(Args&&... args) noexcept {
+    try_err_code(this->grow(this->top + sizeof...(Args)));
 
     return this->push_back_helper(std::forward<Args>(args)...);
   }

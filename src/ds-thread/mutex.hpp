@@ -8,7 +8,7 @@
 #ifndef DS_THREAD_MUTEX_HPP
 #define DS_THREAD_MUTEX_HPP
 
-#include "ds-error/types.hpp"
+#include "ds/types.hpp"
 #include <pthread.h>
 
 // Linux threading
@@ -17,7 +17,7 @@ namespace ds {
 
 class mutex {
 private:
-  pthread_mutex_t _mutex{};
+  pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 
 public:
   mutex() noexcept = default;
@@ -28,12 +28,11 @@ public:
 
   // === Constructor === //
 
-  opt_err init() noexcept;
   ~mutex() noexcept;
 
   // === Functions === //
 
-  opt_err lock() noexcept;
+  err_code lock() noexcept;
   void try_lock() noexcept;
   void unlock() noexcept;
 };

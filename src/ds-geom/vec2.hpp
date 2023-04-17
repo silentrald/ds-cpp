@@ -8,7 +8,6 @@
 #ifndef DS_GEOM_VEC2_HPP
 #define DS_GEOM_VEC2_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/string.hpp"
 
 namespace ds {
@@ -20,7 +19,7 @@ template <typename T> struct vec2 {
   T x;
   T y;
 
-  opt_err copy(const vec2& other) noexcept;
+  err_code copy(const vec2& other) noexcept;
 
   /**
    * Check if the vec2 is within the bounds of the rect. If the point touches

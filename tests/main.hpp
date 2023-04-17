@@ -8,6 +8,7 @@
 #ifndef DS_TEST_MAIN_HPP
 #define DS_TEST_MAIN_HPP
 
+#include "catch2/catch_message.hpp"
 #include "ds-error/types.hpp"
 #include "ds/types.hpp"
 
@@ -16,26 +17,26 @@ namespace ds_test {
 extern ds::i32 counter; // NOLINT
 extern void* free_ptr;  // NOLINT
 
-void print_error(const ds::error& error) noexcept;
-[[nodiscard]] bool handle_error(const ds::opt_err& error) noexcept;
+[[nodiscard]] bool handle_error(ds::i32 err) noexcept;
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::exp_err<T>& expected) noexcept {
+[[nodiscard]] bool handle_error(const ds::exp_err_code<T>& expected) noexcept {
   if (expected) {
     return true;
   }
 
-  print_error(expected.error());
+  UNSCOPED_INFO("Error Code: " << expected.error());
   return false;
 }
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::exp_ptr_err<T>& expected) noexcept {
+[[nodiscard]] bool handle_error(const ds::exp_ptr_err_code<T>& expected
+) noexcept {
   if (expected) {
     return true;
   }
 
-  print_error(expected.error());
+  UNSCOPED_INFO("Error Code: " << expected.error());
   return false;
 }
 
@@ -55,7 +56,7 @@ public:
   }
 
   // === Copy === //
-  [[nodiscard]] ds::opt_err copy(const Test& other) noexcept;
+  [[nodiscard]] ds::i32 copy(const Test& other) noexcept;
 
   // === Move === //
   Test(Test&& rhs) noexcept;

@@ -15,11 +15,11 @@
 
 namespace ds {
 
-template <typename T> opt_err vec3<T>::copy(const vec3& other) noexcept {
+template <typename T> err_code vec3<T>::copy(const vec3& other) noexcept {
   this->x = other.x;
   this->y = other.y;
   this->z = other.z;
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Operators === //

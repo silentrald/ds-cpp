@@ -10,6 +10,7 @@
 
 #include "../prime.hpp"
 #include "./hash_map.hpp"
+#include "ds/types.hpp"
 #include <new>
 
 namespace ds {
@@ -18,14 +19,14 @@ namespace ds {
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
-opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::copy(
+err_code base_hash_map<Derived, Key, Value, Hash, KeyEqual>::copy(
     const base_hash_map& other
 ) noexcept {
   if (&other == this) {
-    return null;
+    return ec::SUCCESS;
   }
 
-  return error{"not_implemented", def_err_vals};
+  return ec::NOT_IMPLEMENTED;
 }
 
 // === Move === //
@@ -207,11 +208,11 @@ template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
 template <typename Key_, typename Value_>
-opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
+err_code base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
     Key_ key, Value_ value
 ) noexcept {
   if (this->_size + 1 > this->_max_size) {
-    try_opt(this->rehash(next_greater_prime_i32(this->_size)));
+    try_err_code(this->rehash(next_greater_prime_i32(this->_size)));
   }
 
   hash_type index = this->calculate_hash_index<Key_>(std::forward<Key_>(key));
@@ -223,12 +224,12 @@ opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
         std::forward<Key_>(key), std::forward<Value_>(value)
     );
     if (node == nullptr) {
-      return error{HASH_MAP_BAD_ALLOC, def_err_vals};
+      return ec::BAD_ALLOC;
     }
 
     this->buckets[index] = node;
     ++this->_size;
-    return null;
+    return ec::SUCCESS;
   }
 
   // Try to check for colission
@@ -240,35 +241,35 @@ opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
 
     // Overwrites the value at the current node
     if constexpr (std::is_class<value_type>::value) {
-      try_opt(bucket->value.copy(value));
+      try_err_code(bucket->value.copy(value));
     } else {
       bucket->value = value;
     }
 
-    return null;
+    return ec::SUCCESS;
   }
 
   // Overwrites the value at the last node
   if (KeyEqual{}(bucket->key, key)) {
     if constexpr (std::is_class<value_type>::value) {
-      try_opt(bucket->value.copy(value));
+      try_err_code(bucket->value.copy(value));
     } else {
       bucket->value = value;
     }
 
-    return null;
+    return ec::SUCCESS;
   }
 
   auto* node = this->create_node<Key_, Value_>(
       std::forward<Key_>(key), std::forward<Value_>(value)
   );
   if (node == nullptr) {
-    return error{HASH_MAP_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   bucket->next = node;
   ++this->_size;
-  return null;
+  return ec::SUCCESS;
 }
 
 template <
@@ -358,14 +359,14 @@ i32 base_hash_map<Derived, Key, Value, Hash, KeyEqual>::bucket_count(
 template <
     typename Derived, typename Key, typename Value, typename Hash,
     typename KeyEqual>
-opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::rehash(i32 count
+err_code base_hash_map<Derived, Key, Value, Hash, KeyEqual>::rehash(i32 count
 ) noexcept {
   if (count < 1) {
     count = 11;
   }
 
   bucket_container old_buckets{};
-  try_opt(old_buckets.resize(count));
+  try_err_code(old_buckets.resize(count));
 
   // Swap the buckets so calculate_hash_index would work
   std::swap(this->buckets, old_buckets);
@@ -385,7 +386,7 @@ opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::rehash(i32 count
   }
 
   this->_max_size = count * this->_max_load_factor;
-  return null;
+  return ec::SUCCESS;
 }
 
 } // namespace ds

@@ -9,16 +9,15 @@
 #define DS_GEOM_VEC2_TPP
 
 #include "./vec2.hpp"
-#include "ds-error/types.hpp"
 #include "ds/optional.hpp"
 #include <type_traits>
 
 namespace ds {
 
-template <typename T> opt_err vec2<T>::copy(const vec2& other) noexcept {
+template <typename T> err_code vec2<T>::copy(const vec2& other) noexcept {
   this->x = other.x;
   this->y = other.y;
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Operators === //

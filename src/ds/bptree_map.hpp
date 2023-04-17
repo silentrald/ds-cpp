@@ -9,7 +9,6 @@
 #define DS_BPTREE_MAP_HPP
 
 #include "./bptree_map_iterator.hpp"
-#include "ds-error/types.hpp"
 #include "ds/compare.hpp"
 #include "ds/hash.hpp"
 #include "ds/macro.hpp"
@@ -17,11 +16,6 @@
 #include <utility>
 
 namespace ds {
-
-const char* const BPTREE_MAP_BAD_ALLOC = "bptree_map:bad_alloc";
-const char* const BPTREE_MAP_EMPTY = "bptree_map:empty";
-const char* const BPTREE_MAP_NOT_FOUND = "bptree_map:not_found";
-const char* const BPTREE_MAP_NODE_BAD_ALLOC = "bptree_map:bad_alloc";
 
 /**
  * NOTE: This should only handle non class type keys
@@ -82,7 +76,7 @@ public:
      * @errors
      *  - bad allocation in creating the arrays
      **/
-    opt_err init(i32 capacity) noexcept;
+    err_code init(i32 capacity) noexcept;
 
     // === Move === //
 
@@ -154,7 +148,7 @@ public:
 
     // === Initializers === //
 
-    [[nodiscard]] opt_err init(i32 capacity, void* child) noexcept;
+    [[nodiscard]] err_code init(i32 capacity, void* child) noexcept;
 
     // === Move === //
 
@@ -288,10 +282,8 @@ protected:
    * @errors
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
-   *
-   * @return exp_err<inner_ptr> the pointer to the right parent
    **/
-  [[nodiscard]] opt_err split_inner_node(inner_ptr left_node) noexcept;
+  [[nodiscard]] err_code split_inner_node(inner_ptr left_node) noexcept;
 
   /**
    * Splits the leaf node
@@ -300,10 +292,10 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_err split_leaf_node(leaf_ptr left_leaf) noexcept;
+  [[nodiscard]] err_code split_leaf_node(leaf_ptr left_leaf) noexcept;
 
   template <typename Value_>
-  [[nodiscard]] opt_err insert_impl(key_type key, Value_ value) noexcept;
+  [[nodiscard]] err_code insert_impl(key_type key, Value_ value) noexcept;
 
   // * Erase Helpers * //
 
@@ -346,10 +338,8 @@ public:
    * @errors
    *  - tree is empty
    *  - key is not found in the tree
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err_code<value_type> at(key_type key) const noexcept;
 
   /**
    * Get the first element less than the key
@@ -357,10 +347,8 @@ public:
    * @errors
    *  - tree is empty
    *  - key is smaller than the smallest element
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at_smaller(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err_code<value_type> at_smaller(key_type key) const noexcept;
 
   /**
    * Get the first element greater than the key
@@ -368,10 +356,8 @@ public:
    * @errors
    *  - tree is empty
    *  - key is larger than the largest element
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at_larger(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err_code<value_type> at_larger(key_type key) const noexcept;
 
   /**
    * Get the first element not less than (greater than or equal) the key
@@ -379,10 +365,8 @@ public:
    * @errors
    *  - tree is empty
    *  - key is larger than the greater element
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at_not_smaller(key_type key
+  [[nodiscard]] exp_ptr_err_code<value_type> at_not_smaller(key_type key
   ) const noexcept;
 
   /**
@@ -391,10 +375,8 @@ public:
    * @errors
    *  - tree is empty
    *  - key is smaller than the smallest element
-   *
-   * @return exp_ptr_err<value_type>
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at_not_larger(key_type key
+  [[nodiscard]] exp_ptr_err_code<value_type> at_not_larger(key_type key
   ) const noexcept;
 
   /**
@@ -477,7 +459,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key or value
    **/
-  [[nodiscard]] opt_err insert(key_type key, value_cref value) noexcept {
+  [[nodiscard]] err_code insert(key_type key, value_cref value) noexcept {
     return this->insert_impl<value_cref>(key, value);
   }
 
@@ -488,7 +470,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_err insert(key_type key, value_rref value) noexcept {
+  [[nodiscard]] err_code insert(key_type key, value_rref value) noexcept {
     return this->insert_impl<value_rref>(key, std::move(value));
   }
 

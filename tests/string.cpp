@@ -14,8 +14,8 @@ using namespace ds_test;
 
 // NOLINTNEXTLINE
 TEST_CASE("string", "ds") {
-  ds::exp_ptr_err<char> exp_ptr{};
-  ds::exp_err<char> exp{};
+  ds::exp_ptr_err_code<char> exp_ptr{};
+  ds::exp_err_code<char> exp{};
   ds::string str{};
   free_ptr = nullptr;
 

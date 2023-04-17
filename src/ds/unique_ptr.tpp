@@ -9,9 +9,9 @@
 #define DS_UNIQUE_PTR_TPP
 
 #include "./unique_ptr.hpp"
-#include "ds-error/types.hpp"
 #include "ds/macro.hpp"
 #include "ds/type_traits.hpp"
+#include "ds/types.hpp"
 #include <new>
 
 namespace ds {
@@ -48,35 +48,35 @@ template <typename T> void unique_ptr<T>::destroy() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> opt_err unique_ptr<T>::init() noexcept {
+template <typename T> err_code unique_ptr<T>::init() noexcept {
   if (this->data) {
-    return error{UPTR_SET, def_err_vals};
+    return ec::ALREADY_SET;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return error{UPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err unique_ptr<T>::set(ptr data) noexcept {
+template <typename T> err_code unique_ptr<T>::set(ptr data) noexcept {
   if (this->data) {
-    return error{UPTR_SET, def_err_vals};
+    return ec::ALREADY_SET;
   }
 
   this->data = data;
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
+template <typename T> err_code unique_ptr<T>::set(cref data) noexcept {
   if (this->data) {
-    return error{UPTR_SET, def_err_vals};
+    return ec::ALREADY_SET;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return error{UPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   if constexpr (has_copy_method<value>::value) {
@@ -90,21 +90,21 @@ template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
     *this->data = data;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err unique_ptr<T>::set(rref data) noexcept {
+template <typename T> err_code unique_ptr<T>::set(rref data) noexcept {
   if (this->data) {
-    return error{UPTR_SET, def_err_vals};
+    return ec::ALREADY_SET;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return error{UPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   *this->data = std::move(data);
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T> T* unique_ptr<T>::release() noexcept {

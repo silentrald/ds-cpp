@@ -2,36 +2,40 @@
  * Author/s:
  *  - silentrald
  * Version: 1.0
- * Created: 2023-xx-xx
+ * Created: 2023-04-17
  *===============================*/
 
 #include "ds/bptree_map.hpp"
-#include "ds-error/types.hpp"
-#include "ds/optional.hpp"
+#include "catch2/benchmark/catch_benchmark.hpp"
+#include "catch2/catch_message.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "ds/types.hpp"
+#include <map>
 
-struct Data {
-  ds::i64 x = 0;
-  ds::i64 y = 0;
-  ds::i64 z = 0;
-  ds::i64 w = 0;
-};
+TEST_CASE("bptree_map", "ds") {
+  ds::i32 n = 10000;
+  ds::err_code err = 0;
 
-int main() {
-  ds::bptree_map<ds::i32, Data> map{};
-  ds::opt_err error{};
-
-  const ds::i32 end = 100;
-  for (ds::i32 i = 0; i < end; ++i) {
-    error = map.insert(i, {});
-    if (error) {
-      break;
+  BENCHMARK("ds::bptree_map") {
+    ds::bptree_map<ds::i32, ds::i32> map{};
+    for (ds::i32 i = 0; i < n; ++i) {
+      err = map.insert(i, i);
     }
-  }
 
-  for (auto it = map.cbegin(); it != map.cend(); ++it) {
-  }
+    for (ds::i32 i = 0; i < n; ++i) {
+      err = *map[i];
+    }
+  };
 
-  return 0;
-}
+  BENCHMARK("std::map") {
+    std::map<ds::i32, ds::i32> map{};
+    for (ds::i32 i = 0; i < n; ++i) {
+      map[i] = i;
+    }
+
+    for (ds::i32 i = 0; i < n; ++i) {
+      err = map[i];
+    }
+  };
+};
 

@@ -11,7 +11,6 @@
 #include "../prime.hpp"
 #include "./hash.hpp"
 #include "./hash_set_iterator.hpp"
-#include "ds-error/types.hpp"
 #include "ds/equal.hpp"
 #include "ds/macro.hpp"
 #include "ds/types.hpp"
@@ -19,8 +18,6 @@
 #include <new>
 
 namespace ds {
-
-const char* const HASH_SET_BAD_ALLOC = "hash_set:bad_alloc";
 
 template <
     typename Derived, typename Key, typename Hash = hash<Key>,
@@ -87,7 +84,8 @@ protected:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  template <typename Key_> [[nodiscard]] opt_err insert_impl(Key_ key) noexcept;
+  template <typename Key_>
+  [[nodiscard]] err_code insert_impl(Key_ key) noexcept;
 
   /**
    * Deletes a key in the hash set
@@ -139,7 +137,7 @@ public:
    *  - bad allocation resizing the bucket
    *  - bad allocation in node creation
    **/
-  [[nodiscard]] opt_err copy(const base_hash_set& other) noexcept;
+  [[nodiscard]] err_code copy(const base_hash_set& other) noexcept;
 
   // === Move ===
 
@@ -210,7 +208,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_err insert(key_cref key) noexcept {
+  [[nodiscard]] err_code insert(key_cref key) noexcept {
     return this->insert_impl<key_cref>(key);
   }
 
@@ -221,7 +219,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] opt_err insert(key_rref key) noexcept {
+  [[nodiscard]] err_code insert(key_rref key) noexcept {
     return this->insert_impl<key_cref>(std::move(key));
   }
 
@@ -276,7 +274,7 @@ public:
    * @errors
    *  - bad allocation in resizing the number of buckets
    **/
-  [[nodiscard]] opt_err rehash(i32 count) noexcept;
+  [[nodiscard]] err_code rehash(i32 count) noexcept;
 };
 
 } // namespace ds

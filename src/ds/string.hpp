@@ -8,7 +8,6 @@
 #ifndef DS_STRING_BUILD_HPP
 #define DS_STRING_BUILD_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include <ostream>
 
@@ -17,10 +16,6 @@
 #endif
 
 namespace ds {
-
-const char* const STRING_BAD_ALLOC = "string:bad_alloc";
-const char* const STRING_OUT_OF_RANGE = "string:out_of_range";
-const char* const STRING_EMPTY = "string:empty";
 
 // NOTE: Only handles 8 bit characters for now
 class string {
@@ -31,8 +26,8 @@ private:
   i32 _max_size = 0;
 
   // === Memory === //
-  [[nodiscard]] opt_err allocate(i32 size) noexcept;
-  [[nodiscard]] opt_err reallocate(i32 size) noexcept;
+  [[nodiscard]] err_code allocate(i32 size) noexcept;
+  [[nodiscard]] err_code reallocate(i32 size) noexcept;
 
   /**
    * Initializes the string with the passed const char*
@@ -40,7 +35,7 @@ private:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err init(const char* str) noexcept;
+  [[nodiscard]] err_code init(const char* str) noexcept;
 
 public:
   string() noexcept = default;
@@ -54,7 +49,7 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err copy(const string& other) noexcept;
+  [[nodiscard]] err_code copy(const string& other) noexcept;
 
   /**
    * Copies the const char* string
@@ -62,7 +57,7 @@ public:
    * @errors
    *  - bad allocation
    **/
-  [[nodiscard]] opt_err copy(const char* str) noexcept;
+  [[nodiscard]] err_code copy(const char* str) noexcept;
 
   // === Move === //
   /**
@@ -78,13 +73,13 @@ public:
   /**
    * Returns a pointer from the indexed passed
    **/
-  [[nodiscard]] exp_ptr_err<char> at_ptr(i32 index) noexcept;
-  [[nodiscard]] exp_err<char> at(i32 index) noexcept;
+  [[nodiscard]] exp_ptr_err_code<char> at_ptr(i32 index) noexcept;
+  [[nodiscard]] exp_err_code<char> at(i32 index) noexcept;
   [[nodiscard]] char& operator[](i32 index) noexcept;
-  [[nodiscard]] exp_ptr_err<char> front_ptr() noexcept;
-  [[nodiscard]] exp_err<char> front() noexcept;
-  [[nodiscard]] exp_ptr_err<char> back_ptr() noexcept;
-  [[nodiscard]] exp_err<char> back() noexcept;
+  [[nodiscard]] exp_ptr_err_code<char> front_ptr() noexcept;
+  [[nodiscard]] exp_err_code<char> front() noexcept;
+  [[nodiscard]] exp_ptr_err_code<char> back_ptr() noexcept;
+  [[nodiscard]] exp_err_code<char> back() noexcept;
   [[nodiscard]] char* data() noexcept;
   [[nodiscard]] const char* c_str() const noexcept;
 
@@ -95,14 +90,14 @@ public:
   [[nodiscard]] i32 size() const noexcept;
   [[nodiscard]] i32 length() const noexcept;
   [[nodiscard]] i32 max_size() const noexcept;
-  [[nodiscard]] opt_err reserve(i32 size) noexcept;
+  [[nodiscard]] err_code reserve(i32 size) noexcept;
 
   // === Modifiers === //
   void clear() noexcept;
-  [[nodiscard]] opt_err push_back(char c) noexcept;
-  [[nodiscard]] exp_err<char> pop_back() noexcept;
-  [[nodiscard]] opt_err append(const char* str) noexcept;
-  [[nodiscard]] opt_err append(const string& str) noexcept;
+  [[nodiscard]] err_code push_back(char c) noexcept;
+  [[nodiscard]] exp_err_code<char> pop_back() noexcept;
+  [[nodiscard]] err_code append(const char* str) noexcept;
+  [[nodiscard]] err_code append(const string& str) noexcept;
 
   // === Operators === //
   bool operator==(const string& rhs) const noexcept;

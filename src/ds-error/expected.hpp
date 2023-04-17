@@ -9,6 +9,7 @@
 #define DS_EXPECTED_HPP
 
 #include <algorithm>
+#include <type_traits>
 
 namespace ds {
 
@@ -20,8 +21,8 @@ private:
 
 public:
   unexpected() noexcept = default;
-  unexpected(const unexpected&) = delete;
-  unexpected& operator=(const unexpected&) = delete;
+  unexpected(const unexpected&) noexcept = delete;
+  unexpected& operator=(const unexpected&) noexcept = delete;
 
   // === Move === //
   unexpected(unexpected&& rhs) noexcept = default;
@@ -30,6 +31,11 @@ public:
 
   // === Destructor === //
   ~unexpected() noexcept = default;
+
+  unexpected(E other) noexcept { // NOLINT
+    static_assert(std::is_fundamental_v<E>, "This only works for primitives");
+    this->err = other;
+  }
 
   E& error() const noexcept {
     return this->err;

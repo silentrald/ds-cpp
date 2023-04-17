@@ -8,7 +8,6 @@
 #ifndef DS_TRANSACTION_HPP
 #define DS_TRANSACTION_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include "ds/vector.hpp"
 
@@ -57,7 +56,7 @@ public:
    * @errors
    *  - bad allocation in resizing the rollback vector
    **/
-  opt_err push_fail(function<void()>&& callback) noexcept;
+  err_code push_fail(function<void()>&& callback) noexcept;
 
   /**
    * Successful transaction. This clears the rollbacks vector.

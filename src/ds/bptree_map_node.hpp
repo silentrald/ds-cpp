@@ -9,6 +9,7 @@
 #define DS_BPTREE_MAP_NODE_HPP
 
 #include "./bptree_map.hpp"
+#include "ds/types.hpp"
 #include "ds/vector.hpp"
 #include <cstdlib>
 #include <new>
@@ -20,25 +21,24 @@ namespace ds {
 // === Initializers === //
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_err
+err_code
 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
 ) noexcept {
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return error{BPTREE_MAP_NODE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   // NOLINTNEXTLINE
-  this->values = static_cast<Value*>(std::malloc(sizeof(Value) * capacity));
+  this->values = new (std::nothrow) Value[capacity];
   if (this->values == nullptr) {
     delete this->keys; // NOLINT
     this->keys = nullptr;
 
-    return error{BPTREE_MAP_NODE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
-  new (this->values) Value[capacity];
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Move === //
@@ -85,10 +85,10 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::operator=(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::~leaf_node(
 ) noexcept {
-  delete this->keys; // NOLINT
+  delete[] this->keys; // NOLINT
   this->keys = nullptr;
 
-  delete this->values; // NOLINT
+  delete[] this->values; // NOLINT
   this->values = nullptr;
 }
 
@@ -418,34 +418,34 @@ namespace ds {
 
 // === Initializers === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
+err_code base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
     i32 capacity, void* child
 ) noexcept {
 
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return error{BPTREE_MAP_NODE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   // NOLINTNEXTLINE
   this->children = new (std::nothrow) void*[capacity + 1];
   if (this->children == nullptr) {
     delete this->keys; // NOLINT
-    return error{BPTREE_MAP_NODE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   this->children[0] = child;
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Destructor === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::~inner_node(
 ) noexcept {
-  delete this->keys; // NOLINT
+  delete[] this->keys; // NOLINT
   this->keys = nullptr;
 
-  delete this->children; // NOLINT
+  delete[] this->children; // NOLINT
   this->children = nullptr;
 }
 

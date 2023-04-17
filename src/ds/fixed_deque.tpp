@@ -9,25 +9,26 @@
 #define DS_FIXED_DEQUE_TPP
 
 #include "./fixed_deque.hpp"
+#include "ds/types.hpp"
 
 namespace ds {
 
 // === Memory ===
-template <typename T> opt_err fixed_deque<T>::allocate(i32 capacity) noexcept {
+template <typename T> err_code fixed_deque<T>::allocate(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   this->arr = static_cast<pointer>(std::malloc((capacity + 1) * sizeof(T)));
   if (this->arr == nullptr) {
-    return error{FDEQUE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   this->_capacity = capacity;
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T>
-opt_err fixed_deque<T>::reallocate(i32 capacity) noexcept {
+err_code fixed_deque<T>::reallocate(i32 capacity) noexcept {
   if (this->_capacity == capacity) {
-    return null;
+    return ec::SUCCESS;
   }
 
   // Just resize the data
@@ -43,7 +44,7 @@ opt_err fixed_deque<T>::reallocate(i32 capacity) noexcept {
 }
 
 template <typename T>
-opt_err fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
+err_code fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
   if constexpr (std::is_class<value>::value) {
     for (i32 i = capacity + 1; i <= this->_capacity; ++i) {
       this->arr[i].~T();
@@ -53,7 +54,7 @@ opt_err fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   void* ptr = std::realloc(this->arr, (capacity + 1) * sizeof(T));
   if (ptr == nullptr) {
-    return error{FDEQUE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
   this->arr = static_cast<pointer>(ptr);
 
@@ -65,7 +66,7 @@ opt_err fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
 
   this->_capacity = capacity;
 
-  return null;
+  return ec::SUCCESS;
 }
 
 // Shift the data
@@ -73,7 +74,7 @@ opt_err fixed_deque<T>::reallocate_grow(i32 capacity) noexcept {
 // |__HxT_| -> |HxT___|
 // +------+    +------+
 template <typename T>
-opt_err fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
+err_code fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
   i32 i = 0;
   for (i32 j = this->head; j <= this->tail; ++i, ++j) {
     this->arr[i] = std::move(this->arr[j]);
@@ -90,7 +91,7 @@ opt_err fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   void* ptr = std::realloc(this->arr, (capacity + 1) * sizeof(T));
   if (ptr == nullptr) {
-    return error{FDEQUE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
   this->arr = static_cast<pointer>(ptr);
 
@@ -102,7 +103,7 @@ opt_err fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
 
   this->_capacity = capacity;
 
-  return null;
+  return ec::SUCCESS;
 }
 
 // Move the data
@@ -114,11 +115,11 @@ opt_err fixed_deque<T>::reallocate_shift(i32 capacity) noexcept {
 // +-------+    +-----+
 // Move to the new container
 template <typename T>
-opt_err fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
+err_code fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
   // NOLINTNEXTLINE
   pointer ptr = static_cast<pointer>(std::malloc((capacity + 1) * sizeof(T)));
   if (ptr == nullptr) {
-    return error{FDEQUE_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   i32 new_i = 0;
@@ -167,29 +168,29 @@ opt_err fixed_deque<T>::reallocate_move(i32 capacity) noexcept {
   this->tail = new_i;
   this->_capacity = capacity;
 
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Copy ===
 template <typename T>
-opt_err fixed_deque<T>::copy_center(const fixed_deque& rhs) noexcept {
+err_code fixed_deque<T>::copy_center(const fixed_deque& rhs) noexcept {
   for (i32 i = this->head; i <= this->tail; ++i) {
     if constexpr (std::is_class<value>::value) {
-      try_opt(this->arr[i].copy(rhs.arr[i]));
+      try_err_code(this->arr[i].copy(rhs.arr[i]));
     } else {
       this->arr[i] = rhs.arr[i];
     }
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T>
-opt_err fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
+err_code fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
   i32 i = 0;
   for (; i <= this->tail; ++i) {
     if constexpr (std::is_class<value>::value) {
-      try_opt(this->arr[i].copy(rhs.arr[i]));
+      try_err_code(this->arr[i].copy(rhs.arr[i]));
     } else {
       this->arr[i] = rhs.arr[i];
     }
@@ -197,38 +198,38 @@ opt_err fixed_deque<T>::copy_ends(const fixed_deque& rhs) noexcept {
 
   for (i = this->head; i <= this->_capacity; ++i) {
     if constexpr (std::is_class<value>::value) {
-      try_opt(this->arr[i].copy(rhs.arr[i]));
+      try_err_code(this->arr[i].copy(rhs.arr[i]));
     } else {
       this->arr[i] = rhs.arr[i];
     }
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T>
-opt_err fixed_deque<T>::copy(const fixed_deque& other) noexcept {
+err_code fixed_deque<T>::copy(const fixed_deque& other) noexcept {
   if (&other == this) {
-    return null;
+    return ec::SUCCESS;
   }
 
   if (this->_capacity == 0) {
     if (other._capacity == 0) {
-      return null;
+      return ec::SUCCESS;
     }
 
-    try_opt(this->allocate(other._capacity));
+    try_err_code(this->allocate(other._capacity));
     if constexpr (std::is_class<value>::value) {
       new (this->arr) T[this->_capacity + 1];
     }
   } else if (this->_capacity != other._capacity) {
-    try_opt(this->reallocate(other._capacity));
+    try_err_code(this->reallocate(other._capacity));
   }
 
   // Empty
   if (other.is_empty()) {
     this->clear();
-    return null;
+    return ec::SUCCESS;
   }
 
   // Copy Contents
@@ -301,13 +302,14 @@ template <typename T> void fixed_deque<T>::destroy() noexcept {
 }
 
 // === Element Access ===
-template <typename T> exp_ptr_err<T> fixed_deque<T>::at(i32 index) noexcept {
+template <typename T>
+exp_ptr_err_code<T> fixed_deque<T>::at(i32 index) noexcept {
   if (this->is_empty()) {
-    return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
+    return unexpected{ec::EMPTY};
   }
 
   if (index < 0 || index >= this->_capacity) {
-    return unexpected{error{FDEQUE_OUT_OF_RANGE, def_err_vals}};
+    return unexpected{ec::OUT_OF_RANGE};
   }
 
   index += this->head;
@@ -328,17 +330,17 @@ typename fixed_deque<T>::ref fixed_deque<T>::operator[](i32 index) noexcept {
   return this->arr[(this->head + index) % (this->_capacity + 1)];
 }
 
-template <typename T> exp_ptr_err<T> fixed_deque<T>::front() noexcept {
+template <typename T> exp_ptr_err_code<T> fixed_deque<T>::front() noexcept {
   if (this->is_empty()) {
-    return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
+    return unexpected{ec::EMPTY};
   }
 
   return this->arr + this->head;
 }
 
-template <typename T> exp_ptr_err<T> fixed_deque<T>::back() noexcept {
+template <typename T> exp_ptr_err_code<T> fixed_deque<T>::back() noexcept {
   if (this->is_empty()) {
-    return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
+    return unexpected{ec::EMPTY};
   }
 
   return this->arr + this->tail;
@@ -423,9 +425,9 @@ template <typename T> void fixed_deque<T>::clear() noexcept {
 }
 
 template <typename T>
-opt_err fixed_deque<T>::push_front(rref element) noexcept {
+err_code fixed_deque<T>::push_front(rref element) noexcept {
   if (this->is_full()) {
-    return error{FDEQUE_FULL, def_err_vals};
+    return ec::FULL;
   }
 
   if (this->head == -1) {
@@ -437,13 +439,13 @@ opt_err fixed_deque<T>::push_front(rref element) noexcept {
   }
   this->arr[this->head] = std::move(element);
 
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T>
-opt_err fixed_deque<T>::push_front(cref element) noexcept {
+err_code fixed_deque<T>::push_front(cref element) noexcept {
   if (this->is_full()) {
-    return error{FDEQUE_FULL, def_err_vals};
+    return ec::FULL;
   }
 
   if (this->head == -1) {
@@ -460,12 +462,13 @@ opt_err fixed_deque<T>::push_front(cref element) noexcept {
     this->arr[this->head] = element;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err fixed_deque<T>::push_back(rref element) noexcept {
+template <typename T>
+err_code fixed_deque<T>::push_back(rref element) noexcept {
   if (this->is_full()) {
-    return error{FDEQUE_FULL, def_err_vals};
+    return ec::FULL;
   }
 
   if (this->head == -1) {
@@ -478,12 +481,13 @@ template <typename T> opt_err fixed_deque<T>::push_back(rref element) noexcept {
 
   this->arr[this->tail] = std::move(element);
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err fixed_deque<T>::push_back(cref element) noexcept {
+template <typename T>
+err_code fixed_deque<T>::push_back(cref element) noexcept {
   if (this->is_full()) {
-    return error{FDEQUE_FULL, def_err_vals};
+    return ec::FULL;
   }
 
   if (this->head == -1) {
@@ -495,17 +499,17 @@ template <typename T> opt_err fixed_deque<T>::push_back(cref element) noexcept {
   }
 
   if constexpr (std::is_class<value>::value) {
-    try_opt(this->arr[this->tail].copy(element));
+    try_err_code(this->arr[this->tail].copy(element));
   } else {
     this->arr[this->tail] = element;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> exp_err<T> fixed_deque<T>::pop_front() noexcept {
+template <typename T> exp_err_code<T> fixed_deque<T>::pop_front() noexcept {
   if (this->is_empty()) {
-    return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
+    return unexpected{ec::EMPTY};
   }
 
   T t = std::move(this->arr[this->head]);
@@ -523,15 +527,15 @@ template <typename T> exp_err<T> fixed_deque<T>::pop_front() noexcept {
   return t;
 }
 
-template <typename T> opt_err fixed_deque<T>::pop_front_disc() noexcept {
+template <typename T> err_code fixed_deque<T>::pop_front_disc() noexcept {
   if (this->is_empty()) {
-    return error{FDEQUE_EMPTY, def_err_vals};
+    return ec::EMPTY;
   }
 
   this->arr[this->head].~T();
   if (this->head == this->tail) {
     this->clear();
-    return null;
+    return ec::SUCCESS;
   }
 
   if (this->head >= this->_capacity) {
@@ -540,12 +544,12 @@ template <typename T> opt_err fixed_deque<T>::pop_front_disc() noexcept {
     ++this->head;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> exp_err<T> fixed_deque<T>::pop_back() noexcept {
+template <typename T> exp_err_code<T> fixed_deque<T>::pop_back() noexcept {
   if (this->is_empty()) {
-    return unexpected{error{FDEQUE_EMPTY, def_err_vals}};
+    return unexpected{ec::EMPTY};
   }
 
   T t = std::move(this->arr[this->tail]);
@@ -563,15 +567,15 @@ template <typename T> exp_err<T> fixed_deque<T>::pop_back() noexcept {
   return t;
 }
 
-template <typename T> opt_err fixed_deque<T>::pop_back_disc() noexcept {
+template <typename T> err_code fixed_deque<T>::pop_back_disc() noexcept {
   if (this->is_empty()) {
-    return error{FDEQUE_EMPTY, def_err_vals};
+    return ec::EMPTY;
   }
 
   this->arr[this->tail].~T();
   if (this->head == this->tail) {
     this->clear();
-    return null;
+    return ec::SUCCESS;
   }
 
   if (this->tail == 0) {
@@ -579,22 +583,22 @@ template <typename T> opt_err fixed_deque<T>::pop_back_disc() noexcept {
   } else {
     --this->tail;
   }
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err fixed_deque<T>::remove_front(i32 n) noexcept {
+template <typename T> err_code fixed_deque<T>::remove_front(i32 n) noexcept {
   if (this->is_empty()) {
-    return error{FDEQUE_EMPTY, def_err_vals};
+    return ec::EMPTY;
   }
 
   i32 sz = this->size();
   if (n > sz) {
-    return error{FDEQUE_REMOVE, def_err_vals};
+    return ec::OUT_OF_RANGE;
   }
 
   if (n == sz) {
     this->clear();
-    return null;
+    return ec::SUCCESS;
   }
 
   this->head += n;
@@ -602,22 +606,22 @@ template <typename T> opt_err fixed_deque<T>::remove_front(i32 n) noexcept {
     this->head -= this->_capacity + 1;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err fixed_deque<T>::remove_back(i32 n) noexcept {
+template <typename T> err_code fixed_deque<T>::remove_back(i32 n) noexcept {
   if (this->is_empty()) {
-    return error{FDEQUE_EMPTY, def_err_vals};
+    return ec::EMPTY;
   }
 
   i32 sz = this->size();
   if (n > sz) {
-    return error{FDEQUE_REMOVE, def_err_vals};
+    return ec::OUT_OF_RANGE;
   }
 
   if (n == sz) {
     this->clear();
-    return null;
+    return ec::SUCCESS;
   }
 
   this->tail -= n;
@@ -625,28 +629,28 @@ template <typename T> opt_err fixed_deque<T>::remove_back(i32 n) noexcept {
     this->tail += this->_capacity + 1;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
-template <typename T> opt_err fixed_deque<T>::resize(i32 size) noexcept {
+template <typename T> err_code fixed_deque<T>::resize(i32 size) noexcept {
   if (size < 0) {
-    return error{FDEQUE_NEGATIVE_CAP, def_err_vals};
+    return ec::SIZE;
   }
 
   if (size == 0) {
     this->destroy();
-    return null;
+    return ec::SUCCESS;
   }
 
   if (this->arr) {
     return this->reallocate(size);
   }
 
-  try_opt(this->allocate(size));
+  try_err_code(this->allocate(size));
   if constexpr (std::is_class<value>::value) {
     new (this->arr) T[size + 1];
   }
-  return null;
+  return ec::SUCCESS;
 }
 
 } // namespace ds

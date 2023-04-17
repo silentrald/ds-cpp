@@ -8,10 +8,10 @@
 #ifndef DS_HASH_SET_TPP
 #define DS_HASH_SET_TPP
 
-#include "./hash_set.hpp"
-#include "ds-error/types.hpp"
-#include "ds/macro.hpp"
 #include "../prime.hpp"
+#include "./hash_set.hpp"
+#include "ds/macro.hpp"
+#include "ds/types.hpp"
 #include <new>
 #include <type_traits>
 #include <utility>
@@ -21,18 +21,18 @@ namespace ds {
 
 // === Copy ===
 template <typename Derived, typename Key, typename Hash, typename Equal>
-opt_err
+err_code
 base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other
 ) noexcept {
   if (&other == this) {
-    return null;
+    return ec::SUCCESS;
   }
 
   this->clear();
 
   // Copy the bucket
   if (this->buckets.size() != other.buckets.size()) {
-    try_opt(this->buckets.resize(other.buckets.size()));
+    try_err_code(this->buckets.resize(other.buckets.size()));
   }
 
   node_ptr node = nullptr;
@@ -49,7 +49,7 @@ base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other
       // If new fails, destroy the current hash_set
       if (node == nullptr) {
         this->clear();
-        return error{HASH_SET_BAD_ALLOC, def_err_vals};
+        return ec::BAD_ALLOC;
       }
 
       this->buckets[i] = node;
@@ -63,7 +63,7 @@ base_hash_set<Derived, Key, Hash, Equal>::copy(const base_hash_set& other
 
   // Hash function should be the same
 
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Move ===
@@ -203,10 +203,10 @@ base_hash_set<Derived, Key, Hash, Equal>::create_node(Key_ key) noexcept {
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
 template <typename Key_>
-opt_err base_hash_set<Derived, Key, Hash, Equal>::insert_impl(Key_ key
+err_code base_hash_set<Derived, Key, Hash, Equal>::insert_impl(Key_ key
 ) noexcept {
   if (this->_size + 1 > this->_max_size) {
-    try_opt(this->rehash(next_greater_prime_i32(this->_size)));
+    try_err_code(this->rehash(next_greater_prime_i32(this->_size)));
   }
 
   hash_type index = this->calculate_hash_index(key);
@@ -216,37 +216,37 @@ opt_err base_hash_set<Derived, Key, Hash, Equal>::insert_impl(Key_ key
   if (bucket == nullptr) { // Create the node
     auto* node = this->create_node<Key_>(std::forward<Key_>(key));
     if (node == nullptr) {
-      return error{HASH_SET_BAD_ALLOC, def_err_vals};
+      return ec::BAD_ALLOC;
     }
 
     this->buckets[index] = node;
     ++this->_size;
-    return null;
+    return ec::SUCCESS;
   }
 
   // Try to check for colission
   while (bucket->next) {
     // Value already exists
     if (Equal{}(bucket->key, key)) {
-      return null;
+      return ec::SUCCESS;
     }
 
     bucket = bucket->next;
   }
 
   if (Equal{}(bucket->key, key)) {
-    return null;
+    return ec::SUCCESS;
   }
 
   // Insert the node to the end of the bucket
   auto* node = this->create_node<Key_>(std::forward<Key_>(key));
   if (node == nullptr) {
-    return error{HASH_SET_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   bucket->next = node;
   ++this->_size;
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
@@ -337,13 +337,13 @@ i32 base_hash_set<Derived, Key, Hash, Equal>::bucket_count() const noexcept {
 }
 
 template <typename Derived, typename Key, typename Hash, typename Equal>
-opt_err base_hash_set<Derived, Key, Hash, Equal>::rehash(i32 count) noexcept {
+err_code base_hash_set<Derived, Key, Hash, Equal>::rehash(i32 count) noexcept {
   if (count < 1) {
     count = 11;
   }
 
   bucket_container old_buckets{};
-  try_opt(old_buckets.resize(count));
+  try_err_code(old_buckets.resize(count));
 
   // Swap the buckets so calculate_hash_index would work
   std::swap(this->buckets, old_buckets);
@@ -363,7 +363,7 @@ opt_err base_hash_set<Derived, Key, Hash, Equal>::rehash(i32 count) noexcept {
   }
 
   this->_max_size = count * this->_max_load_factor;
-  return null;
+  return ec::SUCCESS;
 }
 
 } // namespace ds

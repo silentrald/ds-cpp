@@ -8,7 +8,6 @@
 #ifndef DS_THREAD_SEMAPHORE_HPP
 #define DS_THREAD_SEMAPHORE_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include <semaphore.h>
 
@@ -27,13 +26,13 @@ public:
 
   // === Constructor === //
 
-  opt_err init(u32 max) noexcept;
+  err_code init(u32 max) noexcept;
 
   ~semaphore() noexcept;
 
   // === Functions === //
 
-  opt_err acquire() noexcept;
+  err_code acquire() noexcept;
   void release() noexcept;
 };
 

@@ -11,27 +11,28 @@
 #include "./shared_ptr.hpp"
 #include "ds-error/types.hpp"
 #include "ds/macro.hpp"
+#include "ds/types.hpp"
 #include <type_traits>
 
 namespace ds {
 
 // === Copy === //
 template <typename T>
-opt_err shared_ptr<T>::copy(const shared_ptr& other) noexcept {
+err_code shared_ptr<T>::copy(const shared_ptr& other) noexcept {
   if (&other == this || this->data == other.data) {
-    return null;
+    return ec::SUCCESS;
   }
 
   this->destroy();
   if (other.data == nullptr) {
-    return null;
+    return ec::SUCCESS;
   }
 
   this->data = other.data;
   this->counter = other.counter;
   ++(*this->counter);
 
-  return null;
+  return ec::SUCCESS;
 }
 
 // === Move === //
@@ -96,34 +97,34 @@ template <typename T> shared_ptr<T>::~shared_ptr() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> opt_err shared_ptr<T>::init() noexcept {
+template <typename T> err_code shared_ptr<T>::init() noexcept {
   if (this->data) {
-    return error{SPTR_SET, def_err_vals};
+    return ec::ALREADY_SET;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return error{SPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T>
 template <typename Data_>
-opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
+err_code shared_ptr<T>::set_impl(Data_ data) noexcept {
   if (this->data) {
     this->destroy();
   }
 
   this->data = new value(); // NOLINT
   if (this->data == nullptr) {
-    return error{SPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   this->counter = new int(1); // NOLINT
   if (this->counter == nullptr) {
     this->destroy_data_ptr();
-    return error{SPTR_BAD_ALLOC, def_err_vals};
+    return ec::BAD_ALLOC;
   }
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
@@ -131,13 +132,13 @@ opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
   } else if constexpr (std::is_class<value>::value) {
     if (this->data->copy(data)) {
       this->destroy_all_ptrs();
-      return error{SPTR_BAD_ALLOC, def_err_vals};
+      return ec::BAD_ALLOC;
     }
   } else {
     *this->data = data;
   }
 
-  return null;
+  return ec::SUCCESS;
 }
 
 template <typename T> void shared_ptr<T>::release() noexcept {
