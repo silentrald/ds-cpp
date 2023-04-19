@@ -16,7 +16,7 @@ namespace ds {
 
 // === Initializers === //
 err_code string::init(const char* str) noexcept {
-  if (str[0] == '\0') { // Empty string check
+  if (str == nullptr || str[0] == '\0') { // Empty string check
     return ec::SUCCESS;
   }
 
@@ -67,6 +67,18 @@ err_code string::copy(const char* str) noexcept {
   }
   std::strcpy(this->str, str);
 
+  return ec::SUCCESS;
+}
+
+err_code string::copy(const char* str, i32 size) noexcept {
+  if (this->str == nullptr) {
+    try_err_code(this->allocate(size));
+  } else if (this->_max_size < size) {
+    try_err_code(this->reallocate(size));
+  }
+
+  this->_size = size;
+  std::strncpy(this->str, str, size);
   return ec::SUCCESS;
 }
 
@@ -192,7 +204,7 @@ char* string::data() noexcept {
 }
 
 const char* string::c_str() const noexcept {
-  return this->str;
+  return this->str ? this->str : "";
 }
 
 // === Capacity === //
@@ -266,6 +278,25 @@ err_code string::append(const char* str) noexcept {
   }
 
   std::strcpy(this->str + this->_size, str);
+  this->_size = new_size;
+
+  return ec::SUCCESS;
+}
+
+err_code string::append(const char* str, i32 size) noexcept {
+  if (this->str == nullptr) {
+    try_err_code(this->allocate(size));
+    this->_size = size;
+    std::strncpy(this->str, str, size);
+    return ec::SUCCESS;
+  }
+
+  i32 new_size = this->_size + size;
+  if (new_size > this->_max_size) {
+    try_err_code(this->reallocate(new_size));
+  }
+
+  std::strncpy(this->str + this->_size, str, size);
   this->_size = new_size;
 
   return ec::SUCCESS;

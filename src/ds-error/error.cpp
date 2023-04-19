@@ -113,6 +113,8 @@ error& error::operator=(error&& rhs) noexcept {
 
   this->msg = rhs.msg;
   this->locations = rhs.locations;
+  this->file = rhs.file;
+  this->line = rhs.line;
 
   /* rhs.msg = nullptr; Wouldn't matter that much */
   rhs.locations = nullptr;
@@ -167,7 +169,7 @@ const char* error::get_msg() const noexcept {
 }
 
 const char* error::get_def_file() const noexcept {
-  return this->file;
+  return this->file ? this->file : "";
 }
 
 u32 error::get_def_line() const noexcept {

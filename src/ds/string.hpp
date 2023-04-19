@@ -59,6 +59,14 @@ public:
    **/
   [[nodiscard]] err_code copy(const char* str) noexcept;
 
+  /**
+   * Copies the const char* string with a size limit
+   *
+   * @errors
+   *  - bad allocation
+   **/
+  [[nodiscard]] err_code copy(const char* str, i32 size) noexcept;
+
   // === Move === //
   /**
    * Initializes the string and moves the passed string
@@ -97,6 +105,7 @@ public:
   [[nodiscard]] err_code push_back(char c) noexcept;
   [[nodiscard]] exp_err_code<char> pop_back() noexcept;
   [[nodiscard]] err_code append(const char* str) noexcept;
+  [[nodiscard]] err_code append(const char* str, i32 size) noexcept;
   [[nodiscard]] err_code append(const string& str) noexcept;
 
   // === Operators === //
