@@ -12,7 +12,7 @@
 
 #define def_err_vals __FILE__, __LINE__
 
-#define try_err_code(func)                                                         \
+#define try_err_code(func)                                                     \
   if (auto code = func) {                                                      \
     return code;                                                               \
   }
@@ -32,7 +32,7 @@
 #define try_opt_unexp(opt)                                                     \
   if (auto err = opt) {                                                        \
     err->push_back_location(def_err_vals);                                     \
-    return ds::unexpected(std::move(*err));                                    \
+    return ds::unexpected<ds::error>{std::move(*err)};                         \
   }
 
 #define try_exp(exp)                                                           \
@@ -69,7 +69,7 @@
     auto res = exp;                                                            \
     if (!res) {                                                                \
       res.error().push_back_location(def_err_vals);                            \
-      return ds::unexpected(std::move(res.error()));                           \
+      return ds::unexpected<ds::error>{std::move(res.error())};                \
     }                                                                          \
     *res;                                                                      \
   });
