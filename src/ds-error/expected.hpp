@@ -27,16 +27,16 @@ public:
   // === Move === //
   unexpected(unexpected&& rhs) noexcept = default;
   unexpected& operator=(unexpected&& rhs) noexcept = default;
-  unexpected(E&& rhs) noexcept : err(std::move(rhs)) {} // NOLINT
 
   // === Destructor === //
   ~unexpected() noexcept = default;
 
-  unexpected(E other) noexcept { // NOLINT
-    static_assert(std::is_fundamental_v<E>, "This only works for primitives");
+  unexpected(E&& rhs) noexcept : err(std::move(rhs)) {} // NOLINT
+
+  template <typename = std::enable_if<std::is_fundamental_v<E>>>
+  unexpected(const E& other) noexcept {                 // NOLINT
     this->err = other;
   }
-
   E& error() const noexcept {
     return this->err;
   }
