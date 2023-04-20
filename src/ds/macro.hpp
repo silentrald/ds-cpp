@@ -58,7 +58,7 @@
   ({                                                                           \
     auto res = exp;                                                            \
     if (!res) {                                                                \
-      exp.error().push_back_location(def_err_vals);                            \
+      res.error().push_back_location(def_err_vals);                            \
       return std::move(res.error());                                           \
     }                                                                          \
     std::move(*res);                                                           \

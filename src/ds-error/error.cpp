@@ -62,7 +62,10 @@ error::error(
     : file(file), line(line), size(0) {
   this->msg._dynamic = memory::get_err_memory();
   if (this->msg._dynamic != nullptr) {
-    strncpy(this->msg._dynamic, msg, MAX_ERROR_STACK);
+    i32 size = strnlen(msg, MAX_ERROR_STACK);
+    strncpy(this->msg._dynamic, msg, size);
+    this->msg._dynamic[size] = '\0';
+
     this->dynamic = true;
     return;
   }
@@ -74,7 +77,10 @@ error::error(
 error::error(char* msg, const char* fallback) noexcept {
   this->msg._dynamic = memory::get_err_memory();
   if (this->msg._dynamic != nullptr) {
-    strncpy(this->msg._dynamic, msg, MAX_ERROR_STACK);
+    i32 size = strnlen(msg, MAX_ERROR_STACK);
+    strncpy(this->msg._dynamic, msg, size);
+    this->msg._dynamic[size] = '\0';
+
     this->dynamic = true;
     return;
   }

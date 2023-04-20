@@ -10,6 +10,7 @@
 #include "ds/types.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <ostream>
 #include <type_traits>
 
 namespace ds {
@@ -20,9 +21,10 @@ err_code string::init(const char* str) noexcept {
     return ec::SUCCESS;
   }
 
-  try_err_code(this->allocate(std::strlen(str)));
+  try_err_code(this->allocate(strlen(str)));
   this->_size = this->_max_size;
-  strcpy(this->str, str);
+  strncpy(this->str, str, this->_size);
+  this->str[this->_size] = '\0';
 
   return ec::SUCCESS;
 }
@@ -41,7 +43,9 @@ err_code string::copy(const string& other) noexcept {
   if (this->str == nullptr) {
     try_err_code(this->allocate(other._size));
     this->_size = other._size;
-    std::strcpy(this->str, other.str);
+
+    strncpy(this->str, other.str, this->_size);
+    this->str[this->_size] = '\0';
     return ec::SUCCESS;
   }
 
@@ -51,7 +55,8 @@ err_code string::copy(const string& other) noexcept {
   }
 
   this->_size = other._size;
-  std::strcpy(this->str, other.str);
+  strncpy(this->str, other.str, this->_size);
+  this->str[this->_size] = '\0';
 
   return ec::SUCCESS;
 }
@@ -61,11 +66,12 @@ err_code string::copy(const char* str) noexcept {
     return this->init(str);
   }
 
-  this->_size = std::strlen(str);
+  this->_size = strlen(str);
   if (this->_max_size < this->_size) {
     try_err_code(this->reallocate(this->_size));
   }
-  std::strcpy(this->str, str);
+  strncpy(this->str, str, this->_size);
+  this->str[this->_size] = '\0';
 
   return ec::SUCCESS;
 }
@@ -78,7 +84,9 @@ err_code string::copy(const char* str, i32 size) noexcept {
   }
 
   this->_size = size;
-  std::strncpy(this->str, str, size);
+  strncpy(this->str, str, size);
+  this->str[size] = '\0';
+
   return ec::SUCCESS;
 }
 
@@ -272,13 +280,14 @@ err_code string::append(const char* str) noexcept {
     return this->init(str);
   }
 
-  i32 new_size = this->_size + std::strlen(str);
-  if (new_size > this->_max_size) {
-    try_err_code(this->reallocate(new_size));
+  i32 str_len = strlen(str);
+  if (this->_size + str_len > this->_max_size) {
+    try_err_code(this->reallocate(this->_size + str_len));
   }
 
-  std::strcpy(this->str + this->_size, str);
-  this->_size = new_size;
+  strncpy(this->str + this->_size, str, str_len);
+  this->_size += str_len;
+  this->str[this->_size] = '\0';
 
   return ec::SUCCESS;
 }
@@ -286,8 +295,9 @@ err_code string::append(const char* str) noexcept {
 err_code string::append(const char* str, i32 size) noexcept {
   if (this->str == nullptr) {
     try_err_code(this->allocate(size));
+    strncpy(this->str, str, size);
+    this->str[size] = '\0';
     this->_size = size;
-    std::strncpy(this->str, str, size);
     return ec::SUCCESS;
   }
 
@@ -296,7 +306,8 @@ err_code string::append(const char* str, i32 size) noexcept {
     try_err_code(this->reallocate(new_size));
   }
 
-  std::strncpy(this->str + this->_size, str, size);
+  strncpy(this->str + this->_size, str, size);
+  this->str[new_size] = '\0';
   this->_size = new_size;
 
   return ec::SUCCESS;
@@ -312,7 +323,8 @@ err_code string::append(const string& str) noexcept {
     try_err_code(this->reallocate(new_size + 10));
   }
 
-  std::strcpy(this->str + this->_size, str.c_str());
+  strncpy(this->str + this->_size, str.c_str(), str._size);
+  this->str[new_size] = '\0';
   this->_size = new_size;
 
   return ec::SUCCESS;
@@ -325,7 +337,7 @@ bool string::operator==(const string& rhs) const noexcept {
   if (this->_size == 0 && rhs._size == 0)
     return true;
 
-  return std::strcmp(this->str, rhs.str) == 0;
+  return strcmp(this->str, rhs.str) == 0;
 }
 
 bool string::operator==(const char* rhs) const noexcept {
@@ -334,7 +346,7 @@ bool string::operator==(const char* rhs) const noexcept {
   if (this->_size == 0)
     return rhs[0] == '\0';
 
-  return std::strcmp(this->str, rhs) == 0;
+  return strcmp(this->str, rhs) == 0;
 }
 
 bool string::operator!=(const string& rhs) const noexcept {
@@ -353,7 +365,7 @@ bool operator==(const char* lhs, const string& rhs) noexcept {
     return lhs[0] == '\0';
   }
 
-  return std::strcmp(lhs, rhs.str) == 0;
+  return strcmp(lhs, rhs.str) == 0;
 }
 
 bool operator!=(const char* lhs, const string& rhs) noexcept {
