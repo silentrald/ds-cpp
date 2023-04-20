@@ -38,7 +38,7 @@ err_code shared_ptr<T>::copy(const shared_ptr& other) noexcept {
 // === Move === //
 template <typename T>
 shared_ptr<T>::shared_ptr(shared_ptr&& rhs) noexcept
-    : data(data), counter(counter) {
+    : data(rhs.data), counter(rhs.counter) {
   rhs.data = nullptr;
   rhs.counter = nullptr;
 }
@@ -56,6 +56,22 @@ shared_ptr<T>& shared_ptr<T>::operator=(shared_ptr<T>&& rhs) noexcept {
   rhs.counter = nullptr;
 
   return *this;
+}
+
+// === Memory === //
+template <typename T> err_code shared_ptr<T>::allocate() noexcept {
+  this->data = new (std::nothrow) T(); // NOLINT
+  if (this->data == nullptr) {
+    return ec::BAD_ALLOC;
+  }
+
+  this->counter = new int(1); // NOLINT
+  if (this->counter == nullptr) {
+    this->destroy_data_ptr();
+    return ec::BAD_ALLOC;
+  }
+
+  return ec::SUCCESS;
 }
 
 // === Destructor === //
@@ -102,11 +118,7 @@ template <typename T> err_code shared_ptr<T>::init() noexcept {
     return ec::ALREADY_SET;
   }
 
-  this->data = new (std::nothrow) T(); // NOLINT
-  if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
-  }
-  return ec::SUCCESS;
+  return this->allocate();
 }
 
 template <typename T>
@@ -116,16 +128,7 @@ err_code shared_ptr<T>::set_impl(Data_ data) noexcept {
     this->destroy();
   }
 
-  this->data = new value(); // NOLINT
-  if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
-  }
-
-  this->counter = new int(1); // NOLINT
-  if (this->counter == nullptr) {
-    this->destroy_data_ptr();
-    return ec::BAD_ALLOC;
-  }
+  try_err_code(this->allocate());
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
     *this->data = std::move(data);

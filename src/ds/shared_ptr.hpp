@@ -29,6 +29,9 @@ private:
   ptr data = nullptr;
   int* counter = nullptr;
 
+  // === Memory === //
+  [[nodiscard]] err_code allocate() noexcept;
+
   // === Destructor === //
   void destroy() noexcept;
   void destroy_data_ptr() noexcept;
@@ -36,7 +39,8 @@ private:
   void destroy_all_ptrs() noexcept;
 
   // === Initializers === //
-  template <typename Data_> [[nodiscard]] err_code set_impl(Data_ data) noexcept;
+  template <typename Data_>
+  [[nodiscard]] err_code set_impl(Data_ data) noexcept;
 
 public:
   shared_ptr() noexcept = default;

@@ -71,7 +71,7 @@
       res.error().push_back_location(def_err_vals);                            \
       return ds::unexpected<ds::error>{std::move(res.error())};                \
     }                                                                          \
-    *res;                                                                      \
+    std::move(*res);                                                           \
   });
 
 #endif
