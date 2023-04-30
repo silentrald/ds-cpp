@@ -28,7 +28,7 @@ pthread_mutex_t err_mutex = PTHREAD_MUTEX_INITIALIZER; // NOLINT
 char err_memory_space[MAX_ERROR_MSG]; // NOLINT
 #endif
 
-char* get_err_memory() noexcept {
+i32 get_err_memory() noexcept {
 #ifdef DS_THREAD
   pthread_mutex_lock(&err_mutex);
   i32 i = 0;
@@ -36,35 +36,38 @@ char* get_err_memory() noexcept {
     if ((bits & 1) == 0) {
       err_bitset ^= 1 << i;
       pthread_mutex_unlock(&err_mutex);
-      return err_memory_space + i * MAX_ERROR_MSG; // NOLINT
+      // TODO: If 32 bit system needs more addresses, return the i instead
+      return i * MAX_ERROR_MSG; // NOLINT
     }
   }
   pthread_mutex_unlock(&err_mutex);
-  return nullptr;
-#endif
-  return err_memory_space;
+  return -1;
+#endif // DS_THREAD
+  return 0;
 }
 
 // Assume that every return is valid
 #ifdef DS_THREAD
-void return_err_memory(const char* ptr) noexcept {
+void return_err_memory(u32 pos) noexcept {
   // Toggle the bit
-  err_bitset ^= 1 << ((ptr - err_memory_space) / MAX_ERROR_MSG);
+  err_bitset ^= 1 << (pos / MAX_ERROR_MSG);
 }
 #endif
 
 } // namespace memory
 
 // === Constructors === //
+#ifdef BIT_64
 error::error(
-    char* msg, const char* fallback, const char* file, u32 line
+    char* msg, i32 type, const char* fallback, const char* file, u32 line
 ) noexcept
     : file(file), line(line), size(0) {
-  this->msg._dynamic = memory::get_err_memory();
-  if (this->msg._dynamic != nullptr) {
+  this->msg._dynamic.pos = memory::get_err_memory();
+  if (this->msg._dynamic.pos > -1) {
     i32 size = strnlen(msg, MAX_ERROR_STACK);
-    strncpy(this->msg._dynamic, msg, size);
-    this->msg._dynamic[size] = '\0';
+    strncpy(memory::err_memory_space + this->msg._dynamic.pos, msg, size);
+    memory::err_memory_space[this->msg._dynamic.pos + size] = '\0';
+    this->msg._dynamic.type = type;
 
     this->dynamic = true;
     return;
@@ -74,12 +77,13 @@ error::error(
   this->dynamic = false;
 }
 
-error::error(char* msg, const char* fallback) noexcept {
-  this->msg._dynamic = memory::get_err_memory();
-  if (this->msg._dynamic != nullptr) {
+error::error(char* msg, i32 type, const char* fallback) noexcept {
+  this->msg._dynamic.pos = memory::get_err_memory();
+  if (this->msg._dynamic.pos > -1) {
     i32 size = strnlen(msg, MAX_ERROR_STACK);
-    strncpy(this->msg._dynamic, msg, size);
-    this->msg._dynamic[size] = '\0';
+    strncpy(memory::err_memory_space + this->msg._dynamic.pos, msg, size);
+    memory::err_memory_space[this->msg._dynamic.pos + size] = '\0';
+    this->msg._dynamic.type = type;
 
     this->dynamic = true;
     return;
@@ -88,6 +92,42 @@ error::error(char* msg, const char* fallback) noexcept {
   this->msg._static = fallback;
   this->dynamic = false;
 }
+#else
+error::error(
+    char* msg, i16 type, const char* fallback, const char* file, u32 line
+) noexcept
+    : file(file), line(line), size(0) {
+  this->msg._dynamic.pos = memory::get_err_memory();
+  if (this->msg._dynamic.pos > -1) {
+    i32 size = strnlen(msg, MAX_ERROR_STACK);
+    strncpy(memory::err_memory_space + this->msg._dynamic.pos, msg, size);
+    memory::err_memory_space[this->msg._dynamic.pos + size] = '\0';
+    this->msg._dynamic.type = type;
+
+    this->dynamic = true;
+    return;
+  }
+
+  this->msg._static = fallback;
+  this->dynamic = false;
+}
+
+error::error(char* msg, i16 type, const char* fallback) noexcept {
+  this->msg._dynamic.pos = memory::get_err_memory();
+  if (this->msg._dynamic.pos > -1) {
+    i32 size = strnlen(msg, MAX_ERROR_STACK);
+    strncpy(memory::err_memory_space + this->msg._dynamic.pos, msg, size);
+    memory::err_memory_space[this->msg._dynamic.pos + size] = '\0';
+    this->msg._dynamic.type = type;
+
+    this->dynamic = true;
+    return;
+  }
+
+  this->msg._static = fallback;
+  this->dynamic = false;
+}
+#endif
 
 error::error(const char* msg, const char* file, u32 line) noexcept
     : file(file), line(line), size(0) {
@@ -132,7 +172,7 @@ error& error::operator=(error&& rhs) noexcept {
 error::~error() noexcept {
 #ifdef DS_THREAD
   if (this->dynamic) {
-    memory::return_err_memory(this->msg._dynamic);
+    memory::return_err_memory(this->msg._dynamic.pos);
   }
 #endif
 
@@ -185,6 +225,16 @@ u32 error::get_def_line() const noexcept {
 error_location* error::get_location(i32 index) const noexcept {
   return this->locations + index;
 }
+
+#ifdef BIT_64
+i32 error::get_type() const noexcept {
+  return this->dynamic ? this->msg._dynamic.type : 0;
+}
+#else
+i16 error::get_type() const noexcept {
+  return this->dynamic ? this->msg._dynamic.type : 0;
+}
+#endif
 
 /**
  * Only returns the items within the locations array

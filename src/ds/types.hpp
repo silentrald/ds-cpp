@@ -12,6 +12,22 @@
 #include <cstdint>
 #include <functional>
 
+#if _WIN32 || _WIN64
+#if _WIN64
+#define BIT_64
+#else
+#define BIT_64
+#endif
+#endif
+
+#if __GNUC__
+#if __x86_64__ || __ppc64__
+#define BIT_64
+#else
+#define BIT_32
+#endif
+#endif
+
 namespace ds {
 
 using u8 = std::uint8_t;
