@@ -12,9 +12,9 @@
 #include "ds/types.hpp"
 #include <map>
 
-TEST_CASE("bptree_map", "ds") {
+TEST_CASE("bptree_map", "ds") { // NOLINT
   ds::i32 n = 10000;
-  ds::err_code err = 0;
+  ds::opt_err err{};
 
   BENCHMARK("ds::bptree_map") {
     ds::bptree_map<ds::i32, ds::i32> map{};
@@ -23,7 +23,7 @@ TEST_CASE("bptree_map", "ds") {
     }
 
     for (ds::i32 i = 0; i < n; ++i) {
-      err = *map[i];
+      static_cast<void>(map[i]);
     }
   };
 
@@ -34,7 +34,7 @@ TEST_CASE("bptree_map", "ds") {
     }
 
     for (ds::i32 i = 0; i < n; ++i) {
-      err = map[i];
+      static_cast<void>(map[i]);
     }
   };
 };

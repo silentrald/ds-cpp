@@ -9,6 +9,7 @@
 #define DS_BPTREE_MAP_HPP
 
 #include "./bptree_map_iterator.hpp"
+#include "ds-error/types.hpp"
 #include "ds/compare.hpp"
 #include "ds/hash.hpp"
 #include "ds/macro.hpp"
@@ -76,7 +77,7 @@ public:
      * @errors
      *  - bad allocation in creating the arrays
      **/
-    err_code init(i32 capacity) noexcept;
+    opt_err init(i32 capacity) noexcept;
 
     // === Move === //
 
@@ -148,7 +149,7 @@ public:
 
     // === Initializers === //
 
-    [[nodiscard]] err_code init(i32 capacity, void* child) noexcept;
+    [[nodiscard]] opt_err init(i32 capacity, void* child) noexcept;
 
     // === Move === //
 
@@ -283,7 +284,7 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] err_code split_inner_node(inner_ptr left_node) noexcept;
+  [[nodiscard]] opt_err split_inner_node(inner_ptr left_node) noexcept;
 
   /**
    * Splits the leaf node
@@ -292,10 +293,10 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] err_code split_leaf_node(leaf_ptr left_leaf) noexcept;
+  [[nodiscard]] opt_err split_leaf_node(leaf_ptr left_leaf) noexcept;
 
   template <typename Value_>
-  [[nodiscard]] err_code insert_impl(key_type key, Value_ value) noexcept;
+  [[nodiscard]] opt_err insert_impl(key_type key, Value_ value) noexcept;
 
   // * Erase Helpers * //
 
@@ -339,7 +340,7 @@ public:
    *  - tree is empty
    *  - key is not found in the tree
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at(key_type key) const noexcept;
 
   /**
    * Get the first element less than the key
@@ -348,7 +349,7 @@ public:
    *  - tree is empty
    *  - key is smaller than the smallest element
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at_smaller(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at_smaller(key_type key) const noexcept;
 
   /**
    * Get the first element greater than the key
@@ -357,7 +358,7 @@ public:
    *  - tree is empty
    *  - key is larger than the largest element
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at_larger(key_type key) const noexcept;
+  [[nodiscard]] exp_ptr_err<value_type> at_larger(key_type key) const noexcept;
 
   /**
    * Get the first element not less than (greater than or equal) the key
@@ -366,7 +367,7 @@ public:
    *  - tree is empty
    *  - key is larger than the greater element
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at_not_smaller(key_type key
+  [[nodiscard]] exp_ptr_err<value_type> at_not_smaller(key_type key
   ) const noexcept;
 
   /**
@@ -376,7 +377,7 @@ public:
    *  - tree is empty
    *  - key is smaller than the smallest element
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at_not_larger(key_type key
+  [[nodiscard]] exp_ptr_err<value_type> at_not_larger(key_type key
   ) const noexcept;
 
   /**
@@ -459,7 +460,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key or value
    **/
-  [[nodiscard]] err_code insert(key_type key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_type key, value_cref value) noexcept {
     return this->insert_impl<value_cref>(key, value);
   }
 
@@ -470,7 +471,7 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] err_code insert(key_type key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_type key, value_rref value) noexcept {
     return this->insert_impl<value_rref>(key, std::move(value));
   }
 

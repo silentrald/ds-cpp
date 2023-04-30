@@ -12,9 +12,68 @@
 
 #define def_err_vals __FILE__, __LINE__
 
-#define try_err_code(func)                                                     \
-  if (auto code = func) {                                                      \
-    return code;                                                               \
+#define BAD_ALLOC_OPT                                                          \
+  ds::error { DS_ERROR_BAD_ALLOC }
+
+#define BAD_ALLOC_EXP                                                          \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_BAD_ALLOC }                                           \
+  }
+
+#define OUT_OF_RANGE_OPT                                                       \
+  ds::error { DS_ERROR_OUT_OF_RANGE }
+
+#define OUT_OF_RANGE_EXP                                                       \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_OUT_OF_RANGE }                                        \
+  }
+
+#define EMPTY_OPT                                                              \
+  ds::error { DS_ERROR_EMPTY }
+
+#define EMPTY_EXP                                                              \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_EMPTY }                                               \
+  }
+
+#define FULL_OPT                                                               \
+  ds::error { DS_ERROR_FULL }
+
+#define FULL_EXP                                                               \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_FULL }                                                \
+  }
+
+#define NOT_FOUND_OPT                                                          \
+  ds::error { DS_ERROR_NOT_FOUND }
+
+#define NOT_FOUND_EXP                                                          \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_NOT_FOUND }                                           \
+  }
+
+#define SIZE_OPT                                                               \
+  ds::error { DS_ERROR_SIZE }
+
+#define SIZE_EXP                                                               \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_SIZE }                                                \
+  }
+
+#define ALREADY_SET_OPT                                                        \
+  ds::error { DS_ERROR_ALREADY_SET }
+
+#define ALREADY_SET_EXP                                                        \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_ALREADY_SET }                                         \
+  }
+
+#define NOT_IMPLEMENTED_OPT                                                    \
+  ds::error { DS_ERROR_NOT_IMPLEMENTED, def_err_vals }
+
+#define NOT_IMPLEMENTED_EXP                                                    \
+  ds::unexpected<ds::error> {                                                  \
+    ds::error { DS_ERROR_NOT_IMPLEMENTED, def_err_vals }                       \
   }
 
 /**
@@ -73,5 +132,14 @@
     }                                                                          \
     std::move(*res);                                                           \
   });
+
+const char* const DS_ERROR_BAD_ALLOC = "bad alloc";
+const char* const DS_ERROR_OUT_OF_RANGE = "out of range";
+const char* const DS_ERROR_EMPTY = "empty";
+const char* const DS_ERROR_FULL = "full";
+const char* const DS_ERROR_NOT_FOUND = "not found";
+const char* const DS_ERROR_SIZE = "size";
+const char* const DS_ERROR_ALREADY_SET = "already set";
+const char* const DS_ERROR_NOT_IMPLEMENTED = "not implemented";
 
 #endif

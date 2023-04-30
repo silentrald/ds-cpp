@@ -15,13 +15,6 @@
 
 namespace ds {
 
-template <typename T> err_code vec3<T>::copy(const vec3& other) noexcept {
-  this->x = other.x;
-  this->y = other.y;
-  this->z = other.z;
-  return ec::SUCCESS;
-}
-
 // === Operators === //
 
 template <typename T> vec3<T>& vec3<T>::operator+=(const vec3& v) noexcept {

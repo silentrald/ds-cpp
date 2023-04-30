@@ -33,7 +33,7 @@ public:
 // NOLINTNEXTLINE
 TEST_CASE("unique_ptr", "ds") {
   ds::unique_ptr<Derived> derived{};
-  ds::err_code err = derived.init();
+  ds::opt_err err = derived.init();
   derived->i = 100;
 
   ds::unique_ptr<Base> base = std::move(derived);

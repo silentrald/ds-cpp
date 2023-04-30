@@ -19,7 +19,12 @@ template <typename T> struct vec3 {
   T y;
   T z;
 
-  err_code copy(const vec3& other) noexcept;
+  vec3() noexcept = default;
+  vec3(const vec3&) noexcept = default;
+  vec3(vec3&&) noexcept = default;
+  vec3& operator=(const vec3&) noexcept = default;
+  vec3& operator=(vec3&&) noexcept = default;
+  ~vec3() noexcept = default;
 
   // === Operators === //
 

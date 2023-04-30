@@ -48,35 +48,35 @@ template <typename T> void unique_ptr<T>::destroy() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> err_code unique_ptr<T>::init() noexcept {
+template <typename T> opt_err unique_ptr<T>::init() noexcept {
   if (this->data) {
-    return ec::ALREADY_SET;
+    return ALREADY_SET_OPT;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
-  return ec::SUCCESS;
+  return null;
 }
 
-template <typename T> err_code unique_ptr<T>::set(ptr data) noexcept {
+template <typename T> opt_err unique_ptr<T>::set(ptr data) noexcept {
   if (this->data) {
-    return ec::ALREADY_SET;
+    return ALREADY_SET_OPT;
   }
 
   this->data = data;
-  return ec::SUCCESS;
+  return null;
 }
 
-template <typename T> err_code unique_ptr<T>::set(cref data) noexcept {
+template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
   if (this->data) {
-    return ec::ALREADY_SET;
+    return ALREADY_SET_OPT;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   if constexpr (has_copy_method<value>::value) {
@@ -90,21 +90,21 @@ template <typename T> err_code unique_ptr<T>::set(cref data) noexcept {
     *this->data = data;
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
-template <typename T> err_code unique_ptr<T>::set(rref data) noexcept {
+template <typename T> opt_err unique_ptr<T>::set(rref data) noexcept {
   if (this->data) {
-    return ec::ALREADY_SET;
+    return ALREADY_SET_OPT;
   }
 
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   *this->data = std::move(data);
-  return ec::SUCCESS;
+  return null;
 }
 
 template <typename T> T* unique_ptr<T>::release() noexcept {

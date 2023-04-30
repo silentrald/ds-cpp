@@ -9,7 +9,7 @@ add_library(ds
   src/prime.cpp
 
   src/ds/string.cpp
-  src/ds/transaction.cpp
+  src/ds/scope.cpp
   src/ds-error/error.cpp
 
   src/hash/murmur3.cpp

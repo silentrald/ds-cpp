@@ -13,6 +13,7 @@
 #include "ds/vector.hpp"
 #include <cstdlib>
 #include <new>
+#include <type_traits>
 
 namespace ds {
 
@@ -75,12 +76,12 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::find_leaf_node_containing(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_ptr_err_code<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key
 ) const noexcept {
   if (this->height == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   auto* leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
@@ -88,37 +89,37 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at(key_type key
   auto* value = leaf->get_value(key);
 
   if (value == nullptr) {
-    return unexpected{ec::NOT_FOUND};
+    return NOT_FOUND_EXP;
   }
   return value;
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_ptr_err_code<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_smaller(key_type key
 ) const noexcept {
   if (this->height == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
                                     : this->find_leaf_node_containing(key);
   i32 index = leaf->find_smaller_index(key);
   if (index == -1) {
-    return unexpected{ec::NOT_FOUND};
+    return NOT_FOUND_EXP;
   }
 
   return &leaf->at_value(index);
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_ptr_err_code<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_larger(key_type key
 ) const noexcept {
   if (this->height == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
@@ -130,19 +131,19 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at_larger(key_type key
 
   leaf = leaf->get_next();
   if (leaf == nullptr) {
-    return unexpected{ec::NOT_FOUND};
+    return NOT_FOUND_EXP;
   }
 
   return &leaf->at_value(0);
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_ptr_err_code<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_smaller(key_type key
 ) const noexcept {
   if (this->height == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
@@ -154,26 +155,26 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_smaller(key_type key
 
   leaf = leaf->get_next();
   if (leaf == nullptr) {
-    return unexpected{ec::NOT_FOUND};
+    return NOT_FOUND_EXP;
   }
 
   return &leaf->at_value(0);
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-exp_ptr_err_code<
+exp_ptr_err<
     typename base_bptree_map<Derived, Key, Value, KeyCompare>::value_type>
 base_bptree_map<Derived, Key, Value, KeyCompare>::at_not_larger(key_type key
 ) const noexcept {
   if (this->height == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   leaf_ptr leaf = this->height == 1 ? static_cast<leaf_ptr>(this->root)
                                     : this->find_leaf_node_containing(key);
   i32 index = leaf->find_not_larger_index(key);
   if (index == -1) {
-    return unexpected{ec::NOT_FOUND};
+    return NOT_FOUND_EXP;
   }
 
   return &leaf->at_value(index);
@@ -402,7 +403,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::create_leaf_node() noexcept {
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     inner_ptr left_node
 ) noexcept {
   i32 mid = this->middle();
@@ -415,7 +416,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     // Create the right and parent internal node
     right_node = this->create_inner_node(left_node->get_children()[mid + 1]);
     if (right_node == nullptr) {
-      return ec::BAD_ALLOC;
+      return BAD_ALLOC_OPT;
     }
 
     parent = left_node->get_parent();
@@ -427,7 +428,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
           stack.pop_back_disc();          // Left node
           delete stack.pop_back_unsafe(); // NOLINT
         }
-        return ec::BAD_ALLOC;
+        return BAD_ALLOC_OPT;
       }
     }
 
@@ -480,17 +481,17 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
     right_node->reparent_children();
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
     leaf_ptr left_leaf
 ) noexcept {
   // Create the left leaf and the parent node
   auto right_leaf = this->create_leaf_node();
   if (right_leaf == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   auto* parent = left_leaf->get_parent();
@@ -498,7 +499,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
     parent = this->create_inner_node(left_leaf);
     if (parent == nullptr) {
       delete right_leaf; // NOLINT
-      return ec::BAD_ALLOC;
+      return BAD_ALLOC_OPT;
     }
   }
 
@@ -536,21 +537,21 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_leaf_node(
 
   // Move the half the data from the left leaf to the right leaf
   left_leaf->redistribute(right_leaf, mid);
-  return ec::SUCCESS;
+  return null;
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 template <typename Value_>
-err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     key_type key, Value_ value
 ) noexcept {
   Value value_copy{};
   if constexpr (std::is_rvalue_reference<Value_>::value) {
     value_copy = std::move(value);
-  } else if constexpr (std::is_class<value_type>::value) {
-    try_err_code(value_copy.copy(value));
-  } else {
+  } else if constexpr (std::is_copy_assignable<value_type>::value) {
     value_copy = value;
+  } else {
+    try_opt_err(value_copy.copy(value));
   }
 
   // Separate this to a function call
@@ -558,7 +559,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     auto* leaf = this->root ? static_cast<leaf_ptr>(this->root)
                             : this->create_leaf_node();
     if (leaf == nullptr) {
-      return ec::BAD_ALLOC;
+      return BAD_ALLOC_OPT;
     }
 
     leaf->push_back(key, std::move(value_copy));
@@ -566,7 +567,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     ++this->_size;
     this->height = 1;
 
-    return ec::SUCCESS;
+    return null;
   }
 
   // Separate this to a function call
@@ -574,13 +575,13 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     auto* leaf = static_cast<leaf_ptr>(this->root);
     i32 index = leaf->insert(key, std::move(value_copy));
     if (index == -1) {
-      return ec::SUCCESS;
+      return null;
     }
 
     // Check if the leaf node exceeds the max degree rule
     ++this->_size;
     if (this->_size < this->degree) {
-      return ec::SUCCESS;
+      return null;
     }
 
     // Split here
@@ -591,19 +592,19 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
 
     this->root = leaf->get_parent();
     this->height = 2;
-    return ec::SUCCESS;
+    return null;
   }
 
   leaf_ptr leaf = this->find_leaf_node_containing(key);
   i32 index = leaf->insert(key, std::move(value_copy));
 
   if (index == -1) {
-    return ec::SUCCESS;
+    return null;
   }
 
   ++this->_size;
   if (leaf->get_size() < this->degree) {
-    return ec::SUCCESS;
+    return null;
   }
 
   // Split the leaf node
@@ -612,7 +613,7 @@ err_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
     return error;
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // * Erase * //

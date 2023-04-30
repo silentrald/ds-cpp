@@ -18,21 +18,21 @@ namespace ds {
 
 // === Copy === //
 template <typename T>
-err_code shared_ptr<T>::copy(const shared_ptr& other) noexcept {
+opt_err shared_ptr<T>::copy(const shared_ptr& other) noexcept {
   if (&other == this || this->data == other.data) {
-    return ec::SUCCESS;
+    return null;
   }
 
   this->destroy();
   if (other.data == nullptr) {
-    return ec::SUCCESS;
+    return null;
   }
 
   this->data = other.data;
   this->counter = other.counter;
   ++(*this->counter);
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Move === //
@@ -59,19 +59,19 @@ shared_ptr<T>& shared_ptr<T>::operator=(shared_ptr<T>&& rhs) noexcept {
 }
 
 // === Memory === //
-template <typename T> err_code shared_ptr<T>::allocate() noexcept {
+template <typename T> opt_err shared_ptr<T>::allocate() noexcept {
   this->data = new (std::nothrow) T(); // NOLINT
   if (this->data == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   this->counter = new int(1); // NOLINT
   if (this->counter == nullptr) {
     this->destroy_data_ptr();
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Destructor === //
@@ -113,9 +113,9 @@ template <typename T> shared_ptr<T>::~shared_ptr() noexcept {
 }
 
 // === Modifiers === //
-template <typename T> err_code shared_ptr<T>::init() noexcept {
+template <typename T> opt_err shared_ptr<T>::init() noexcept {
   if (this->data) {
-    return ec::ALREADY_SET;
+    return ALREADY_SET_OPT;
   }
 
   return this->allocate();
@@ -123,25 +123,25 @@ template <typename T> err_code shared_ptr<T>::init() noexcept {
 
 template <typename T>
 template <typename Data_>
-err_code shared_ptr<T>::set_impl(Data_ data) noexcept {
+opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
   if (this->data) {
     this->destroy();
   }
 
-  try_err_code(this->allocate());
+  try_opt(this->allocate());
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
     *this->data = std::move(data);
-  } else if constexpr (std::is_class<value>::value) {
+  } else if constexpr (std::is_class<value>::value && std::is_copy_assignable<value>::value) {
     if (this->data->copy(data)) {
       this->destroy_all_ptrs();
-      return ec::BAD_ALLOC;
+      return BAD_ALLOC_OPT;
     }
   } else {
     *this->data = data;
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 template <typename T> void shared_ptr<T>::release() noexcept {

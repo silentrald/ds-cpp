@@ -19,8 +19,8 @@ using namespace ds_test;
 TEST_CASE("fixed_deque", "ds") {
   SECTION("Integer Primitive") {
     ds::fixed_deque<ds::i32> dq{};
-    ds::exp_err_code<ds::i32> exp{};
-    ds::exp_ptr_err_code<ds::i32> exp_ptr{};
+    ds::exp_err<ds::i32> exp{};
+    ds::exp_ptr_err<ds::i32> exp_ptr{};
 
     SECTION("Negative Size") {
       auto error = dq.resize(-1);
@@ -426,7 +426,7 @@ TEST_CASE("fixed_deque", "ds") {
           REQUIRE(dq.capacity() == dq2.capacity());
           REQUIRE(dq.size() == dq2.size());
 
-          ds::exp_ptr_err_code<ds::i32> exp_ptr2{};
+          ds::exp_ptr_err<ds::i32> exp_ptr2{};
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
@@ -466,7 +466,7 @@ TEST_CASE("fixed_deque", "ds") {
           REQUIRE(dq.capacity() == dq2.capacity());
           REQUIRE(dq.size() == dq2.size());
 
-          ds::exp_ptr_err_code<ds::i32> exp_ptr2;
+          ds::exp_ptr_err<ds::i32> exp_ptr2;
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
@@ -833,8 +833,8 @@ TEST_CASE("fixed_deque", "ds") {
 
   SECTION("Custom Class") {
     ds::fixed_deque<Test> dq{};
-    ds::exp_err_code<Test> exp{};
-    ds::exp_ptr_err_code<Test> exp_ptr{};
+    ds::exp_err<Test> exp{};
+    ds::exp_ptr_err<Test> exp_ptr{};
 
     SECTION("Negative Size") {
       auto error = dq.resize(-1);
@@ -1298,7 +1298,7 @@ TEST_CASE("fixed_deque", "ds") {
           REQUIRE(dq.capacity() == dq2.capacity());
           REQUIRE(dq.size() == dq2.size());
 
-          ds::exp_ptr_err_code<Test> exp_ptr2;
+          ds::exp_ptr_err<Test> exp_ptr2;
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);
@@ -1345,7 +1345,7 @@ TEST_CASE("fixed_deque", "ds") {
           REQUIRE(dq.capacity() == dq2.capacity());
           REQUIRE(dq.size() == dq2.size());
 
-          ds::exp_ptr_err_code<Test> exp_ptr2;
+          ds::exp_ptr_err<Test> exp_ptr2;
           for (ds::i32 i = 0; i < 3; i++) {
             exp_ptr = dq.at(i);
             exp_ptr2 = dq2.at(i);

@@ -21,12 +21,12 @@ namespace ds {
 // === Initializers === //
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-err_code
+opt_err
 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
 ) noexcept {
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   // NOLINTNEXTLINE
@@ -35,10 +35,10 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
     delete this->keys; // NOLINT
     this->keys = nullptr;
 
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Move === //
@@ -418,24 +418,24 @@ namespace ds {
 
 // === Initializers === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-err_code base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
+opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
     i32 capacity, void* child
 ) noexcept {
 
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   // NOLINTNEXTLINE
   this->children = new (std::nothrow) void*[capacity + 1];
   if (this->children == nullptr) {
     delete this->keys; // NOLINT
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
 
   this->children[0] = child;
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Destructor === //

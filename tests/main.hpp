@@ -17,26 +17,32 @@ namespace ds_test {
 extern ds::i32 counter; // NOLINT
 extern void* free_ptr;  // NOLINT
 
-[[nodiscard]] bool handle_error(ds::i32 err) noexcept;
+[[nodiscard]] bool handle_error(const ds::opt_err& err) noexcept;
 
-template <typename T>
-[[nodiscard]] bool handle_error(const ds::exp_err_code<T>& expected) noexcept {
-  if (expected) {
+template <typename T> bool handle_error(const ds::exp_err<T>& exp) noexcept {
+  if (exp) {
     return true;
   }
 
-  UNSCOPED_INFO("Error Code: " << expected.error());
+  const auto& err = exp.error();
+  UNSCOPED_INFO(
+      "Error: " << err.get_msg() << "\n> " << err.get_def_file() << ':'
+                << err.get_def_line() << "\n"
+  );
   return false;
 }
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::exp_ptr_err_code<T>& expected
-) noexcept {
-  if (expected) {
+[[nodiscard]] bool handle_error(const ds::exp_ptr_err<T>& exp) noexcept {
+  if (exp) {
     return true;
   }
 
-  UNSCOPED_INFO("Error Code: " << expected.error());
+  const auto& err = exp.error();
+  UNSCOPED_INFO(
+      "Error: " << err.get_msg() << "\n> " << err.get_def_file() << ':'
+                << err.get_def_line() << "\n"
+  );
   return false;
 }
 
@@ -56,7 +62,7 @@ public:
   }
 
   // === Copy === //
-  [[nodiscard]] ds::i32 copy(const Test& other) noexcept;
+  [[nodiscard]] ds::opt_err copy(const Test& other) noexcept;
 
   // === Move === //
   Test(Test&& rhs) noexcept;

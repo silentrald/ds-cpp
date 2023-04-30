@@ -19,7 +19,7 @@
 using namespace ds_test;
 
 TEST_CASE("hash_map", "ds") { // NOLINT
-  ds::err_code error{};
+  ds::opt_err err{};
 
   SECTION("Primitive Key and Value") {
     ds::hash_map<ds::i32, ds::i32> map{};
@@ -36,7 +36,6 @@ TEST_CASE("hash_map", "ds") { // NOLINT
 
   SECTION("1000") {
     ds::i32 n = 10000;
-    ds::err_code err = 0;
     BENCHMARK("ds::hash_map 1000") {
       ds::hash_map<ds::i32, ds::i32> map{};
       for (ds::i32 i = 0; i < n; ++i) {
@@ -44,7 +43,7 @@ TEST_CASE("hash_map", "ds") { // NOLINT
       }
 
       for (ds::i32 i = 0; i < n; ++i) {
-        err = *map[i];
+        static_cast<void>(map[i]);
       }
     };
 
@@ -55,7 +54,7 @@ TEST_CASE("hash_map", "ds") { // NOLINT
       }
 
       for (ds::i32 i = 0; i < n; ++i) {
-        err = map[i];
+        static_cast<void>(map[i]);
       }
     };
   }

@@ -56,7 +56,7 @@ using is_int = typename std::enable_if<std::is_integral<T>::value>::type;
 template <typename T> struct has_copy_method {
 private:
   template <typename U>
-  static auto test(err_code)
+  static auto test(opt_err)
       -> decltype(std::declval<U>().copy() == 1, std::__true_type());
   template <typename> static std::__false_type test(...);
 

@@ -85,7 +85,7 @@ protected:
   [[nodiscard]] node_ptr create_node(Key_ key, Value_ value) noexcept;
 
   template <typename Key_, typename Value_>
-  [[nodiscard]] err_code insert_impl(Key_ key, Value_ value) noexcept;
+  [[nodiscard]] opt_err insert_impl(Key_ key, Value_ value) noexcept;
   template <typename Key_> void erase_impl(Key_ key) noexcept;
 
   // * Lookup Helper *
@@ -115,7 +115,7 @@ public:
    *  - bad allocation resizing the bucket
    *  - bad allocation in node creation
    **/
-  [[nodiscard]] err_code copy(const base_hash_map& other) noexcept;
+  [[nodiscard]] opt_err copy(const base_hash_map& other) noexcept;
 
   // === Move ===
   base_hash_map(base_hash_map&& rhs) noexcept;
@@ -185,7 +185,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key or value
    **/
-  [[nodiscard]] err_code insert(key_cref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
     return this->insert_impl<key_cref, value_cref>(key, value);
   }
 
@@ -197,7 +197,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying key
    **/
-  [[nodiscard]] err_code insert(key_cref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
     return this->insert_impl<key_cref, value_rref>(key, std::move(value));
   }
 
@@ -209,7 +209,7 @@ public:
    *  - bad allocation in creating the node
    *  - bad allocation in copying value
    **/
-  [[nodiscard]] err_code insert(key_rref key, value_cref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
     return this->insert_impl<key_rref, value_cref>(std::move(key), value);
   }
 
@@ -220,7 +220,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(key_rref key, value_rref value) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
     return this->insert_impl<key_rref, value_rref>(
         std::move(key), std::move(value)
     );
@@ -244,10 +244,10 @@ public:
    * @errors
    *   - key was not found
    **/
-  [[nodiscard]] exp_ptr_err_code<value_type> at(key_cref key) noexcept {
+  [[nodiscard]] exp_ptr_err<value_type> at(key_cref key) noexcept {
     auto* node = this->get_node<key_cref>(key);
     if (node == nullptr) {
-      return unexpected{ec::NOT_FOUND};
+      return NOT_FOUND_EXP;
     }
 
     return &node->value;
@@ -288,7 +288,7 @@ public:
    * @errors
    *  - bad allocation in resizing the number of buckets
    **/
-  [[nodiscard]] err_code rehash(i32 count) noexcept;
+  [[nodiscard]] opt_err rehash(i32 count) noexcept;
 };
 
 } // namespace ds

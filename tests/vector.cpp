@@ -18,8 +18,8 @@ using namespace ds_test;
 TEST_CASE("vector", "ds") {
   SECTION("Primitive") {
     ds::vector<ds::i32> vec{};
-    ds::exp_err_code<ds::i32> exp{};
-    ds::exp_ptr_err_code<ds::i32> exp_ptr{};
+    ds::exp_err<ds::i32> exp{};
+    ds::exp_ptr_err<ds::i32> exp_ptr{};
 
     SECTION("Empty initialization") {
       REQUIRE(vec.is_empty());
@@ -360,9 +360,9 @@ TEST_CASE("vector", "ds") {
   }
 
   SECTION("Custom class") {
-    ds::vector<Test> vec;
-    ds::exp_err_code<Test> exp;
-    ds::exp_ptr_err_code<Test> exp_ptr;
+    ds::vector<Test> vec{};
+    ds::exp_err<Test> exp{};
+    ds::exp_ptr_err<Test> exp_ptr{};
     counter = 0;
 
     SECTION("Empty initialization") {
@@ -801,9 +801,9 @@ TEST_CASE("vector", "ds") {
   }
 
   SECTION("Specialized functions on String class") {
-    ds::vector<ds::string> vec;
-    ds::exp_err_code<ds::string> exp;
-    ds::exp_ptr_err_code<ds::string> exp_ptr;
+    ds::vector<ds::string> vec{};
+    ds::exp_err<ds::string> exp{};
+    ds::exp_ptr_err<ds::string> exp_ptr{};
 
     SECTION("Init") {
       CHECK(handle_error(vec.push_back("Hi", "world", "my", "name", "jeff")));

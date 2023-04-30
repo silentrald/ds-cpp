@@ -10,13 +10,13 @@
 
 namespace ds {
 
-template <typename Return, typename... Params> class delegate;
+/* template <typename Return, typename... Params> class delegate; */
 
-template <typename Return, typename... Params>
-class delegate<Return(Params...)> final {
-private:
-public:
-};
+/* template <typename Return, typename... Params> */
+/* class delegate<Return(Params...)> final { */
+/* private: */
+/* public: */
+/* }; */
 
 } // namespace ds
 

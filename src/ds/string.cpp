@@ -7,6 +7,7 @@
 
 #include "./string.hpp"
 #include "ds/macro.hpp"
+#include "ds/optional.hpp"
 #include "ds/types.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -16,41 +17,41 @@
 namespace ds {
 
 // === Initializers === //
-err_code string::init(const char* str) noexcept {
+opt_err string::init(const char* str) noexcept {
   if (str == nullptr || str[0] == '\0') { // Empty string check
-    return ec::SUCCESS;
+    return null;
   }
 
-  try_err_code(this->allocate(strlen(str)));
+  try_opt(this->allocate(strlen(str)));
   this->_size = this->_max_size;
   strncpy(this->str, str, this->_size);
   this->str[this->_size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Copy === //
-err_code string::copy(const string& other) noexcept {
+opt_err string::copy(const string& other) noexcept {
   if (&other == this) {
-    return ec::SUCCESS;
+    return null;
   }
 
   if (other._size == 0) {
     this->clear();
-    return ec::SUCCESS;
+    return null;
   }
 
   if (this->str == nullptr) {
-    try_err_code(this->allocate(other._size));
+    try_opt(this->allocate(other._size));
     this->_size = other._size;
 
     strncpy(this->str, other.str, this->_size);
     this->str[this->_size] = '\0';
-    return ec::SUCCESS;
+    return null;
   }
 
   if (this->_max_size < other._max_size) {
-    try_err_code(this->reallocate(other._max_size));
+    try_opt(this->reallocate(other._max_size));
     this->_max_size = other._max_size;
   }
 
@@ -58,36 +59,36 @@ err_code string::copy(const string& other) noexcept {
   strncpy(this->str, other.str, this->_size);
   this->str[this->_size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
-err_code string::copy(const char* str) noexcept {
+opt_err string::copy(const char* str) noexcept {
   if (this->str == nullptr) {
     return this->init(str);
   }
 
   this->_size = strlen(str);
   if (this->_max_size < this->_size) {
-    try_err_code(this->reallocate(this->_size));
+    try_opt(this->reallocate(this->_size));
   }
   strncpy(this->str, str, this->_size);
   this->str[this->_size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
-err_code string::copy(const char* str, i32 size) noexcept {
+opt_err string::copy(const char* str, i32 size) noexcept {
   if (this->str == nullptr) {
-    try_err_code(this->allocate(size));
+    try_opt(this->allocate(size));
   } else if (this->_max_size < size) {
-    try_err_code(this->reallocate(size));
+    try_opt(this->reallocate(size));
   }
 
   this->_size = size;
   strncpy(this->str, str, size);
   this->str[size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Move === //
@@ -98,7 +99,7 @@ string::string(string&& rhs) noexcept
 }
 
 string& string::operator=(string&& rhs) noexcept {
-  if (&rhs == this) {
+  if (this == &rhs) {
     return *this;
   }
   this->~string();
@@ -128,44 +129,44 @@ string::~string() {
 }
 
 // === Memory === //
-err_code string::allocate(i32 size) noexcept {
+opt_err string::allocate(i32 size) noexcept {
   // Allocate the \0
   // NOLINTNEXTLINE
   this->str =
       // NOLINTNEXTLINE
       static_cast<char*>(std::malloc((size + 1) * sizeof(char)));
   if (this->str == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
   this->_max_size = size;
 
-  return ec::SUCCESS;
+  return null;
 }
 
-err_code string::reallocate(i32 size) noexcept {
+opt_err string::reallocate(i32 size) noexcept {
   // Allocate the \0
   // NOLINTNEXTLINE
   void* ptr = std::realloc(this->str, (size + 1) * sizeof(char));
   if (ptr == nullptr) {
-    return ec::BAD_ALLOC;
+    return BAD_ALLOC_OPT;
   }
   this->str = static_cast<char*>(ptr);
   this->_max_size = size;
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Element Access === //
-exp_ptr_err_code<char> string::at_ptr(i32 index) noexcept {
+exp_ptr_err<char> string::at_ptr(i32 index) noexcept {
   if (index < 0 || index >= this->_size) {
-    return unexpected{ec::OUT_OF_RANGE};
+    return OUT_OF_RANGE_EXP;
   }
 
   return this->str + index;
 }
 
-exp_err_code<char> string::at(i32 index) noexcept {
+exp_err<char> string::at(i32 index) noexcept {
   if (index < 0 || index >= this->_size) {
-    return unexpected{ec::OUT_OF_RANGE};
+    return OUT_OF_RANGE_EXP;
   }
 
   return this->str[index];
@@ -175,33 +176,33 @@ char& string::operator[](i32 index) noexcept {
   return this->str[index];
 }
 
-exp_ptr_err_code<char> string::front_ptr() noexcept {
+exp_ptr_err<char> string::front_ptr() noexcept {
   if (this->_size == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   return this->str;
 }
 
-exp_err_code<char> string::front() noexcept {
+exp_err<char> string::front() noexcept {
   if (this->_size == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   return this->str[0];
 }
 
-exp_ptr_err_code<char> string::back_ptr() noexcept {
+exp_ptr_err<char> string::back_ptr() noexcept {
   if (this->_size == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   return this->str + this->_size - 1;
 }
 
-exp_err_code<char> string::back() noexcept {
+exp_err<char> string::back() noexcept {
   if (this->_size == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   return this->str[this->_size - 1];
@@ -232,7 +233,7 @@ i32 string::max_size() const noexcept {
   return this->_max_size;
 }
 
-err_code string::reserve(i32 size) noexcept {
+opt_err string::reserve(i32 size) noexcept {
   if (this->str == nullptr) {
     return this->allocate(size);
   }
@@ -241,7 +242,7 @@ err_code string::reserve(i32 size) noexcept {
     return this->reallocate(size);
   }
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Modifiers === //
@@ -254,20 +255,20 @@ void string::clear() noexcept {
   this->str[0] = '\0';
 }
 
-err_code string::push_back(char c) noexcept {
+opt_err string::push_back(char c) noexcept {
   if (this->_size == this->_max_size) {
-    try_err_code(this->reallocate(this->_max_size + 10));
+    try_opt(this->reallocate(this->_max_size + 10));
   }
 
   this->str[this->_size++] = c;
   this->str[this->_size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
-exp_err_code<char> string::pop_back() noexcept {
+exp_err<char> string::pop_back() noexcept {
   if (this->_size == 0) {
-    return unexpected{ec::EMPTY};
+    return EMPTY_EXP;
   }
 
   char c = this->str[--this->_size];
@@ -275,59 +276,59 @@ exp_err_code<char> string::pop_back() noexcept {
   return c;
 }
 
-err_code string::append(const char* str) noexcept {
+opt_err string::append(const char* str) noexcept {
   if (this->str == nullptr) {
     return this->init(str);
   }
 
   i32 str_len = strlen(str);
   if (this->_size + str_len > this->_max_size) {
-    try_err_code(this->reallocate(this->_size + str_len));
+    try_opt(this->reallocate(this->_size + str_len));
   }
 
   strncpy(this->str + this->_size, str, str_len);
   this->_size += str_len;
   this->str[this->_size] = '\0';
 
-  return ec::SUCCESS;
+  return null;
 }
 
-err_code string::append(const char* str, i32 size) noexcept {
+opt_err string::append(const char* str, i32 size) noexcept {
   if (this->str == nullptr) {
-    try_err_code(this->allocate(size));
+    try_opt(this->allocate(size));
     strncpy(this->str, str, size);
     this->str[size] = '\0';
     this->_size = size;
-    return ec::SUCCESS;
+    return null;
   }
 
   i32 new_size = this->_size + size;
   if (new_size > this->_max_size) {
-    try_err_code(this->reallocate(new_size));
+    try_opt(this->reallocate(new_size));
   }
 
   strncpy(this->str + this->_size, str, size);
   this->str[new_size] = '\0';
   this->_size = new_size;
 
-  return ec::SUCCESS;
+  return null;
 }
 
-err_code string::append(const string& str) noexcept {
+opt_err string::append(const string& str) noexcept {
   if (this->str == nullptr) {
     return this->copy(str);
   }
 
   i32 new_size = this->_size + str._size;
   if (new_size > this->_max_size) {
-    try_err_code(this->reallocate(new_size + 10));
+    try_opt(this->reallocate(new_size + 10));
   }
 
   strncpy(this->str + this->_size, str.c_str(), str._size);
   this->str[new_size] = '\0';
   this->_size = new_size;
 
-  return ec::SUCCESS;
+  return null;
 }
 
 // === Operators === //

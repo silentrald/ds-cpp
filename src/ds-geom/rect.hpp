@@ -22,7 +22,12 @@ template <typename T> struct rect {
   T w;
   T h;
 
-  err_code copy(const rect& other) noexcept;
+  rect() noexcept = default;
+  rect(const rect& other) noexcept = default;
+  rect(rect&& other) noexcept = default;
+  rect& operator=(const rect& rhs) noexcept = default;
+  rect& operator=(rect&& rhs) noexcept = default;
+  ~rect() noexcept = default;
 
   void set_position(T x, T y) noexcept;
   void set_size(T w, T h) noexcept;

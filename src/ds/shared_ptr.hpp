@@ -8,6 +8,7 @@
 #ifndef DS_SHARED_PTR_HPP
 #define DS_SHARED_PTR_HPP
 
+#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 
 #if DS_TEST
@@ -30,7 +31,7 @@ private:
   int* counter = nullptr;
 
   // === Memory === //
-  [[nodiscard]] err_code allocate() noexcept;
+  [[nodiscard]] opt_err allocate() noexcept;
 
   // === Destructor === //
   void destroy() noexcept;
@@ -39,8 +40,7 @@ private:
   void destroy_all_ptrs() noexcept;
 
   // === Initializers === //
-  template <typename Data_>
-  [[nodiscard]] err_code set_impl(Data_ data) noexcept;
+  template <typename Data_> [[nodiscard]] opt_err set_impl(Data_ data) noexcept;
 
 public:
   shared_ptr() noexcept = default;
@@ -48,7 +48,7 @@ public:
   shared_ptr& operator=(const shared_ptr&) = delete;
 
   // === Copy === //
-  [[nodiscard]] err_code copy(const shared_ptr& other) noexcept;
+  [[nodiscard]] opt_err copy(const shared_ptr& other) noexcept;
 
   // === Move === //
   shared_ptr(shared_ptr&& rhs) noexcept;
@@ -58,13 +58,13 @@ public:
   ~shared_ptr() noexcept;
 
   // === Modifiers === //
-  [[nodiscard]] err_code init() noexcept;
+  [[nodiscard]] opt_err init() noexcept;
 
-  [[nodiscard]] err_code set(cref data) noexcept {
+  [[nodiscard]] opt_err set(cref data) noexcept {
     return this->set_impl<cref>(data);
   }
 
-  [[nodiscard]] err_code set(rref data) noexcept {
+  [[nodiscard]] opt_err set(rref data) noexcept {
     return this->set_impl<rref>(std::move(data));
   }
 

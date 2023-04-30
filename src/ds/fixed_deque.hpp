@@ -55,7 +55,7 @@ private:
    * @errors
    *  - Could not allocate the size
    **/
-  [[nodiscard]] err_code allocate(i32 capacity) noexcept;
+  [[nodiscard]] opt_err allocate(i32 capacity) noexcept;
 
   /**
    * Reallocates the fixed deque
@@ -64,13 +64,13 @@ private:
    *  - Could not resize to the new size
    *  - Init / Copy of custom classes
    **/
-  [[nodiscard]] err_code reallocate(i32 capacity) noexcept;
+  [[nodiscard]] opt_err reallocate(i32 capacity) noexcept;
 
   // * Helper functions for reallocate *
   /**
    * Reallocating by just increasing the size of the deque
    **/
-  [[nodiscard]] err_code reallocate_grow(i32 capacity) noexcept;
+  [[nodiscard]] opt_err reallocate_grow(i32 capacity) noexcept;
 
   /**
    * Reallocates by shifting the data
@@ -80,7 +80,7 @@ private:
    *  |__HxT_| -> |HxT___| -> Resizing Process
    *  +------+    +------+
    **/
-  [[nodiscard]] err_code reallocate_shift(i32 capacity) noexcept;
+  [[nodiscard]] opt_err reallocate_shift(i32 capacity) noexcept;
 
   /**
    * Reallocates by moving the data to a new container
@@ -94,7 +94,7 @@ private:
    *  |xT___Hx| -> |HxxT_|
    *  +-------+    +-----+
    **/
-  [[nodiscard]] err_code reallocate_move(i32 capacity) noexcept;
+  [[nodiscard]] opt_err reallocate_move(i32 capacity) noexcept;
 
   // === Copy Helper ===
   /**
@@ -105,7 +105,7 @@ private:
    *  |__HxxxxT___|
    *  +-----------+
    **/
-  [[nodiscard]] err_code copy_center(const fixed_deque& rhs) noexcept;
+  [[nodiscard]] opt_err copy_center(const fixed_deque& rhs) noexcept;
 
   /**
    * Tries to copy the data from both ends to this fdeque
@@ -115,7 +115,7 @@ private:
    *  |xxT____Hxxx|
    *  +-----------+
    **/
-  [[nodiscard]] err_code copy_ends(const fixed_deque& rhs) noexcept;
+  [[nodiscard]] opt_err copy_ends(const fixed_deque& rhs) noexcept;
 
 public:
   fixed_deque() noexcept = default;
@@ -129,7 +129,7 @@ public:
    * @errors
    *   - Bad allocation
    **/
-  [[nodiscard]] err_code copy(const fixed_deque& other) noexcept;
+  [[nodiscard]] opt_err copy(const fixed_deque& other) noexcept;
 
   // === Move === //
   fixed_deque(fixed_deque&& rhs) noexcept;
@@ -146,9 +146,9 @@ public:
    *  - Deque is empty
    *  - Index out of bounds
    *
-   * @return exp_ptr_err_code<value>
+   * @return exp_ptr_err<value>
    **/
-  [[nodiscard]] exp_ptr_err_code<T> at(i32 index) noexcept;
+  [[nodiscard]] exp_ptr_err<T> at(i32 index) noexcept;
 
   /**
    * Unsafe index accessing
@@ -163,7 +163,7 @@ public:
    * @errors
    *  - Deque is empty
    **/
-  [[nodiscard]] exp_ptr_err_code<T> front() noexcept;
+  [[nodiscard]] exp_ptr_err<T> front() noexcept;
 
   /**
    * Returns the back of the fdeque
@@ -171,7 +171,7 @@ public:
    * @errors
    *  - Deque is empty
    **/
-  [[nodiscard]] exp_ptr_err_code<T> back() noexcept;
+  [[nodiscard]] exp_ptr_err<T> back() noexcept;
 
   // === Iterators === //
 
@@ -271,7 +271,7 @@ public:
    * @errors
    *  - Deque is full
    */
-  [[nodiscard]] err_code push_front(rref element) noexcept;
+  [[nodiscard]] opt_err push_front(rref element) noexcept;
 
   /**
    * Pushes data to the front of the fdeque
@@ -280,7 +280,7 @@ public:
    *  - Deque is full
    *  - Bad allocation
    */
-  [[nodiscard]] err_code push_front(cref element) noexcept;
+  [[nodiscard]] opt_err push_front(cref element) noexcept;
 
   /**
    * Pushes data to the back of the fdeque
@@ -288,7 +288,7 @@ public:
    * @errors
    *  - Deque is full
    */
-  [[nodiscard]] err_code push_back(rref element) noexcept;
+  [[nodiscard]] opt_err push_back(rref element) noexcept;
 
   /**
    * Pushes data to the back of the fdeque
@@ -297,7 +297,7 @@ public:
    *  - Deque is full
    *  - Bad allocation
    */
-  [[nodiscard]] err_code push_back(cref element) noexcept;
+  [[nodiscard]] opt_err push_back(cref element) noexcept;
 
   /**
    * Pops data out of the fdeque from the front
@@ -305,7 +305,7 @@ public:
    * @errors
    *  - Deque is empty
    */
-  [[nodiscard]] exp_err_code<T> pop_front() noexcept;
+  [[nodiscard]] exp_err<T> pop_front() noexcept;
 
   /**
    * Pops data out of the fdeque from the front but discards the result
@@ -313,7 +313,7 @@ public:
    * @errors
    *  - Deque is empty
    **/
-  [[nodiscard]] err_code pop_front_disc() noexcept;
+  [[nodiscard]] opt_err pop_front_disc() noexcept;
 
   /**
    * Pops data out of the fdeque from the back
@@ -321,7 +321,7 @@ public:
    * @errors
    *  - Deque is empty
    */
-  [[nodiscard]] exp_err_code<T> pop_back() noexcept;
+  [[nodiscard]] exp_err<T> pop_back() noexcept;
 
   /**
    * Pops data out of the fdeque from the back but discards the element
@@ -329,7 +329,7 @@ public:
    * @errors
    *  - Deque is empty
    **/
-  [[nodiscard]] err_code pop_back_disc() noexcept;
+  [[nodiscard]] opt_err pop_back_disc() noexcept;
 
   /**
    * Removes the first n elements of the fdeque
@@ -339,7 +339,7 @@ public:
    *  - Negative n
    *  - n is bigger than the size
    **/
-  [[nodiscard]] err_code remove_front(i32 n) noexcept;
+  [[nodiscard]] opt_err remove_front(i32 n) noexcept;
 
   /**
    * Removes the last n elements of the fdeque
@@ -349,7 +349,7 @@ public:
    *  - Negative n
    *  - n is bigger than the size
    **/
-  [[nodiscard]] err_code remove_back(i32 n) noexcept;
+  [[nodiscard]] opt_err remove_back(i32 n) noexcept;
 
   /**
    * Resizes the fdeque
@@ -357,7 +357,7 @@ public:
    * @errors
    *  - Bad allocation
    **/
-  [[nodiscard]] err_code resize(i32 size) noexcept;
+  [[nodiscard]] opt_err resize(i32 size) noexcept;
 };
 
 } // namespace ds

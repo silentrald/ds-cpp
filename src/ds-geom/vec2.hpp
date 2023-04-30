@@ -19,7 +19,12 @@ template <typename T> struct vec2 {
   T x;
   T y;
 
-  err_code copy(const vec2& other) noexcept;
+  vec2() noexcept = default;
+  vec2(const vec2& other) noexcept = default;
+  vec2(vec2&& other) noexcept = default;
+  vec2& operator=(const vec2& other) noexcept = default;
+  vec2& operator=(vec2&& other) noexcept = default;
+  ~vec2() noexcept = default;
 
   /**
    * Check if the vec2 is within the bounds of the rect. If the point touches

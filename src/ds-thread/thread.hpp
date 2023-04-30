@@ -8,6 +8,8 @@
 #ifndef DS_THREAD_THREAD_HPP
 #define DS_THREAD_THREAD_HPP
 
+// TODO: Look into window thread
+
 #include <pthread.h>
 
 namespace ds {

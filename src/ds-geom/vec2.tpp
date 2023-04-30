@@ -14,12 +14,6 @@
 
 namespace ds {
 
-template <typename T> err_code vec2<T>::copy(const vec2& other) noexcept {
-  this->x = other.x;
-  this->y = other.y;
-  return ec::SUCCESS;
-}
-
 // === Operators === //
 
 template <typename T> bool vec2<T>::in_rect(const rect<T>& r) const noexcept {

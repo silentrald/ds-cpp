@@ -85,7 +85,7 @@ protected:
    *  - bad allocation in copying key
    **/
   template <typename Key_>
-  [[nodiscard]] err_code insert_impl(Key_ key) noexcept;
+  [[nodiscard]] opt_err insert_impl(Key_ key) noexcept;
 
   /**
    * Deletes a key in the hash set
@@ -137,7 +137,7 @@ public:
    *  - bad allocation resizing the bucket
    *  - bad allocation in node creation
    **/
-  [[nodiscard]] err_code copy(const base_hash_set& other) noexcept;
+  [[nodiscard]] opt_err copy(const base_hash_set& other) noexcept;
 
   // === Move ===
 
@@ -208,7 +208,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(key_cref key) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key) noexcept {
     return this->insert_impl<key_cref>(key);
   }
 
@@ -219,7 +219,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(key_rref key) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key) noexcept {
     return this->insert_impl<key_cref>(std::move(key));
   }
 
@@ -274,7 +274,7 @@ public:
    * @errors
    *  - bad allocation in resizing the number of buckets
    **/
-  [[nodiscard]] err_code rehash(i32 count) noexcept;
+  [[nodiscard]] opt_err rehash(i32 count) noexcept;
 };
 
 } // namespace ds

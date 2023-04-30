@@ -43,7 +43,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(key_cref key) noexcept {
+  [[nodiscard]] opt_err insert(key_cref key) noexcept {
     return this->template insert_impl<key_cref>(key);
   }
 
@@ -54,7 +54,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(key_rref key) noexcept {
+  [[nodiscard]] opt_err insert(key_rref key) noexcept {
     return this->template insert_impl<key_rref>(std::move(key));
   }
 
@@ -65,7 +65,7 @@ public:
    *  - bad allocation in resizing the buckets
    *  - bad allocation in creating the node
    **/
-  [[nodiscard]] err_code insert(const char* key) noexcept {
+  [[nodiscard]] opt_err insert(const char* key) noexcept {
     return this->template insert_impl<const char*>(key);
   }
 

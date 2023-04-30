@@ -16,14 +16,6 @@
 
 namespace ds {
 
-template <typename T> err_code rect<T>::copy(const rect& other) noexcept {
-  this->x = other.x;
-  this->y = other.y;
-  this->w = other.w;
-  this->h = other.h;
-  return ec::SUCCESS;
-}
-
 // === Operators === //
 
 template <typename T> void rect<T>::set_position(T x, T y) noexcept {

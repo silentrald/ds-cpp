@@ -8,10 +8,10 @@
 #ifndef DS_THREAD_MUTEX_HPP
 #define DS_THREAD_MUTEX_HPP
 
+// TODO: Look into window thread
+
 #include "ds/types.hpp"
 #include <pthread.h>
-
-// Linux threading
 
 namespace ds {
 

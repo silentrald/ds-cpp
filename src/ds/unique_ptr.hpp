@@ -17,9 +17,6 @@
 
 namespace ds {
 
-const char* const UPTR_BAD_ALLOC = "unique_ptr:bad_alloc";
-const char* const UPTR_SET = "unique_ptr:set";
-
 template <typename T> class unique_ptr {
 public:
   template <typename D> friend class unique_ptr;
@@ -49,10 +46,10 @@ public:
   ~unique_ptr() noexcept;
 
   // === Modifiers === //
-  [[nodiscard]] err_code init() noexcept;
-  [[nodiscard]] err_code set(ptr data) noexcept;
-  [[nodiscard]] err_code set(cref data) noexcept;
-  [[nodiscard]] err_code set(rref data) noexcept;
+  [[nodiscard]] opt_err init() noexcept;
+  [[nodiscard]] opt_err set(ptr data) noexcept;
+  [[nodiscard]] opt_err set(cref data) noexcept;
+  [[nodiscard]] opt_err set(rref data) noexcept;
 
   [[nodiscard]] ptr release() noexcept;
   void reset() noexcept;
@@ -83,34 +80,34 @@ public:
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] err_code init() noexcept {
+  [[nodiscard]] opt_err init() noexcept {
     if (this->data) {
-      return ec::ALREADY_SET;
+      return ALREADY_SET_OPT;
     }
 
     this->data = new (std::nothrow) D(); // NOLINT
-    return ec::SUCCESS;
+    return null;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] err_code set(ptr data) {
+  [[nodiscard]] opt_err set(ptr data) {
     if (this->data) {
-      return ec::ALREADY_SET;
+      return ALREADY_SET_OPT;
     }
 
     this->data = data;
-    return ec::SUCCESS;
+    return null;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
   [[nodiscard]] D& set(const D& data) noexcept {
     if (!this->data) {
-      return error{UPTR_SET, def_err_vals};
+      return BAD_ALLOC_OPT;
     }
 
     D* data_ = new (std::nothrow) D(); // NOLINT
     if (data_ == nullptr) {
-      return error{UPTR_BAD_ALLOC, def_err_vals};
+      return BAD_ALLOC_OPT;
     }
 
     if constexpr (has_copy_method<value>::value) {
@@ -124,23 +121,23 @@ public:
     }
 
     this->data = data_;
-    return ec::SUCCESS;
+    return null;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>
-  [[nodiscard]] err_code set(D&& data) noexcept {
+  [[nodiscard]] opt_err set(D&& data) noexcept {
     if (this->data) {
-      return ec::ALREADY_SET;
+      return ALREADY_SET_OPT;
     }
 
     D* data_ = new (std::nothrow) D(); // NOLINT
     if (data_ == nullptr) {
-      return ec::BAD_ALLOC;
+      return BAD_ALLOC_OPT;
     }
 
     *data_ = std::move(data); // NOLINT
     this->data = data_;
-    return ec::SUCCESS;
+    return null;
   }
 
   template <typename D, typename = std::enable_if_t<std::is_base_of_v<T, D>>>

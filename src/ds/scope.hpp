@@ -5,8 +5,8 @@
  * Created: 2023-01-09
  *===============================*/
 
-#ifndef DS_TRANSACTION_HPP
-#define DS_TRANSACTION_HPP
+#ifndef DS_SCOPE_HPP
+#define DS_SCOPE_HPP
 
 #include "ds/types.hpp"
 #include "ds/vector.hpp"
@@ -20,7 +20,7 @@ namespace ds {
  * Else if the function fails, the destructor will call all the callback
  * in the rollbacks vector.
  **/
-class transaction {
+class scope {
 private:
   vector<function<void()>> rollbacks{};
 
@@ -28,38 +28,38 @@ private:
 
   /**
    * Executes all the callbacks pushed into the rollbacks vector.
-   * If the transaction::commit() was called, then this will do
+   * If the scope::commit() was called, then this will do
    * nothing.
    **/
   void rollback() noexcept;
 
 public:
-  transaction() noexcept = default;
-  transaction(const transaction&) = delete;
-  transaction& operator=(const transaction&) = delete;
+  scope() noexcept = default;
+  scope(const scope&) = delete;
+  scope& operator=(const scope&) = delete;
 
   // === Move === //
 
-  transaction(transaction&&) noexcept = default;
-  transaction& operator=(transaction&&) noexcept = default;
+  scope(scope&&) noexcept = default;
+  scope& operator=(scope&&) noexcept = default;
 
   // === Destructor === //
 
-  ~transaction() noexcept;
+  ~scope() noexcept;
 
   // === Handling === //
 
   /**
    * Pushes a callback. This will be only called if the function fails
-   * to call transaction::commit().
+   * to call scope::commit().
    *
    * @errors
    *  - bad allocation in resizing the rollback vector
    **/
-  err_code push_fail(function<void()>&& callback) noexcept;
+  opt_err push_fail(function<void()>&& callback) noexcept;
 
   /**
-   * Successful transaction. This clears the rollbacks vector.
+   * Successful scope. This clears the rollbacks vector.
    **/
   void commit() noexcept;
 };

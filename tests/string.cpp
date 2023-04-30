@@ -9,13 +9,14 @@
 #include "catch2/catch_test_macros.hpp"
 #include "ds-error/types.hpp"
 #include <cstdlib>
+#include <cstring>
 
 using namespace ds_test;
 
 // NOLINTNEXTLINE
 TEST_CASE("string", "ds") {
-  ds::exp_ptr_err_code<char> exp_ptr{};
-  ds::exp_err_code<char> exp{};
+  ds::exp_ptr_err<char> exp_ptr{};
+  ds::exp_err<char> exp{};
   ds::string str{};
   free_ptr = nullptr;
 
@@ -105,7 +106,7 @@ TEST_CASE("string", "ds") {
         REQUIRE(data == nullptr);
 
         const char* cdata = str.c_str();
-        REQUIRE(cdata == nullptr);
+        REQUIRE(strcmp(cdata, "") == 0);
       }
     }
   }
