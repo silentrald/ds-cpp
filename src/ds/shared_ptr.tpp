@@ -132,13 +132,13 @@ opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
     *this->data = std::move(data);
-  } else if constexpr (std::is_class<value>::value && std::is_copy_assignable<value>::value) {
+  } else if constexpr (std::is_copy_assignable<value>::value) {
+    *this->data = data;
+  } else {
     if (this->data->copy(data)) {
       this->destroy_all_ptrs();
       return BAD_ALLOC_OPT;
     }
-  } else {
-    *this->data = data;
   }
 
   return null;
