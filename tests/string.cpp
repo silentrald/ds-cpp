@@ -8,6 +8,7 @@
 #include "ds/string.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "ds-error/types.hpp"
+#include "main.hpp"
 #include <cstdlib>
 #include <cstring>
 
@@ -21,7 +22,7 @@ TEST_CASE("string", "ds") {
   free_ptr = nullptr;
 
   SECTION("Empty string") {
-    SECTION("Defcopyion") {
+    SECTION("Definition") {
       REQUIRE(str.is_empty());
       REQUIRE(str.size() == 0); // NOLINT
       REQUIRE(str.length() == 0);
@@ -108,6 +109,19 @@ TEST_CASE("string", "ds") {
         const char* cdata = str.c_str();
         REQUIRE(strcmp(cdata, "") == 0);
       }
+    }
+
+    SECTION("Substring") {
+      static_cast<void>(str.copy("Hello World"));
+
+      auto exp = str.substr(0, 5);
+      REQUIRE(handle_error(exp));
+      auto str2 = std::move(*exp);
+      REQUIRE(str2 == "Hello");
+
+      exp = str.substr(6);
+      REQUIRE(handle_error(exp));
+      REQUIRE(*exp == "World");
     }
   }
 }

@@ -21,24 +21,6 @@ namespace ds {
 // NOTE: Only handles 8 bit characters for now
 class string {
 public:
-private:
-  char* str = nullptr;
-  i32 _size = 0;
-  i32 _max_size = 0;
-
-  // === Memory === //
-  [[nodiscard]] opt_err allocate(i32 size) noexcept;
-  [[nodiscard]] opt_err reallocate(i32 size) noexcept;
-
-  /**
-   * Initializes the string with the passed const char*
-   *
-   * @errors
-   *  - bad allocation
-   **/
-  [[nodiscard]] opt_err init(const char* str) noexcept;
-
-public:
   string() noexcept = default;
   string(const string& rhs) = delete;
   string& operator=(const string& rhs) = delete;
@@ -76,7 +58,7 @@ public:
   string& operator=(string&& rhs) noexcept;
 
   // === Destructor === //
-  ~string();
+  ~string() noexcept;
 
   // === Element Access === //
   /**
@@ -84,7 +66,7 @@ public:
    **/
   [[nodiscard]] exp_ptr_err<char> at_ptr(i32 index) noexcept;
   [[nodiscard]] exp_err<char> at(i32 index) noexcept;
-  [[nodiscard]] char& operator[](i32 index) noexcept;
+  [[nodiscard]] char& operator[](i32 index) const noexcept;
   [[nodiscard]] exp_ptr_err<char> front_ptr() noexcept;
   [[nodiscard]] exp_err<char> front() noexcept;
   [[nodiscard]] exp_ptr_err<char> back_ptr() noexcept;
@@ -109,6 +91,10 @@ public:
   [[nodiscard]] opt_err append(const char* str, i32 size) noexcept;
   [[nodiscard]] opt_err append(const string& str) noexcept;
 
+  // === View === //
+  [[nodiscard]] exp_err<string> substr(i32 start) const noexcept;
+  [[nodiscard]] exp_err<string> substr(i32 start, i32 end) const noexcept;
+
   // === Operators === //
   bool operator==(const string& rhs) const noexcept;
   bool operator==(const char* rhs) const noexcept;
@@ -120,6 +106,23 @@ public:
   friend bool operator!=(const char* lhs, const string& rhs) noexcept;
   friend std::ostream&
   operator<<(std::ostream& out, const string& rhs) noexcept;
+
+private:
+  char* str = nullptr;
+  i32 _size = 0;
+  i32 _max_size = 0;
+
+  // === Memory === //
+  [[nodiscard]] opt_err allocate(i32 size) noexcept;
+  [[nodiscard]] opt_err reallocate(i32 size) noexcept;
+
+  /**
+   * Initializes the string with the passed const char*
+   *
+   * @errors
+   *  - bad allocation
+   **/
+  [[nodiscard]] opt_err init(const char* str) noexcept;
 };
 
 } // namespace ds

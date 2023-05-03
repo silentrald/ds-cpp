@@ -6,6 +6,7 @@
  *===============================*/
 
 #include "./string.hpp"
+#include "ds-error/types.hpp"
 #include "ds/macro.hpp"
 #include "ds/optional.hpp"
 #include "ds/types.hpp"
@@ -115,7 +116,7 @@ string& string::operator=(string&& rhs) noexcept {
 }
 
 // === Destructor === //
-string::~string() {
+string::~string() noexcept {
   if (this->str) {
 #if DS_TEST
     ds_test::free_ptr = this->str;
@@ -172,7 +173,7 @@ exp_err<char> string::at(i32 index) noexcept {
   return this->str[index];
 }
 
-char& string::operator[](i32 index) noexcept {
+char& string::operator[](i32 index) const noexcept {
   return this->str[index];
 }
 
@@ -329,6 +330,33 @@ opt_err string::append(const string& str) noexcept {
   this->_size = new_size;
 
   return null;
+}
+
+// === View === //
+exp_err<string> string::substr(i32 start) const noexcept {
+  string str{};
+  try_opt_unexp(str.allocate(this->_size - start));
+  str._size = this->_size - start;
+
+  // Copies the '\0'
+  for (i32 i = start; i <= this->_size; ++i) {
+    str[i - start] = this->str[i];
+  }
+
+  return str;
+}
+
+exp_err<string> string::substr(i32 start, i32 end) const noexcept {
+  string str{};
+  try_opt_unexp(str.allocate(end - start));
+  str._size = end - start;
+
+  for (i32 i = start; i < end; ++i) {
+    str[i - start] = this->str[i];
+  }
+  str[end] = '\0';
+
+  return str;
 }
 
 // === Operators === //
