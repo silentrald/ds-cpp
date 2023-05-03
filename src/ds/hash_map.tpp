@@ -179,7 +179,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::create_node(
     return nullptr;
   }
 
-  if constexpr (std::is_rvalue_reference<key_type>::value) {
+  if constexpr (std::is_rvalue_reference<Key_>::value) {
     ptr->key = std::move(key);
   } else if constexpr (std::is_copy_assignable<key_type>::value) {
     ptr->key = key;
@@ -190,7 +190,7 @@ base_hash_map<Derived, Key, Value, Hash, KeyEqual>::create_node(
     }
   }
 
-  if constexpr (std::is_rvalue_reference<value_type>::value) {
+  if constexpr (std::is_rvalue_reference<Value_>::value) {
     ptr->value = std::move(value);
   } else if constexpr (std::is_copy_assignable<value_type>::value) {
     ptr->value = value;
@@ -240,7 +240,9 @@ opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
     }
 
     // Overwrites the value at the current node
-    if constexpr (std::is_copy_assignable<value_type>::value) {
+    if constexpr (std::is_rvalue_reference<Value_>::value) {
+      bucket->value = std::move(value);
+    } else if constexpr (std::is_copy_assignable<value_type>::value) {
       bucket->value = value;
     } else {
       try_opt(bucket->value.copy(value));
@@ -251,7 +253,9 @@ opt_err base_hash_map<Derived, Key, Value, Hash, KeyEqual>::insert_impl(
 
   // Overwrites the value at the last node
   if (KeyEqual{}(bucket->key, key)) {
-    if constexpr (std::is_copy_assignable<value_type>::value) {
+    if constexpr (std::is_rvalue_reference<Value_>::value) {
+      bucket->value = std::move(value);
+    } else if constexpr (std::is_copy_assignable<value_type>::value) {
       bucket->value = value;
     } else {
       try_opt(bucket->value.copy(value));

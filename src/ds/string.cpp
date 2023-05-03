@@ -354,7 +354,7 @@ exp_err<string> string::substr(i32 start, i32 end) const noexcept {
   for (i32 i = start; i < end; ++i) {
     str[i - start] = this->str[i];
   }
-  str[end] = '\0';
+  str[str._size] = '\0';
 
   return str;
 }
