@@ -10,6 +10,7 @@
 
 // TODO: Look into window thread
 
+#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include <pthread.h>
 
@@ -32,7 +33,7 @@ public:
 
   // === Functions === //
 
-  err_code lock() noexcept;
+  opt_err lock() noexcept;
   void try_lock() noexcept;
   void unlock() noexcept;
 };

@@ -6,6 +6,7 @@
  *===============================*/
 
 #include "./mutex.hpp"
+#include "ds-error/error.hpp"
 #include "ds/macro.hpp"
 #include "ds/optional.hpp"
 #include "ds/types.hpp"
@@ -19,11 +20,11 @@ mutex::~mutex() noexcept {
   pthread_mutex_destroy(&this->_mutex);
 }
 
-err_code mutex::lock() noexcept {
+opt_err mutex::lock() noexcept {
   if (pthread_mutex_lock(&this->_mutex) != 0) {
-    return ec::THREAD_ERR;
+    return error{DS_ERROR_THREAD, def_err_vals};
   }
-  return ec::SUCCESS;
+  return null;
 }
 
 void mutex::try_lock() noexcept {

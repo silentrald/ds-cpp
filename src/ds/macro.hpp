@@ -133,13 +133,4 @@
     std::move(*res);                                                           \
   });
 
-const char* const DS_ERROR_BAD_ALLOC = "bad alloc";
-const char* const DS_ERROR_OUT_OF_RANGE = "out of range";
-const char* const DS_ERROR_EMPTY = "empty";
-const char* const DS_ERROR_FULL = "full";
-const char* const DS_ERROR_NOT_FOUND = "not found";
-const char* const DS_ERROR_SIZE = "size";
-const char* const DS_ERROR_ALREADY_SET = "already set";
-const char* const DS_ERROR_NOT_IMPLEMENTED = "not implemented";
-
 #endif

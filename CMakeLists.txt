@@ -20,6 +20,13 @@ option(DS_TEST "DS Test Cases" OFF)
 option(DS_GEOM "DS Geom Enabled" OFF)
 option(DS_THREAD "DS Thread Enabled" OFF)
 
+if (DS_THREAD)
+  add_library(ds-thread
+    src/ds-thread/mutex.cpp
+    src/ds-thread/semaphore.cpp
+  )
+endif (DS_THREAD)
+
 if (NOT DS_ERROR_MSG)
   set(DS_ERROR_MSG 256)
 endif (NOT DS_ERROR_MSG)
@@ -28,5 +35,5 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE DS_ERROR_MSG=${DS_ERROR_MSG})
 if (DS_TEST)
   add_subdirectory(external/catch2)
   add_subdirectory(tests)
-endif(DS_TEST)
+endif (DS_TEST)
 

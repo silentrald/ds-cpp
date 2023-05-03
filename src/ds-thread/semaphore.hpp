@@ -10,6 +10,7 @@
 
 // TODO: Look into window thread
 
+#include "ds-error/types.hpp"
 #include "ds/types.hpp"
 #include <semaphore.h>
 
@@ -28,13 +29,12 @@ public:
 
   // === Constructor === //
 
-  err_code init(u32 max) noexcept;
-
+  opt_err init(u32 max) noexcept;
   ~semaphore() noexcept;
 
   // === Functions === //
 
-  err_code acquire() noexcept;
+  opt_err acquire() noexcept;
   void release() noexcept;
 };
 

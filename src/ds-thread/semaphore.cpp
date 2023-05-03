@@ -13,22 +13,22 @@
 
 namespace ds {
 
-err_code semaphore::init(u32 max) noexcept {
+opt_err semaphore::init(u32 max) noexcept {
   if (sem_init(&this->sem, 0, max) != 0) {
-    return ec::THREAD_ERR;
+    return error{DS_ERROR_THREAD, def_err_vals};
   }
-  return ec::SUCCESS;
+  return null;
 }
 
 semaphore::~semaphore() noexcept {
   sem_destroy(&this->sem);
 }
 
-err_code semaphore::acquire() noexcept {
+opt_err semaphore::acquire() noexcept {
   if (sem_wait(&this->sem) != 0) {
-    return ec::THREAD_ERR;
+    return error{DS_ERROR_THREAD, def_err_vals};
   }
-  return ec::SUCCESS;
+  return null;
 }
 
 void semaphore::release() noexcept {
