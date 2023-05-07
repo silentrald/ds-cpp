@@ -21,6 +21,13 @@ public:
   }
 };
 
+template <> class compare<const char*> {
+  [[nodiscard]] i32
+  operator()(const char* str1, const char* str2) const noexcept {
+    return std::strcmp(str1, str2);
+  }
+};
+
 template <> class compare<string> {
 public:
   [[nodiscard]] i32
