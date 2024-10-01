@@ -16,7 +16,8 @@
 
 namespace ds {
 
-const i32 SEED = 69420;
+// TODO: Configurable in cmake
+const i32 SEED = 69'420;
 
 template <
     typename Derived, typename T, typename Return = i32,
@@ -29,15 +30,11 @@ public:
 template <typename T, typename Return = i32>
 class hash : public base_hash<hash<T, Return>, T, Return> {
 public:
-  using hash_return = Return;
-
   Return operator()(T data) const noexcept;
 };
 
 template <> class hash<string> : public base_hash<hash<string>, string> {
 public:
-  using hash_return = i32;
-
   i32 operator()(const string& data) const noexcept {
     i32 out = 0;
     MurmurHash3_x86_32(data.c_str(), data.length(), SEED, &out);

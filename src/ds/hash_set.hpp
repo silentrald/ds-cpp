@@ -8,19 +8,16 @@
 #ifndef DS_HASH_SET_HPP
 #define DS_HASH_SET_HPP
 
-#include "../prime.hpp"
 #include "./hash.hpp"
 #include "./hash_set_iterator.hpp"
 #include "ds/equal.hpp"
-#include "ds/macro.hpp"
 #include "ds/types.hpp"
 #include "ds/vector.hpp"
-#include <new>
 
 namespace ds {
 
 template <
-    typename Derived, typename Key, typename Hash = hash<Key>,
+    typename Derived, typename Key, typename Hash = hash<Key, i32>,
     typename Equal = equal<Key>>
 class base_hash_set {
 public:
@@ -36,7 +33,7 @@ public:
   using citerator =
       hash_set_iterator<const base_hash_set<Derived, Key, Hash, Equal>>;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   struct node {
     key_type key;

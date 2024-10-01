@@ -12,7 +12,6 @@
 #include "./hash_map_iterator.hpp"
 #include "ds/equal.hpp"
 #include "ds/macro.hpp"
-#include "ds/string.hpp"
 #include "ds/types.hpp"
 #include "ds/vector.hpp"
 #include <utility>
@@ -20,7 +19,7 @@
 namespace ds {
 
 template <
-    typename Derived, typename Key, typename Value, typename Hash = hash<Key>,
+    typename Derived, typename Key, typename Value, typename Hash = hash<Key, i32>,
     typename KeyEqual = equal<Key>>
 class base_hash_map {
 public:
@@ -38,7 +37,7 @@ public:
   using value_cref = const Value&;
   using value_rref = Value&&;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   struct node {
     Key key;

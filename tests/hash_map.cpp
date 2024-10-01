@@ -8,12 +8,15 @@
 #include "ds/hash_map.hpp"
 #include "./main.hpp"
 #include "catch2/benchmark/catch_benchmark.hpp"
-#include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "ds-error/types.hpp"
+#include "ds/hash.hpp"
 #include "ds/string.hpp"
 #include "ds/types.hpp"
+#include <array>
 #include <cstdio>
+#include <cstdlib>
+#include <functional>
 #include <unordered_map>
 
 using namespace ds_test;
@@ -34,29 +37,57 @@ TEST_CASE("hash_map", "ds") { // NOLINT
     }
   }
 
-  SECTION("1000") {
-    ds::i32 n = 10000;
-    BENCHMARK("ds::hash_map 1000") {
-      ds::hash_map<ds::i32, ds::i32> map{};
-      for (ds::i32 i = 0; i < n; ++i) {
-        err = map.insert(i, i);
+  SECTION("10,000") {
+    const ds::i32 N = 10'000;
+    std::array<ds::i32, N> numbers{};
+    for (int i = 0; i < N; ++i) {
+      numbers[i] = std::rand();
+    }
+
+    BENCHMARK("ds::hash_map ds::hash 10,000") {
+      ds::hash_map<ds::i32, ds::i32, ds::hash<ds::i32>> map{};
+      for (ds::i32 i = 0; i < N; ++i) {
+        err = map.insert(numbers[i], i);
       }
 
-      for (ds::i32 i = 0; i < n; ++i) {
+      for (ds::i32 i = 0; i < N; ++i) {
         static_cast<void>(map[i]);
       }
     };
 
-    BENCHMARK("std::unordered_map 1000") {
+    BENCHMARK("ds::hash_map std::hash 10,000") {
+      ds::hash_map<ds::i32, ds::i32, std::hash<ds::i32>> map{};
+      for (ds::i32 i = 0; i < N; ++i) {
+        err = map.insert(numbers[i], i);
+      }
+
+      for (ds::i32 i = 0; i < N; ++i) {
+        static_cast<void>(map[i]);
+      }
+    };
+
+    BENCHMARK("std::unordered_map ds::hash 10,000") {
+      std::unordered_map<ds::i32, ds::i32, ds::hash<ds::i32>> map{};
+      for (ds::i32 i = 0; i < N; ++i) {
+        map.insert({numbers[i], i});
+      }
+
+      for (ds::i32 i = 0; i < N; ++i) {
+        static_cast<void>(map[i]);
+      }
+    };
+
+    BENCHMARK("std::unordered_map std::hash 10,000") {
       std::unordered_map<ds::i32, ds::i32> map{};
-      for (ds::i32 i = 0; i < n; ++i) {
-        map.insert({i, i});
+      for (ds::i32 i = 0; i < N; ++i) {
+        map.insert({numbers[i], i});
       }
 
-      for (ds::i32 i = 0; i < n; ++i) {
+      for (ds::i32 i = 0; i < N; ++i) {
         static_cast<void>(map[i]);
       }
     };
+
   }
 
   SECTION("Key String and Value String") {

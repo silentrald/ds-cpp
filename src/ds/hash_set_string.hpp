@@ -13,7 +13,7 @@
 
 namespace ds {
 
-template <typename Hash = hash<string>, typename KeyEqual = equal<string>>
+template <typename Hash = hash<string, i32>, typename KeyEqual = equal<string>>
 class string_hash_set
     : public base_hash_set<
           string_hash_set<Hash, KeyEqual>, string, Hash, KeyEqual> {
@@ -32,7 +32,7 @@ public:
       hash_set_iterator<base_hash_set<string_hash_set<Hash>, string, Hash>>;
   using citerator = const iterator;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   // === Modifiers ===
 

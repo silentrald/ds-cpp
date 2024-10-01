@@ -37,7 +37,7 @@ public:
       KeyEqual>::node_type;
   using node_ptr = node_type*;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   // === Modifiers ===
 
@@ -249,7 +249,7 @@ public:
 
 // === Key string ; Value non-string ===
 template <
-    typename Value, typename Hash = hash<string>,
+    typename Value, typename Hash = hash<string, i32>,
     typename KeyEqual = equal<string>>
 class string_key_hash_map : public base_hash_map<
                                 string_key_hash_map<Value, Hash, KeyEqual>,
@@ -272,7 +272,7 @@ public:
       KeyEqual>::node_type;
   using node_ptr = node_type*;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   // === Modifiers ===
 
@@ -446,7 +446,7 @@ public:
 
 // === Key non-string ; Value string ===
 template <
-    typename Key, typename Hash = hash<string>,
+    typename Key, typename Hash = hash<string, i32>,
     typename KeyEqual = equal<string>>
 class string_value_hash_map : public base_hash_map<
                                   string_value_hash_map<Key, Hash, KeyEqual>,
@@ -469,7 +469,7 @@ public:
       KeyEqual>::node_type;
   using node_ptr = node_type*;
 
-  using hash_type = typename Hash::hash_return;
+  using hash_type = i32;
 
   // === Modifiers ===
 
