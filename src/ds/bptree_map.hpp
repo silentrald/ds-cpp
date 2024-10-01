@@ -9,10 +9,7 @@
 #define DS_BPTREE_MAP_HPP
 
 #include "./bptree_map_iterator.hpp"
-#include "ds-error/types.hpp"
 #include "ds/compare.hpp"
-#include "ds/hash.hpp"
-#include "ds/macro.hpp"
 #include "ds/types.hpp"
 #include <utility>
 
@@ -281,10 +278,11 @@ protected:
    * Splits the internal node
    *
    * @errors
-   *  - bad allocation in creating the new containers
-   *  - bad allocation in copying the key
+   *  error_code::BAD_ALLOCATION
+   *    - bad allocation in creating the new containers
+   *    - bad allocation in copying the key
    **/
-  [[nodiscard]] opt_err split_inner_node(inner_ptr left_node) noexcept;
+  [[nodiscard]] error_code split_inner_node(inner_ptr left_node) noexcept;
 
   /**
    * Splits the leaf node

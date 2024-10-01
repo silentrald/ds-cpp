@@ -9,40 +9,22 @@
 #define DS_TEST_MAIN_HPP
 
 #include "catch2/catch_message.hpp"
-#include "ds-error/types.hpp"
-#include "ds/types.hpp"
+#include "types.hpp"
 
 namespace ds_test {
 
 extern ds::i32 counter; // NOLINT
 extern void* free_ptr;  // NOLINT
 
-[[nodiscard]] bool handle_error(const ds::opt_err& err) noexcept;
-
-template <typename T> bool handle_error(const ds::exp_err<T>& exp) noexcept {
-  if (exp) {
-    return true;
-  }
-
-  const auto& err = exp.error();
-  UNSCOPED_INFO(
-      "Error: " << err.get_msg() << "\n> " << err.get_def_file() << ':'
-                << err.get_def_line() << "\n"
-  );
-  return false;
-}
+[[nodiscard]] bool handle_error(const ds::error_code& err) noexcept;
 
 template <typename T>
-[[nodiscard]] bool handle_error(const ds::exp_ptr_err<T>& exp) noexcept {
+bool handle_error(const ds::expected<T, ds::error_code>& exp) noexcept {
   if (exp) {
     return true;
   }
 
-  const auto& err = exp.error();
-  UNSCOPED_INFO(
-      "Error: " << err.get_msg() << "\n> " << err.get_def_file() << ':'
-                << err.get_def_line() << "\n"
-  );
+  UNSCOPED_INFO("Error: " << exp.error());
   return false;
 }
 
@@ -62,7 +44,7 @@ public:
   }
 
   // === Copy === //
-  [[nodiscard]] ds::opt_err copy(const Test& other) noexcept;
+  [[nodiscard]] ds::error_code copy(const Test& other) noexcept;
 
   // === Move === //
   Test(Test&& rhs) noexcept;
@@ -87,4 +69,3 @@ public:
 } // namespace ds_test
 
 #endif
-

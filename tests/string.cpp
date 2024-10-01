@@ -7,8 +7,8 @@
 
 #include "ds/string.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "ds-error/types.hpp"
 #include "main.hpp"
+#include "types.hpp"
 #include <cstdlib>
 #include <cstring>
 
@@ -16,17 +16,16 @@ using namespace ds_test;
 
 // NOLINTNEXTLINE
 TEST_CASE("string", "ds") {
-  ds::exp_ptr_err<char> exp_ptr{};
-  ds::exp_err<char> exp{};
+  ds::expected<ds::c8*, ds::error_code> exp_ptr{};
+  ds::expected<ds::c8, ds::error_code> exp{};
   ds::string str{};
   free_ptr = nullptr;
 
   SECTION("Empty string") {
     SECTION("Definition") {
       REQUIRE(str.is_empty());
-      REQUIRE(str.size() == 0); // NOLINT
-      REQUIRE(str.length() == 0);
-      REQUIRE(str.max_size() == 0);
+      REQUIRE(str.get_size() == 0);
+      REQUIRE(str.get_capacity() == 0);
     }
 
     SECTION("Comparison to const char*") {
@@ -52,7 +51,7 @@ TEST_CASE("string", "ds") {
         ds::string str2 = std::move(str);
 
         REQUIRE(str2.is_empty());
-        REQUIRE(str2.max_size() == 0);
+        REQUIRE(str2.get_capacity() == 0);
       }
 
       SECTION("Copy") {
@@ -61,7 +60,7 @@ TEST_CASE("string", "ds") {
         CHECK(handle_error(str2.copy(str)));
 
         REQUIRE(str2 == str);
-        REQUIRE(str2.max_size() > 0);
+        REQUIRE(str2.get_capacity() > 0);
       }
 
       SECTION("Move") {
@@ -73,7 +72,7 @@ TEST_CASE("string", "ds") {
         REQUIRE(ptr == free_ptr);
 
         REQUIRE(str2.is_empty());
-        REQUIRE(str2.max_size() == 0);
+        REQUIRE(str2.get_capacity() == 0);
       }
     }
 
@@ -87,19 +86,19 @@ TEST_CASE("string", "ds") {
       }
 
       SECTION("Front") {
-        exp = str.front();
-        REQUIRE_FALSE(exp);
+        ds::c8 c = str.front();
+        REQUIRE(c == '\0');
 
-        exp_ptr = str.front_ptr();
-        REQUIRE_FALSE(exp_ptr);
+        ds::c8* c_ptr = str.front_ptr();
+        REQUIRE(c_ptr == nullptr);
       }
 
       SECTION("Back") {
-        exp = str.back();
-        REQUIRE_FALSE(exp);
+        ds::c8 c = str.back();
+        REQUIRE(c == '\0');
 
-        exp_ptr = str.back_ptr();
-        REQUIRE_FALSE(exp_ptr);
+        ds::c8* c_ptr = str.front_ptr();
+        REQUIRE(c_ptr == nullptr);
       }
 
       SECTION("Pointers") {
@@ -114,12 +113,12 @@ TEST_CASE("string", "ds") {
     SECTION("Substring") {
       static_cast<void>(str.copy("Hello World"));
 
-      auto exp = str.substr(0, 5);
+      auto exp = str.substring(0, 5);
       REQUIRE(handle_error(exp));
       auto str2 = std::move(*exp);
       REQUIRE(str2 == "Hello");
 
-      exp = str.substr(6);
+      exp = str.substring(6);
       REQUIRE(handle_error(exp));
       REQUIRE(*exp == "World");
     }

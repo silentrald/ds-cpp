@@ -6,14 +6,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 include_directories(src)
 
 add_library(ds
-  src/prime.cpp
+  # src/prime.cpp
 
   src/ds/string.cpp
-  src/ds/scope.cpp
-  src/ds-error/error.cpp
 
-  src/hash/murmur3.cpp
-  src/hash/number.cpp
+  # src/hash/murmur3.cpp
+  # src/hash/number.cpp
 )
 
 option(DS_TEST "DS Test Cases" OFF)

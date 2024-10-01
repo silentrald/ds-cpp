@@ -8,7 +8,6 @@
 #ifndef DS_COMPARE_HPP
 #define DS_COMPARE_HPP
 
-#include "ds-error/types.hpp"
 #include "ds/string.hpp"
 #include <cstring>
 
@@ -54,4 +53,3 @@ public:
 } // namespace ds
 
 #endif
-
