@@ -9,6 +9,7 @@
 #define DS_EQUAL_HPP
 
 #include "ds/string.hpp"
+#include <cstring>
 
 namespace ds {
 
@@ -38,11 +39,10 @@ public:
 
   [[nodiscard]] bool
   operator()(const char* str1, const char* str2) const noexcept {
-    return str1 == str2;
+    return std::strcmp(str1, str2) == 0;
   }
 };
 
 } // namespace ds
 
 #endif
-

@@ -19,6 +19,7 @@ namespace ds {
 
 /**
  * NOTE: Only handles 8 bit characters for now
+ * NOTE: No small string optimization yet
  **/
 class string {
 public:

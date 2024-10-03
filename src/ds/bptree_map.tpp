@@ -15,8 +15,6 @@
 #include <new>
 #include <type_traits>
 
-// FIXME: This is broken, just fix this if this is needed in the future
-
 namespace ds {
 
 // === Move === //
@@ -751,7 +749,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::erase_root_leaf(
   auto* leaf = static_cast<leaf_ptr>(this->root);
   auto* keys = leaf->get_keys();
   usize sz = leaf->get_size();
-  usize comparison = 0;
+  isize comparison = 0;
 
   for (usize i = 0; i < sz; ++i) {
     comparison = KeyCompare{}(key, keys[i]);
@@ -791,7 +789,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::erase(key_type key
   usize index = 0;
   usize sz = 0;
   key_ptr keys = nullptr;
-  usize comparison = 0;
+  isize comparison = 0;
 
   // Traverse the internal nodes until the parent containing the leaf nodes
   for (usize h = this->height; h > 2; --h) {

@@ -45,9 +45,17 @@ using f64 = double;
 #ifdef BIT_64
 using usize = u64;
 const usize USIZE_MAX = UINT64_MAX;
+
+using isize = i64;
+const isize ISIZE_MIN = INT64_MIN;
+const isize ISIZE_MAX = INT64_MAX;
 #else
 using usize = u32;
 const ususize USIZE_MAX = UINT32_MAX;
+
+using isize = i32;
+const isize ISIZE_MIN = INT32_MIN;
+const isize ISIZE_MAX = INT32_MAX;
 #endif
 
 using c8 = char;

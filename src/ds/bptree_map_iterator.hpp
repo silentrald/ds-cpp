@@ -5,8 +5,6 @@
  * Created: 2023-01-02
  *===============================*/
 
-// FIXME: This is broken, just fix this if this is needed in the future
-
 #ifndef DS_BPTREE_MAP_ITERATOR_HPP
 #define DS_BPTREE_MAP_ITERATOR_HPP
 

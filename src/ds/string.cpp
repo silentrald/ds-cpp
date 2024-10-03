@@ -6,12 +6,10 @@
  *===============================*/
 
 #include "./string.hpp"
-#include "ds/optional.hpp"
 #include "types.hpp"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include <ostream>
 
 namespace ds {
 

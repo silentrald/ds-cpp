@@ -5,8 +5,6 @@
  * Created: 2022-12-30
  *===============================*/
 
-// FIXME: This is broken, just fix this if this is needed in the future
-
 #ifndef DS_BPTREE_MAP_NODE_HPP
 #define DS_BPTREE_MAP_NODE_HPP
 
@@ -210,7 +208,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::insert(
     key_type key, Value&& value
 ) noexcept {
-  usize comparison = 0;
+  isize comparison = 0;
 
   for (usize i = 0; i < this->size; ++i) {
     comparison = KeyCompare{}(key, this->keys[i]);

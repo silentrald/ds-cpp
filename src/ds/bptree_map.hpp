@@ -13,8 +13,6 @@
 #include "types.hpp"
 #include <utility>
 
-// FIXME: This is broken, just fix this if this is needed in the future
-
 namespace ds {
 
 /**
@@ -23,6 +21,8 @@ namespace ds {
  * and it will pose a problem in erase since its hard
  * to revert it to the original form. As much as possible,
  * key type should be a primitive
+ *
+ * NOTE: No implementation for strings yet, might need in the future
  **/
 template <
     typename Derived, typename Key, typename Value,
