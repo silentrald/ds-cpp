@@ -23,7 +23,7 @@ bool handle_error(const ds::error_code& err) noexcept {
   return false;
 }
 
-// === Copy ===
+// === Copy === //
 
 ds::error_code Test::copy(const Test& other) noexcept {
   if (&other == this) {
@@ -40,7 +40,8 @@ ds::error_code Test::copy(const Test& other) noexcept {
   return ds::error_code::OK;
 }
 
-// === Move ===
+// === Move === //
+
 Test::Test(Test&& rhs) noexcept : i(rhs.i), initialized(rhs.initialized) {
   rhs.initialized = false;
 }
@@ -62,6 +63,7 @@ Test& Test::operator=(Test&& rhs) noexcept {
 }
 
 // === Destructor === //
+
 Test::~Test() {
   if (this->initialized) {
     this->initialized = false;
@@ -72,6 +74,10 @@ Test::~Test() {
 // === Setter / Getter === //
 void Test::set_int(ds::i32 i) noexcept {
   this->i = i;
+  if (!this->initialized) {
+    this->initialized = true;
+    ++ds_test::counter;
+  }
 }
 
 ds::i32 Test::get_int() const noexcept {

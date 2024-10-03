@@ -29,10 +29,6 @@ bool handle_error(const ds::expected<T, ds::error_code>& exp) noexcept {
 }
 
 class Test {
-private:
-  ds::i32 i = 0;
-  bool initialized = false;
-
 public:
   Test() = default;
   Test(const Test& rhs) = delete;
@@ -64,6 +60,10 @@ public:
   friend bool operator==(const Test& lhs, ds::i32 rhs) noexcept;
   friend bool operator!=(const Test& lhs, const Test& rhs) noexcept;
   friend bool operator!=(const Test& lhs, ds::i32 rhs) noexcept;
+
+private:
+  ds::i32 i = 0;
+  bool initialized = false;
 };
 
 } // namespace ds_test

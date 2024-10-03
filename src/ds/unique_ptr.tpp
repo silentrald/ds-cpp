@@ -9,14 +9,14 @@
 #define DS_UNIQUE_PTR_TPP
 
 #include "./unique_ptr.hpp"
-#include "ds/macro.hpp"
-#include "ds/type_traits.hpp"
-#include "ds/types.hpp"
-#include <new>
+#include "types.hpp"
+#include <cstdlib>
+#include <type_traits>
 
 namespace ds {
 
 // === Move === //
+
 template <typename T>
 unique_ptr<T>::unique_ptr(unique_ptr&& rhs) noexcept : data(rhs.data) {
   rhs.data = nullptr;
@@ -28,7 +28,7 @@ unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr&& rhs) noexcept {
     return *this;
   }
 
-  this->destroy();
+  this->reset();
   this->data = rhs.data;
   rhs.data = nullptr;
 
@@ -36,88 +36,82 @@ unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr&& rhs) noexcept {
 }
 
 // === Destructor === //
+
 template <typename T> unique_ptr<T>::~unique_ptr() noexcept {
-  this->destroy();
+  this->reset();
 }
 
-template <typename T> void unique_ptr<T>::destroy() noexcept {
-  if (this->data) {
-    delete this->data;
-    this->data = nullptr;
+template <typename T> void unique_ptr<T>::reset() noexcept {
+  if (this->data == nullptr) {
+    return;
   }
+
+  if constexpr (std::is_class<T>::value) {
+    this->data->~T();
+  }
+  std::free(this->data); // NOLINT
+  this->data = nullptr;
 }
 
 // === Modifiers === //
-template <typename T> opt_err unique_ptr<T>::init() noexcept {
+
+template <typename T> error_code unique_ptr<T>::set(const T& data) noexcept {
   if (this->data) {
-    return ALREADY_SET_OPT;
+    if constexpr (std::is_class<T>::value) {
+      TRY(this->data->copy(data));
+    } else {
+      *this->data = data;
+    }
+
+    return error_code::OK;
   }
 
-  this->data = new (std::nothrow) T(); // NOLINT
+  this->data = (T*)std::malloc(sizeof(T)); // NOLINT
   if (this->data == nullptr) {
-    return BAD_ALLOC_OPT;
-  }
-  return null;
-}
-
-template <typename T> opt_err unique_ptr<T>::set(ptr data) noexcept {
-  if (this->data) {
-    return ALREADY_SET_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
-  this->data = data;
-  return null;
-}
+  if constexpr (std::is_class<T>::value) {
+    new (this->data) T();
 
-template <typename T> opt_err unique_ptr<T>::set(cref data) noexcept {
-  if (this->data) {
-    return ALREADY_SET_OPT;
-  }
-
-  this->data = new (std::nothrow) T(); // NOLINT
-  if (this->data == nullptr) {
-    return BAD_ALLOC_OPT;
-  }
-
-  if constexpr (has_copy_method<value>::value) {
-    auto err = this->data->copy(data);
-    if (err) {
-      delete this->data;
+    error_code error = this->data->copy(data);
+    if (is_error(error)) {
+      this->data.~T();
+      std::free(this->data); // NOLINT
       this->data = nullptr;
-      return err;
+      return error;
     }
   } else {
     *this->data = data;
   }
 
-  return null;
+  return error_code::OK;
 }
 
-template <typename T> opt_err unique_ptr<T>::set(rref data) noexcept {
-  if (this->data) {
-    return ALREADY_SET_OPT;
-  }
-
-  this->data = new (std::nothrow) T(); // NOLINT
+template <typename T> error_code unique_ptr<T>::set(T&& data) noexcept {
   if (this->data == nullptr) {
-    return BAD_ALLOC_OPT;
+    this->data = (T*)std::malloc(sizeof(T)); // NOLINT
+    if (this->data == nullptr) {
+      return error_code::BAD_ALLOCATION;
+    }
+
+    if constexpr (std::is_class<T>::value) {
+      new (this->data) T();
+    }
   }
 
   *this->data = std::move(data);
-  return null;
+  return error_code::OK;
 }
 
-template <typename T> T* unique_ptr<T>::release() noexcept {
+template <typename T> T unique_ptr<T>::release() noexcept {
   auto* tmp = this->data;
   this->data = nullptr;
-  return tmp;
-}
-
-template <typename T> void unique_ptr<T>::reset() noexcept {
-  this->destroy();
+  return std::move(*tmp);
 }
 
 // === Observers === //
+
 template <typename T> T* unique_ptr<T>::get_ptr() const noexcept {
   return this->data;
 }
@@ -137,4 +131,3 @@ template <typename T> constexpr unique_ptr<T>::operator bool() const noexcept {
 } // namespace ds
 
 #endif
-

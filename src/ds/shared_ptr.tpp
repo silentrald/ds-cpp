@@ -9,38 +9,36 @@
 #define DS_SHARED_PTR_TPP
 
 #include "./shared_ptr.hpp"
-#include "ds-error/types.hpp"
-#include "ds/macro.hpp"
-#include "ds/types.hpp"
+#include "types.hpp"
+#include <cstdlib>
 #include <type_traits>
 
 namespace ds {
 
 // === Copy === //
+
 template <typename T>
-opt_err shared_ptr<T>::copy(const shared_ptr& other) noexcept {
+error_code shared_ptr<T>::copy(const shared_ptr& other) noexcept {
   if (&other == this || this->data == other.data) {
-    return null;
+    return error_code::OK;
   }
 
-  this->destroy();
+  this->reset();
   if (other.data == nullptr) {
-    return null;
+    return error_code::OK;
   }
 
   this->data = other.data;
-  this->counter = other.counter;
-  ++(*this->counter);
+  ++(this->data->count);
 
-  return null;
+  return error_code::OK;
 }
 
 // === Move === //
+
 template <typename T>
-shared_ptr<T>::shared_ptr(shared_ptr&& rhs) noexcept
-    : data(rhs.data), counter(rhs.counter) {
+shared_ptr<T>::shared_ptr(shared_ptr&& rhs) noexcept : data(rhs.data) {
   rhs.data = nullptr;
-  rhs.counter = nullptr;
 }
 
 template <typename T>
@@ -50,122 +48,86 @@ shared_ptr<T>& shared_ptr<T>::operator=(shared_ptr<T>&& rhs) noexcept {
   }
 
   this->data = rhs.data;
-  this->counter = rhs.counter;
-
   rhs.data = nullptr;
-  rhs.counter = nullptr;
 
   return *this;
 }
 
 // === Memory === //
-template <typename T> opt_err shared_ptr<T>::allocate() noexcept {
-  this->data = new (std::nothrow) T(); // NOLINT
+
+template <typename T> error_code shared_ptr<T>::allocate() noexcept {
+  this->data = (Data*)std::malloc(sizeof(Data)); // NOLINT
   if (this->data == nullptr) {
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
-  this->counter = new int(1); // NOLINT
-  if (this->counter == nullptr) {
-    this->destroy_data_ptr();
-    return BAD_ALLOC_OPT;
-  }
-
-  return null;
+  this->data->count = 1U;
+  return error_code::OK;
 }
 
 // === Destructor === //
-template <typename T> void shared_ptr<T>::destroy_data_ptr() noexcept {
-#if DS_TEST
-  ds_test::free_ptr = this->data;
-#endif
 
-  delete this->data;
-  this->data = nullptr;
-}
-
-template <typename T> void shared_ptr<T>::destroy_counter_ptr() noexcept {
-  delete this->counter;
-  this->counter = nullptr;
-}
-
-template <typename T> void shared_ptr<T>::destroy_all_ptrs() noexcept {
-  this->destroy_data_ptr();
-  this->destroy_counter_ptr();
-}
-
-template <typename T> void shared_ptr<T>::destroy() noexcept {
+template <typename T> void shared_ptr<T>::reset() noexcept {
   if (this->data == nullptr) {
     return;
   }
 
-  if (--(*this->counter)) {
-    this->data = nullptr;
-    this->counter = nullptr;
-    return;
+  if (--(this->data->count) == 0) {
+    if constexpr (std::is_class<T>::value) {
+      this->data->val.~T();
+    }
+    std::free(this->data); // NOLINT
   }
-
-  this->destroy_all_ptrs();
+  this->data = nullptr;
 }
 
 template <typename T> shared_ptr<T>::~shared_ptr() noexcept {
-  this->destroy();
+  this->reset();
 }
 
 // === Modifiers === //
-template <typename T> opt_err shared_ptr<T>::init() noexcept {
-  if (this->data) {
-    return ALREADY_SET_OPT;
-  }
-
-  return this->allocate();
-}
 
 template <typename T>
 template <typename Data_>
-opt_err shared_ptr<T>::set_impl(Data_ data) noexcept {
-  if (this->data) {
-    this->destroy();
+error_code shared_ptr<T>::set_impl(Data_ data) noexcept {
+  if (this->data != nullptr) {
+    this->reset();
   }
 
-  try_opt(this->allocate());
+  TRY(this->allocate());
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
-    *this->data = std::move(data);
+    this->data->val = std::move(data);
   } else if constexpr (std::is_copy_assignable<value>::value) {
-    *this->data = data;
+    this->data->val = data;
   } else {
-    if (this->data->copy(data)) {
-      this->destroy_all_ptrs();
-      return BAD_ALLOC_OPT;
+    if (is_error(this->data->val.copy(data))) {
+      std::free(this->data); // NOLINT
+      this->data = nullptr;
+
+      return error_code::BAD_ALLOCATION;
     }
   }
 
-  return null;
-}
-
-template <typename T> void shared_ptr<T>::release() noexcept {
-  this->destroy();
+  return error_code::OK;
 }
 
 // === Observers === //
-template <typename T>
-typename shared_ptr<T>::ptr shared_ptr<T>::get() const noexcept {
-  return this->data;
+
+template <typename T> T* shared_ptr<T>::get() const noexcept {
+  return (T*)this->data;
 }
 
-template <typename T>
-typename shared_ptr<T>::ref shared_ptr<T>::operator*() const noexcept {
-  return *this->data;
+template <typename T> T& shared_ptr<T>::operator*() const noexcept {
+  return *(T*)this->data;
 }
 
-template <typename T>
-typename shared_ptr<T>::ptr shared_ptr<T>::operator->() const noexcept {
-  return this->data;
+template <typename T> T* shared_ptr<T>::operator->() const noexcept {
+  return (T*)this->data;
 }
 
-template <typename T> i32 shared_ptr<T>::count() const noexcept {
-  return this->counter != nullptr ? *this->counter : 0;
+template <typename T> usize shared_ptr<T>::get_count() const noexcept {
+  return this->data == nullptr ? 0 : this->data->count;
 }
 
 template <typename T> shared_ptr<T>::operator bool() const noexcept {
@@ -173,6 +135,7 @@ template <typename T> shared_ptr<T>::operator bool() const noexcept {
 }
 
 // === Non-member Operators === //
+
 template <typename T>
 bool operator==(const shared_ptr<T>& lhs, const shared_ptr<T>& rhs) noexcept {
   return lhs.data == rhs.data;
@@ -186,4 +149,3 @@ bool operator!=(const shared_ptr<T>& lhs, const shared_ptr<T>& rhs) noexcept {
 } // namespace ds
 
 #endif
-

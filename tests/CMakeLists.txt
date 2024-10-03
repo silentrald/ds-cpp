@@ -41,11 +41,10 @@ target_link_libraries(bptree_map PRIVATE
 #   Catch2::Catch2 Catch2::Catch2WithMain
 # )
 
-# add_executable(shared_ptr shared_ptr.cpp main.cpp
-#   ../src/ds-error/error.cpp)
-# target_link_libraries(shared_ptr PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
+add_executable(shared_ptr shared_ptr.cpp main.cpp)
+target_link_libraries(shared_ptr PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
 
 # String
 add_executable(string string.cpp main.cpp
@@ -57,11 +56,10 @@ target_link_libraries(string PRIVATE
 )
 
 # Unique_ptr
-# add_executable(unique_ptr unique_ptr.cpp main.cpp
-#   ../src/ds-error/error.cpp)
-# target_link_libraries(unique_ptr PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
+add_executable(unique_ptr unique_ptr.cpp main.cpp)
+target_link_libraries(unique_ptr PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
 
 # Vector
 add_executable(vector vector.cpp main.cpp

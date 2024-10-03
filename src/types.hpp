@@ -69,9 +69,8 @@ enum error_code : u32 {
   ARRAY_FULL = 5,
   NOT_FOUND = 6,
   INVALID_SIZE = 7, // When capacity is set to a negative value
-  ALREADY_SET = 8,
-  NOT_IMPLEMENTED = 9,
-  THREAD_ERROR = 10,
+  NOT_IMPLEMENTED = 8,
+  THREAD_ERROR = 9,
 };
 
 inline bool is_error(error_code error) noexcept {

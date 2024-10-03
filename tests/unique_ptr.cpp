@@ -6,37 +6,53 @@
  *===============================*/
 
 #include "ds/unique_ptr.hpp"
-#include "./main.hpp"
-#include "catch2/catch_message.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "ds/shared_ptr.hpp"
-#include <iostream>
+#include "main.hpp"
+#include "types.hpp"
+#include <cstdlib>
 
-using namespace ds_test;
+TEST_CASE("primitive test", "[unique_ptr][i32]") {
+  ds::unique_ptr<ds::i32> smart{};
+  ds::error_code error_code{};
 
-class Base {
-public:
-  virtual ~Base() noexcept {
-    std::cout << "Deleting Base\n";
-  };
-};
+  ds::i32 tmp = 0;
 
-class Derived : public Base {
-public:
-  int i;
+  for (ds::i32 i = 0; i < 16; ++i) {
+    tmp = std::rand();
+    error_code = smart.set(tmp);
+    REQUIRE(ds_test::handle_error(error_code));
+    REQUIRE(*smart == tmp);
 
-  ~Derived() noexcept override {
-    std::cout << "Deleting Derived\n";
+    if (i & 1) {
+      smart.reset();
+    } else {
+      REQUIRE(smart.release() == tmp);
+    }
+    REQUIRE_FALSE(smart);
   }
-};
-
-// NOLINTNEXTLINE
-TEST_CASE("unique_ptr", "ds") {
-  ds::unique_ptr<Derived> derived{};
-  ds::opt_err err = derived.init();
-  derived->i = 100;
-
-  ds::unique_ptr<Base> base = std::move(derived);
-  std::cout << "Derived: " << base.get_ref_unsafe<Derived>().i << '\n';
 }
 
+TEST_CASE("class test", "[unique_ptr]") {
+  ds_test::counter = 0;
+  ds::unique_ptr<ds_test::Test> smart{};
+  ds::error_code error_code{};
+
+  ds::i32 tmp = 0;
+
+  for (ds::i32 i = 0; i < 16; ++i) {
+    tmp = std::rand();
+    error_code = smart.set(ds_test::Test{tmp});
+    REQUIRE(ds_test::handle_error(error_code));
+
+    REQUIRE(ds_test::counter == 1);
+    REQUIRE(*smart == tmp);
+
+    if (i & 1) {
+      smart.reset();
+    } else {
+      REQUIRE(smart.release() == tmp);
+    }
+    REQUIRE_FALSE(smart);
+    REQUIRE(ds_test::counter == 0);
+  }
+}
