@@ -9,7 +9,7 @@
 #define DS_VECTOR_TPP
 
 #include "./vector.hpp"
-#include "ds/types.hpp"
+#include "types.hpp"
 #include <cassert>
 #include <type_traits>
 
@@ -18,27 +18,32 @@ namespace ds {
 
 // === Copy ===
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::copy(const base_vector& rhs) noexcept {
+error_code base_vector<Derived, T>::copy(const base_vector& rhs) noexcept {
   if (&rhs == this) {
-    return null;
+    return error_code::OK;
   }
 
-  if (!this->arr) {
-    try_opt(this->allocate(rhs._max_size));
-  } else if (this->_max_size < rhs._max_size) {
-    try_opt(this->reallocate(rhs._max_size));
+  if (rhs.is_empty()) {
+    this->clear();
+    return error_code::OK;
   }
 
-  for (i32 i = 0; i < rhs.top; ++i) {
+  if (this->arr == nullptr) {
+    TRY(this->allocate(rhs.capacity));
+  } else if (this->capacity < rhs.capacity) {
+    TRY(this->reallocate(rhs.capacity));
+  }
+
+  for (usize i = 0U; i < rhs.top; ++i) {
     if constexpr (std::is_copy_assignable<value>::value) {
       this->arr[i] = rhs.arr[i]; // Copyable
     } else {
-      try_opt(this->arr[i].copy(rhs.arr[i])); // Custom Object
+      TRY(this->arr[i].copy(rhs.arr[i])); // Custom Object
     }
   }
 
   this->top = rhs.top;
-  return null;
+  return error_code::OK;
 }
 
 // === Move ===
@@ -46,10 +51,10 @@ template <typename Derived, typename T>
 base_vector<Derived, T>::base_vector(base_vector&& rhs) noexcept {
   this->arr = rhs.arr;
   this->top = rhs.top;
-  this->_max_size = rhs._max_size;
+  this->capacity = rhs.capacity;
 
   rhs.arr = nullptr;
-  rhs._max_size = rhs.top = 0;
+  rhs.capacity = rhs.top = 0;
 }
 
 template <typename Derived, typename T>
@@ -63,10 +68,10 @@ base_vector<Derived, T>& base_vector<Derived, T>::operator=(base_vector&& rhs
 
   this->arr = rhs.arr;
   this->top = rhs.top;
-  this->_max_size = rhs._max_size;
+  this->capacity = rhs.capacity;
 
   rhs.arr = nullptr;
-  rhs._max_size = rhs.top = 0;
+  rhs.capacity = rhs.top = 0;
 
   return *this;
 }
@@ -80,7 +85,7 @@ void base_vector<Derived, T>::destroy() noexcept {
 #endif
 
     if constexpr (std::is_class<value>::value) {
-      for (i32 i = 0; i < this->_max_size; ++i) {
+      for (usize i = 0U; i < this->capacity; ++i) {
         this->arr[i].~T();
       }
     }
@@ -98,15 +103,13 @@ base_vector<Derived, T>::~base_vector() {
 
 // === Memory ===
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::allocate(i32 size) noexcept {
-  // Min size is 1
-  if (size < 1)
-    size = 1;
+error_code base_vector<Derived, T>::allocate(usize size) noexcept {
+  assert(size > 0U);
 
   // NOLINTNEXTLINE
   this->arr = static_cast<ptr>(std::malloc(size * sizeof(T)));
   if (this->arr == nullptr) {
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
   // Data initialization
@@ -116,18 +119,17 @@ opt_err base_vector<Derived, T>::allocate(i32 size) noexcept {
     std::memset(this->arr, 0, size * sizeof(T));
   }
 
-  this->_max_size = size;
-  return null;
+  this->capacity = size;
+  return error_code::OK;
 }
 
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::reallocate(i32 size) noexcept {
-  if (size < 1)
-    size = 1;
+error_code base_vector<Derived, T>::reallocate(usize size) noexcept {
+  assert(size >= this->capacity);
 
   // Free the data
   if constexpr (std::is_class<value>::value) {
-    for (i32 i = size; i < this->top; ++i) {
+    for (usize i = size; i < this->top; ++i) {
       this->arr[i].~T();
     }
   }
@@ -135,28 +137,28 @@ opt_err base_vector<Derived, T>::reallocate(i32 size) noexcept {
   // NOLINTNEXTLINE
   void* _ptr = std::realloc(this->arr, size * sizeof(T));
   if (_ptr == nullptr) {
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
   this->arr = static_cast<ptr>(_ptr);
 
   if constexpr (std::is_class<value>::value) {
-    for (i32 i = this->_max_size; i < size; ++i) {
+    for (usize i = this->capacity; i < size; ++i) {
       new (this->arr + i) T;
     }
   } else {
-    if (size > this->_max_size) {
+    if (size > this->capacity) {
       std::memset(
-          this->arr + this->_max_size, 0, (size - this->_max_size) * sizeof(T)
+          this->arr + this->capacity, 0, (size - this->capacity) * sizeof(T)
       );
     }
   }
 
-  this->_max_size = size;
-  return null;
+  this->capacity = size;
+  return error_code::OK;
 }
 
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::grow(i32 min_size) noexcept {
+error_code base_vector<Derived, T>::grow(usize min_size) noexcept {
   if (min_size < 1)
     min_size = 1;
 
@@ -165,11 +167,11 @@ opt_err base_vector<Derived, T>::grow(i32 min_size) noexcept {
     return this->allocate(min_size);
   }
 
-  if (min_size <= this->_max_size) {
-    return null;
+  if (min_size <= this->capacity) {
+    return error_code::OK;
   }
 
-  i32 new_size = std::max(1, this->_max_size) * 2;
+  usize new_size = std::max((usize)1ULL, this->capacity) * 2;
   while (new_size < min_size) {
     new_size *= 2;
   }
@@ -178,8 +180,9 @@ opt_err base_vector<Derived, T>::grow(i32 min_size) noexcept {
 }
 
 template <typename Derived, typename T>
-void base_vector<Derived, T>::shift(i32 start, i32 n) noexcept {
-  for (i32 i = this->top - 1; i >= start; i--) {
+void base_vector<Derived, T>::shift(usize start, usize n) noexcept {
+  --start;
+  for (usize i = this->top - 1U; i != start; i--) {
     this->arr[i + n] = std::move(this->arr[i]);
   }
   this->top += n;
@@ -187,9 +190,10 @@ void base_vector<Derived, T>::shift(i32 start, i32 n) noexcept {
 
 // === Element Access ===
 template <typename Derived, typename T>
-exp_ptr_err<T> base_vector<Derived, T>::at(i32 index) const noexcept {
-  if (index < 0 || index >= this->top) {
-    return OUT_OF_RANGE_EXP;
+expected<T*, error_code> base_vector<Derived, T>::at(usize index
+) const noexcept {
+  if (index >= this->top) {
+    return unexpected{error_code::INDEX_OUT_OF_BOUNDS};
   }
 
   return this->arr + index;
@@ -197,23 +201,24 @@ exp_ptr_err<T> base_vector<Derived, T>::at(i32 index) const noexcept {
 
 template <typename Derived, typename T>
 typename base_vector<Derived, T>::ref
-base_vector<Derived, T>::operator[](i32 index) const noexcept {
+base_vector<Derived, T>::operator[](usize index) const noexcept {
+  assert(index < this->top);
   return this->arr[index];
 }
 
 template <typename Derived, typename T>
-exp_ptr_err<T> base_vector<Derived, T>::front() const noexcept {
+expected<T*, error_code> base_vector<Derived, T>::front() const noexcept {
   if (this->is_empty()) {
-    return EMPTY_EXP;
+    return unexpected{error_code::CONTAINER_EMPTY};
   }
 
   return this->arr;
 }
 
 template <typename Derived, typename T>
-exp_ptr_err<T> base_vector<Derived, T>::back() const noexcept {
+expected<T*, error_code> base_vector<Derived, T>::back() const noexcept {
   if (this->is_empty()) {
-    return EMPTY_EXP;
+    return unexpected{error_code::CONTAINER_EMPTY};
   }
 
   return this->arr + this->top - 1;
@@ -291,37 +296,37 @@ bool base_vector<Derived, T>::is_empty() const noexcept {
 }
 
 template <typename Derived, typename T>
-i32 base_vector<Derived, T>::size() const noexcept {
+usize base_vector<Derived, T>::get_size() const noexcept {
   return this->top;
 }
 
 template <typename Derived, typename T>
-i32 base_vector<Derived, T>::max_size() const noexcept {
-  return this->_max_size;
+usize base_vector<Derived, T>::get_capacity() const noexcept {
+  return this->capacity;
 }
 
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::reserve(i32 size) noexcept {
+error_code base_vector<Derived, T>::reserve(usize size) noexcept {
   if (this->arr == nullptr) {
     return this->allocate(size);
   }
 
-  if (size <= this->_max_size) {
-    return null;
+  if (size <= this->capacity) {
+    return error_code::OK;
   }
 
-  try_opt(this->reallocate(size));
-  if (this->top > this->_max_size)
+  TRY(this->reallocate(size));
+  if (this->top > this->capacity)
     this->top = size;
 
-  return null;
+  return error_code::OK;
 }
 
 // === Modifiers === //
 template <typename Derived, typename T>
 void base_vector<Derived, T>::clear() noexcept {
   if constexpr (std::is_class<value>::value) {
-    for (i32 i = 0; i < this->top; ++i) {
+    for (usize i = 0U; i < this->top; ++i) {
       this->arr[i].~T();
     }
   }
@@ -332,11 +337,12 @@ void base_vector<Derived, T>::clear() noexcept {
 // * Insert * //
 template <typename Derived, typename T>
 template <typename... Args>
-opt_err base_vector<Derived, T>::insert_helper(
-    i32 index, cref first, Args&&... args
+error_code base_vector<Derived, T>::insert_helper(
+    usize index, cref first, Args&&... args
 ) noexcept {
-  if constexpr (std::is_class<value>::value && !std::is_copy_assignable<value>::value) {
-    try_opt(this->arr[index].copy(first));
+  if constexpr (std::is_class<value>::value &&
+                !std::is_copy_assignable<value>::value) {
+    TRY(this->arr[index].copy(first));
   } else {
     this->arr[index] = first;
   }
@@ -344,76 +350,76 @@ opt_err base_vector<Derived, T>::insert_helper(
   if constexpr (sizeof...(Args)) {
     return this->insert_helper(index + 1, std::forward<Args>(args)...);
   } else {
-    return null;
+    return error_code::OK;
   }
 }
 
 template <typename Derived, typename T>
 template <typename... Args>
-opt_err base_vector<Derived, T>::insert_helper(
-    i32 index, rref first, Args&&... args
+error_code base_vector<Derived, T>::insert_helper(
+    usize index, rref first, Args&&... args
 ) noexcept {
   this->arr[index] = std::move(first);
 
   if constexpr (sizeof...(Args)) {
     return this->insert_helper(index + 1, std::forward<Args>(args)...);
   } else {
-    return null;
+    return error_code::OK;
   }
 }
 
 // * Push Back * //
 template <typename Derived, typename T>
 template <typename... Args>
-opt_err
+error_code
 base_vector<Derived, T>::push_back_helper(cref first, Args&&... args) noexcept {
   if constexpr (std::is_copy_assignable<value>::value) {
     this->arr[this->top] = first;
   } else {
-    try_opt(this->arr[this->top].copy(first));
+    TRY(this->arr[this->top].copy(first));
   }
   ++this->top;
 
   if constexpr (sizeof...(Args)) {
     return this->push_back_helper(std::forward<Args>(args)...);
   } else {
-    return null;
+    return error_code::OK;
   }
 }
 
 template <typename Derived, typename T>
 template <typename... Args>
-opt_err
+error_code
 base_vector<Derived, T>::push_back_helper(rref first, Args&&... args) noexcept {
   this->arr[this->top++] = std::move(first);
 
   if constexpr (sizeof...(Args)) {
     return this->push_back_helper(std::forward<Args>(args)...);
   } else {
-    return null;
+    return error_code::OK;
   }
 }
 
 // * End Push Back * //
 
 template <typename Derived, typename T>
-opt_err base_vector<Derived, T>::resize(i32 size) noexcept {
+error_code base_vector<Derived, T>::resize(usize size) noexcept {
   if (this->arr == nullptr) {
-    try_opt(this->allocate(size));
+    TRY(this->allocate(size));
     this->top = size;
-    return null;
+    return error_code::OK;
   }
 
-  if (size > this->_max_size) {
-    try_opt(this->reallocate(size));
+  if (size > this->capacity) {
+    TRY(this->reallocate(size));
   }
   this->top = size;
 
-  return null;
+  return error_code::OK;
 }
 
 template <typename Derived, typename T>
-void base_vector<Derived, T>::erase_impl(i32 index) noexcept {
+void base_vector<Derived, T>::erase_impl(usize index) noexcept {
   if (index < 0 || index >= this->top) {
     return;
   }
@@ -427,9 +433,9 @@ void base_vector<Derived, T>::erase_impl(i32 index) noexcept {
 }
 
 template <typename Derived, typename T>
-exp_err<T> base_vector<Derived, T>::pop_back() noexcept {
+expected<T, error_code> base_vector<Derived, T>::pop_back() noexcept {
   if (this->is_empty()) {
-    return EMPTY_EXP;
+    return error_code::CONTAINER_EMPTY;
   }
 
   return std::move(this->arr[--this->top]);
@@ -453,7 +459,7 @@ bool operator==(
   if (lhs.top != rhs.top)
     return false;
 
-  for (i32 i = 0; i < lhs.top; ++i) {
+  for (usize i = 0U; i < lhs.top; ++i) {
     if (lhs.arr[i] != rhs.arr[i])
       return false;
   }
@@ -471,4 +477,3 @@ bool operator!=(
 } // namespace ds
 
 #endif
-

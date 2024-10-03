@@ -24,7 +24,7 @@ bool handle_error(const ds::expected<T, ds::error_code>& exp) noexcept {
     return true;
   }
 
-  UNSCOPED_INFO("Error: " << exp.error());
+  UNSCOPED_INFO("Got error_code: " << exp.error());
   return false;
 }
 

@@ -1,11 +1,10 @@
 add_compile_definitions(DS_ERROR_MSG=${DS_ERROR_MSG})
 
 # Bptree Map
-# add_executable(bptree_map bptree_map.cpp
-#   ../src/ds-error/error.cpp)
-# target_link_libraries(bptree_map PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
+add_executable(bptree_map bptree_map.cpp main.cpp)
+target_link_libraries(bptree_map PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
 
 # Fixed Deque
 # add_executable(fixed_deque fixed_deque.cpp main.cpp
@@ -65,14 +64,13 @@ target_link_libraries(string PRIVATE
 # )
 
 # Vector
-# add_executable(vector vector.cpp main.cpp
-#   ../src/ds/string.cpp
-#   ../src/ds-error/error.cpp
-# )
-# target_compile_definitions(vector PRIVATE DS_TEST)
-# target_link_libraries(vector PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
+add_executable(vector vector.cpp main.cpp
+  ../src/ds/string.cpp
+)
+target_compile_definitions(vector PRIVATE DS_TEST)
+target_link_libraries(vector PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
 
 # Geometry
 # add_executable(geom geom.cpp

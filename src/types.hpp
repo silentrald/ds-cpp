@@ -44,8 +44,10 @@ using f64 = double;
 
 #ifdef BIT_64
 using usize = u64;
+const usize USIZE_MAX = UINT64_MAX;
 #else
 using usize = u32;
+const ususize USIZE_MAX = UINT32_MAX;
 #endif
 
 using c8 = char;
@@ -55,7 +57,7 @@ enum error_code : u32 {
   BAD_ALLOCATION = 1,
   NULL_VALUE = 2, // Accessing null pointer
   INDEX_OUT_OF_BOUNDS = 3,
-  ARRAY_EMPTY = 4,
+  CONTAINER_EMPTY = 4,
   ARRAY_FULL = 5,
   NOT_FOUND = 6,
   INVALID_SIZE = 7, // When capacity is set to a negative value

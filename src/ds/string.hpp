@@ -151,7 +151,7 @@ public:
    *
    * @returns character at the end/back of the string.
    * @errors
-   *  - error_code::ARRAY_EMPTY -
+   *  - error_code::CONTAINER_EMPTY -
    *      if the current string is empty, manually check
    *      the string by calling #is_empty() function
    **/

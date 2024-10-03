@@ -8,7 +8,7 @@
 #ifndef DS_VECTOR_ITERATOR_HPP
 #define DS_VECTOR_ITERATOR_HPP
 
-#include "ds/types.hpp"
+#include "types.hpp"
 
 namespace ds {
 
@@ -77,12 +77,12 @@ public:
     return lhs.pointer != rhs.pointer;
   }
 
-  friend vector_iterator operator+(vector_iterator it, i32 offset) noexcept {
+  friend vector_iterator operator+(vector_iterator it, usize offset) noexcept {
     it.pointer += offset;
     return it;
   }
 
-  friend i32
+  friend usize
   operator-(const vector_iterator& lhs, const vector_iterator& rhs) noexcept {
     return lhs.pointer - rhs.pointer;
   }
@@ -91,4 +91,3 @@ public:
 } // namespace ds
 
 #endif
-

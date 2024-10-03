@@ -5,10 +5,12 @@
  * Created: 2023-01-02
  *===============================*/
 
+// FIXME: This is broken, just fix this if this is needed in the future
+
 #ifndef DS_BPTREE_MAP_ITERATOR_HPP
 #define DS_BPTREE_MAP_ITERATOR_HPP
 
-#include "ds/types.hpp"
+#include "types.hpp"
 
 namespace ds {
 
@@ -27,14 +29,14 @@ public:
 
 private:
   leaf_ptr pointer = nullptr;
-  i32 index = 0;
+  usize index = 0;
 
 public:
   bptree_map_iterator() noexcept = default;
 
   explicit bptree_map_iterator(leaf_ptr pointer) noexcept : pointer(pointer) {}
 
-  explicit bptree_map_iterator(leaf_ptr pointer, i32 index) noexcept
+  explicit bptree_map_iterator(leaf_ptr pointer, usize index) noexcept
       : pointer(pointer), index(index) {}
 
   // Element Access
@@ -109,4 +111,3 @@ public:
 } // namespace ds
 
 #endif
-

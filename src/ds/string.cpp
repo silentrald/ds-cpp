@@ -168,10 +168,10 @@ error_code string::reallocate(usize size) noexcept {
 
 expected<c8*, error_code> string::at_ptr(usize index) noexcept {
   if (this->size == 0U && index > 0U) {
-    return unexpected{error_code::ARRAY_EMPTY};
+    return unexpected{error_code::CONTAINER_EMPTY};
   }
 
-  if (index < 0U || index >= this->size) {
+  if (index >= this->size) {
     return unexpected{error_code::INDEX_OUT_OF_BOUNDS};
   }
 
@@ -179,7 +179,7 @@ expected<c8*, error_code> string::at_ptr(usize index) noexcept {
 }
 
 expected<c8, error_code> string::at(usize index) noexcept {
-  if (index < 0U || index >= this->size) {
+  if (index >= this->size) {
     return unexpected{error_code::INDEX_OUT_OF_BOUNDS};
   }
 
@@ -187,6 +187,7 @@ expected<c8, error_code> string::at(usize index) noexcept {
 }
 
 c8& string::operator[](usize index) const noexcept {
+  assert(index <= this->size);
   return this->str[index];
 }
 
@@ -264,7 +265,7 @@ error_code string::push_back(char c) noexcept {
 
 expected<c8, error_code> string::pop_back() noexcept {
   if (this->size == 0) {
-    return unexpected{error_code::ARRAY_EMPTY};
+    return unexpected{error_code::CONTAINER_EMPTY};
   }
 
   char c = this->str[--this->size];

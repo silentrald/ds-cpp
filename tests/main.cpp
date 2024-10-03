@@ -19,7 +19,7 @@ bool handle_error(const ds::error_code& err) noexcept {
     return true;
   }
 
-  UNSCOPED_INFO("Got error " << err);
+  UNSCOPED_INFO("Got error_code: " << err);
   return false;
 }
 

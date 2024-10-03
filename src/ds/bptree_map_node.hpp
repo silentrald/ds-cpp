@@ -5,12 +5,13 @@
  * Created: 2022-12-30
  *===============================*/
 
+// FIXME: This is broken, just fix this if this is needed in the future
+
 #ifndef DS_BPTREE_MAP_NODE_HPP
 #define DS_BPTREE_MAP_NODE_HPP
 
 #include "./bptree_map.hpp"
-#include "ds/types.hpp"
-#include "ds/vector.hpp"
+#include "types.hpp"
 #include <cstdlib>
 #include <new>
 #include <type_traits>
@@ -21,12 +22,12 @@ namespace ds {
 // === Initializers === //
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_err
-base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
+error_code
+base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(usize capacity
 ) noexcept {
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
   // NOLINTNEXTLINE
@@ -35,10 +36,10 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::init(i32 capacity
     delete this->keys; // NOLINT
     this->keys = nullptr;
 
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
-  return null;
+  return error_code::OK;
 }
 
 // === Move === //
@@ -130,7 +131,7 @@ Value* base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_values(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_size(
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_size(
 ) const noexcept {
   return this->size;
 }
@@ -160,7 +161,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_prev(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 Key base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_key(
-    i32 index
+    usize index
 ) const noexcept {
   return this->keys[index];
 }
@@ -178,8 +179,8 @@ Key base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::back_key(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-Value&
-base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_value(i32 index
+Value& base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_value(
+    usize index
 ) const noexcept {
   return this->values[index];
 }
@@ -188,14 +189,14 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::at_value(i32 index
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
-    insert_indexed(i32 index, key_type key, Value&& value) noexcept {
+    insert_indexed(usize index, key_type key, Value&& value) noexcept {
   if (index == this->size) {
     this->push_back(key, std::move(value));
     return;
   }
 
   // Move the elements
-  for (i32 i = this->size; i > index; --i) {
+  for (usize i = this->size; i > index; --i) {
     this->keys[i] = this->keys[i - 1];
     this->values[i] = std::move(this->values[i - 1]);
   }
@@ -206,12 +207,12 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::insert(
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::insert(
     key_type key, Value&& value
 ) noexcept {
-  i32 comparison = 0;
+  usize comparison = 0;
 
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     comparison = KeyCompare{}(key, this->keys[i]);
 
     if (comparison == 0) {
@@ -240,10 +241,10 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::push_back(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::erase(
-    i32 index
+    usize index
 ) noexcept {
 
-  for (i32 i = index + 1; i < this->size; ++i) {
+  for (usize i = index + 1; i < this->size; ++i) {
     this->keys[i - 1] = this->keys[i];
     this->values[i - 1] = std::move(this->values[i]);
   }
@@ -255,7 +256,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::clear(
 ) noexcept {
   if constexpr (std::is_class<Value>::value) {
-    for (i32 i = 0; i < this->size; ++i) {
+    for (usize i = 0; i < this->size; ++i) {
       this->values[i].~Value();
     }
   }
@@ -265,9 +266,9 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::clear(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::redistribute(
-    leaf_node* other, i32 mid
+    leaf_node* other, usize mid
 ) noexcept {
-  for (i32 i = mid; i < this->size; ++i) {
+  for (usize i = mid; i < this->size; ++i) {
     other->push_back(this->keys[i], std::move(this->values[i]));
   }
   this->size = mid;
@@ -281,9 +282,9 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   this->next->erase(0);
 
   auto* keys = this->parent->get_keys();
-  i32 sz = this->parent->get_size() - 1;
+  usize sz = this->parent->get_size() - 1;
 
-  for (i32 i = 0; i < sz; ++i) {
+  for (usize i = 0; i < sz; ++i) {
     if (KeyCompare{}(key, keys[i]) == 0) {
       keys[i] = this->next->get_keys()[0];
       return;
@@ -296,7 +297,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     borrow_left_sibling() noexcept {
-  i32 sz = this->prev->get_size() - 1;
+  usize sz = this->prev->get_size() - 1;
 
   auto key = this->prev->get_keys()[sz];
   this->insert_indexed(0, key, std::move(this->prev->get_values()[sz]));
@@ -305,7 +306,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   auto* keys = this->parent->get_keys();
   sz = this->parent->get_size() - 1;
 
-  for (i32 i = 0; i < sz; ++i) {
+  for (usize i = 0; i < sz; ++i) {
     if (KeyCompare{}(key, keys[i]) < 0) {
       keys[i] = key;
       return;
@@ -320,9 +321,9 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     merge_right_sibling() noexcept {
   auto* keys = this->next->get_keys();
   auto* values = this->next->get_values();
-  i32 sz = this->next->get_size();
+  usize sz = this->next->get_size();
 
-  for (i32 i = 0; i < sz; ++i) {
+  for (usize i = 0; i < sz; ++i) {
     this->push_back(keys[i], std::move(values[i]));
   }
 
@@ -340,7 +341,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 Value* base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_value(
     key_type key
 ) const noexcept {
-  for (i32 i = 0; this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) == 0) {
       return this->values + i;
     }
@@ -349,10 +350,10 @@ Value* base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::get_value(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::find_index(
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::find_index(
     key_type key
 ) const noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0U; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) == 0) {
       return i;
     }
@@ -362,10 +363,10 @@ i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::find_index(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<
+usize base_bptree_map<
     Derived, Key, Value, KeyCompare>::leaf_node::find_smaller_index(key_type key
 ) const noexcept {
-  for (i32 i = this->size - 1; i > -1; --i) {
+  for (usize i = this->size - 1; i != USIZE_MAX; --i) {
     if (KeyCompare{}(key, this->keys[i]) > 0) {
       return i;
     }
@@ -375,10 +376,10 @@ i32 base_bptree_map<
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<
+usize base_bptree_map<
     Derived, Key, Value, KeyCompare>::leaf_node::find_larger_index(key_type key
 ) const noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) < 0) {
       return i;
     }
@@ -388,9 +389,9 @@ i32 base_bptree_map<
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     find_not_smaller_index(key_type key) const noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) <= 0) {
       return i;
     }
@@ -400,9 +401,9 @@ i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     find_not_larger_index(key_type key) const noexcept {
-  for (i32 i = this->size - 1; i > -1; --i) {
+  for (usize i = this->size - 1; i != USIZE_MAX; --i) {
     if (KeyCompare{}(key, this->keys[i]) >= 0) {
       return i;
     }
@@ -414,31 +415,34 @@ i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
 } // namespace ds
 
 // * === Inner Node === * //
+
 namespace ds {
 
 // === Initializers === //
+
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-opt_err base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
-    i32 capacity, void* child
+error_code base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::init(
+    usize capacity, void* child
 ) noexcept {
 
   this->keys = new (std::nothrow) Key[capacity]; // NOLINT
   if (this->keys == nullptr) {
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
   // NOLINTNEXTLINE
   this->children = new (std::nothrow) void*[capacity + 1];
   if (this->children == nullptr) {
     delete this->keys; // NOLINT
-    return BAD_ALLOC_OPT;
+    return error_code::BAD_ALLOCATION;
   }
 
   this->children[0] = child;
-  return null;
+  return error_code::OK;
 }
 
 // === Destructor === //
+
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::~inner_node(
 ) noexcept {
@@ -459,7 +463,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     destroy_leaf_children() noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     delete static_cast<leaf_ptr>(this->children[i]); // NOLINT
   }
   delete static_cast<leaf_ptr>(this->children[this->size]); // NOLINT
@@ -488,7 +492,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::get_children(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::get_size(
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::get_size(
 ) const noexcept {
   return this->size;
 }
@@ -504,7 +508,7 @@ base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::get_parent(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void* base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     find_smaller_child(key_type key) const noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) < 0) {
       return this->children[i];
     }
@@ -514,9 +518,9 @@ void* base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-i32 base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
+usize base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     find_smaller_index(key_type key) const noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) < 0) {
       return i;
     }
@@ -526,7 +530,7 @@ i32 base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 Key base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::at_key(
-    i32 index
+    usize index
 ) const noexcept {
   return this->keys[index];
 }
@@ -558,8 +562,8 @@ void* base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::back_child(
 // === Modifiers === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
-    insert_indexed(i32 index, key_type key, void* child) noexcept {
-  for (i32 i = this->size; i > index; --i) {
+    insert_indexed(usize index, key_type key, void* child) noexcept {
+  for (usize i = this->size; i > index; --i) {
     this->keys[i] = this->keys[i - 1];
     this->children[i + 1] = this->children[i];
   }
@@ -574,7 +578,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::insert(
     key_type key, void* child
 ) noexcept {
-  for (i32 i = 0; i < this->size; ++i) {
+  for (usize i = 0; i < this->size; ++i) {
     if (KeyCompare{}(key, this->keys[i]) < 0) {
       this->insert_indexed(i, key, child);
       return;
@@ -589,7 +593,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::push_front(
     key_type key, void* child
 ) noexcept {
   this->children[this->size + 1] = this->children[this->size];
-  for (i32 i = this->size; i > 0; --i) {
+  for (usize i = this->size; i > 0; --i) {
     this->keys[i] = this->keys[i - 1];
     this->children[i] = this->children[i - 1];
   }
@@ -602,7 +606,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::push_front(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::pop_front(
 ) noexcept {
-  for (i32 i = 1; i < this->size; ++i) {
+  for (usize i = 1; i < this->size; ++i) {
     this->keys[i - 1] = this->keys[i];
     this->children[i - 1] = this->children[i];
   }
@@ -627,10 +631,10 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::pop_back(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::erase(
-    i32 index
+    usize index
 ) noexcept {
   // Deletes key[i] and child[i + 1]
-  for (i32 i = index + 1; i < this->size; ++i) {
+  for (usize i = index + 1; i < this->size; ++i) {
     this->keys[i - 1] = this->keys[i];
     this->children[i] = this->children[i + 1];
   }
@@ -640,7 +644,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::erase(
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::set_key(
-    i32 index, key_type key
+    usize index, key_type key
 ) noexcept {
   this->keys[index] = key;
 }
@@ -649,7 +653,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::set_key(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     reparent_leaf_children() noexcept {
-  for (i32 i = 0; i <= this->size; ++i) {
+  for (usize i = 0; i <= this->size; ++i) {
     static_cast<leaf_node*>(this->children[i])->set_parent(this);
   }
 }
@@ -657,7 +661,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<
     Derived, Key, Value, KeyCompare>::inner_node::reparent_children() noexcept {
-  for (i32 i = 0; i <= this->size; ++i) {
+  for (usize i = 0; i <= this->size; ++i) {
     static_cast<inner_node*>(this->children[i])->set_parent(this);
   }
 }
@@ -665,9 +669,9 @@ void base_bptree_map<
 // === Inserting === //
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::redistribute(
-    inner_node* other, i32 mid
+    inner_node* other, usize mid
 ) noexcept {
-  for (i32 i = mid; i < size; ++i) {
+  for (usize i = mid; i < size; ++i) {
     other->push_back(this->keys[i], this->children[i + 1]);
   }
   // The mid should have the node that is transferred to the parent
@@ -678,7 +682,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::redistribute(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     borrow_from_right_uncle(
-        inner_node* right_uncle, i32 parent_index, bool leaf_child
+        inner_node* right_uncle, usize parent_index, bool leaf_child
     ) noexcept {
   // Get the grandparent key and the first child pointer from the right uncle
   auto* child = right_uncle->front_child();
@@ -700,7 +704,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     borrow_from_left_uncle(
-        inner_node* left_uncle, i32 parent_index, bool leaf_child
+        inner_node* left_uncle, usize parent_index, bool leaf_child
     ) noexcept {
   // Get the grandparent key and the last child pointer from the left uncle
   auto* child = left_uncle->back_child();
@@ -721,7 +725,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<
-    Derived, Key, Value, KeyCompare>::inner_node::merge_children(i32 index
+    Derived, Key, Value, KeyCompare>::inner_node::merge_children(usize index
 ) noexcept {
   auto* child1 = static_cast<inner_node*>(this->children[index]);
   auto* child2 = static_cast<inner_node*>(this->children[index + 1]);
@@ -735,7 +739,7 @@ void base_bptree_map<
   grandchild->parent = child1;
   child1->push_back(this->keys[index], grandchild);
 
-  for (i32 i = 0; i < _size; ++i) {
+  for (usize i = 0; i < _size; ++i) {
     grandchild = static_cast<inner_node*>(_children[i + 1]);
     grandchild->parent = child1;
     child1->push_back(_keys[i], grandchild);
@@ -748,4 +752,3 @@ void base_bptree_map<
 } // namespace ds
 
 #endif
-
