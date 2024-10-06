@@ -31,17 +31,13 @@ template <typename Derived, typename T> class base_vector {
 public:
   friend Derived;
 
-  using value = T;
-  using ref = T&;
-  using cref = const T&;
-  using rref = T&&;
-  using ptr = T*;
+  using value_type = T;
 
   using iterator = vector_iterator<base_vector<Derived, T>>;
   using citerator = vector_iterator<const base_vector<Derived, T>>;
 
 protected:
-  ptr arr = nullptr;
+  T* arr = nullptr;
   usize top = 0;
   usize capacity = 0;
 
@@ -84,20 +80,19 @@ protected:
   // === Insert === //
   template <typename... Args>
   [[nodiscard]] error_code
-  insert_helper(usize index, cref first, Args&&... args) noexcept;
+  insert_helper(usize index, const T& first, Args&&... args) noexcept;
 
   template <typename... Args>
   [[nodiscard]] error_code
-  insert_helper(usize index, rref first, Args&&... args) noexcept;
+  insert_helper(usize index, T&& first, Args&&... args) noexcept;
 
   // === Push Back === //
   template <typename... Args>
   [[nodiscard]] error_code
-  push_back_helper(cref first, Args&&... args) noexcept;
+  push_back_helper(const T& first, Args&&... args) noexcept;
 
   template <typename... Args>
-  [[nodiscard]] error_code
-  push_back_helper(rref first, Args&&... args) noexcept;
+  [[nodiscard]] error_code push_back_helper(T&& first, Args&&... args) noexcept;
 
   void erase_impl(usize index) noexcept;
 
@@ -143,7 +138,7 @@ public:
   /**
    * Unsafe index accessing
    **/
-  [[nodiscard]] ref operator[](usize index) const noexcept;
+  [[nodiscard]] T& operator[](usize index) const noexcept;
 
   /**
    * Returns the expected ptr at the start of the vector
@@ -156,7 +151,6 @@ public:
   /**
    * Returns the expected ptr at the end of the vector
    *
-   * @return exp_ptr_err<value>
    * @errors
    *  - error_code::INDEX_OUT_OF_BOUNDS
    *
@@ -165,24 +159,18 @@ public:
 
   /**
    * Returns the expected ptr at the start of the vector
-   *
-   * @return ref
    **/
-  [[nodiscard]] ref front_unsafe() const noexcept;
+  [[nodiscard]] T& front_unsafe() const noexcept;
 
   /**
    * Returns the expected ptr at the end of the vector
-   *
-   *  @return ref
    **/
-  [[nodiscard]] ref back_unsafe() const noexcept;
+  [[nodiscard]] T& back_unsafe() const noexcept;
 
   /**
    * Returns the ptr of the vector container
-   *
-   * @return ptr
    **/
-  [[nodiscard]] ptr data() const noexcept;
+  [[nodiscard]] T* data() const noexcept;
 
   // === Iterators === //
   /**

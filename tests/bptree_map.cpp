@@ -11,197 +11,189 @@
 #include "main.hpp"
 #include "types.hpp"
 #include <array>
-#include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <map>
 
 // NOTE: Test class, string class
 
-TEST_CASE("Check if i32 keys are sorted", "[bptree_map][i32]") {
+template <typename T> inline void test_ascending(const ds::usize N) {
+  ds::bptree_map<T, T> map{};
+  T* pointer = nullptr;
   ds::error_code error_code{};
-  ds::usize* pointer = nullptr;
-  ds::expected<ds::usize*, ds::error_code> expected{};
+  ds::expected<T*, ds::error_code> expected{};
 
-  const ds::usize N = 64;
-  ds::bptree_map<ds::i32, ds::usize> map{};
-
-  ds::i32 tmp = 0;
-  for (ds::usize i = 0; i < N; ++i) {
-    tmp = std::rand();
-    error_code = map.insert(tmp, i);
+  for (T i = 1; i <= N; ++i) {
+    error_code = map.insert(i, i);
     REQUIRE(ds_test::handle_error(error_code));
+    REQUIRE(map.get_size() == i);
 
-    pointer = map[tmp];
+    pointer = map[i];
     REQUIRE(pointer != nullptr);
     REQUIRE(*pointer == i);
 
-    expected = map.at(tmp);
+    expected = map.at(i);
     REQUIRE(ds_test::handle_error(expected));
     REQUIRE(**expected == i);
   }
 
-  ds::i32 previous = INT32_MIN;
-  error_code = map.insert(previous, 0);
-  REQUIRE(ds_test::handle_error(error_code));
+  REQUIRE_FALSE(map.is_empty());
 
-  SECTION("Check if sorted (iterators)") {
-    auto iterator = map.begin();
-    for (++iterator; iterator != map.end(); ++iterator) {
-      REQUIRE(iterator.key() > previous);
-      previous = iterator.key();
+  auto iterator = map.begin();
+  T previous = iterator.key();
+  for (++iterator; iterator != map.end(); ++iterator) {
+    REQUIRE(iterator.key() > previous);
+    previous = iterator.key();
+  }
+
+  for (T i = 1; i <= N; ++i) {
+    map.erase(i);
+    REQUIRE(i + map.get_size() == N);
+
+    pointer = map[i];
+    REQUIRE(pointer == nullptr);
+
+    expected = map.at(i);
+    if (i == N) {
+      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+    } else {
+      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
     }
   }
+
+  REQUIRE(map.is_empty());
 }
 
-TEST_CASE("Check if i64 keys are sorted", "[bptree_map][i64]") {
+template <typename T> inline void test_descending(const ds::usize N) {
+  ds::bptree_map<T, T> map{};
+  T* pointer = nullptr;
   ds::error_code error_code{};
-  ds::usize* pointer = nullptr;
-  ds::expected<ds::usize*, ds::error_code> expected{};
+  ds::expected<T*, ds::error_code> expected{};
 
-  const ds::usize N = 64;
-  ds::bptree_map<ds::i64, ds::usize> map{};
-
-  ds::i64 tmp = 0;
-  for (ds::usize i = 0; i < N; ++i) {
-    tmp = std::rand();
-    error_code = map.insert(tmp, i);
+  for (T i = N; i > 0; --i) {
+    error_code = map.insert(i, i);
     REQUIRE(ds_test::handle_error(error_code));
+    REQUIRE(map.get_size() + i == N + 1);
 
-    pointer = map[tmp];
+    pointer = map[i];
     REQUIRE(pointer != nullptr);
     REQUIRE(*pointer == i);
 
-    expected = map.at(tmp);
+    expected = map.at(i);
     REQUIRE(ds_test::handle_error(expected));
     REQUIRE(**expected == i);
   }
 
-  ds::i64 previous = INT64_MIN;
-  error_code = map.insert(previous, 0);
-  REQUIRE(ds_test::handle_error(error_code));
+  REQUIRE_FALSE(map.is_empty());
 
-  SECTION("Check if sorted (iterators)") {
-    auto iterator = map.begin();
-    for (++iterator; iterator != map.end(); ++iterator) {
-      REQUIRE(iterator.key() > previous);
-      previous = iterator.key();
+  auto iterator = map.begin();
+  T previous = iterator.key();
+  for (++iterator; iterator != map.end(); ++iterator) {
+    REQUIRE(iterator.key() > previous);
+    previous = iterator.key();
+  }
+
+  for (T i = N; i > 0; --i) {
+    map.erase(i);
+    REQUIRE(i == map.get_size() + 1);
+
+    pointer = map[i];
+    REQUIRE(pointer == nullptr);
+
+    expected = map.at(i);
+    if (i == 1) {
+      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+    } else {
+      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
     }
   }
+
+  REQUIRE(map.is_empty());
 }
 
-TEST_CASE("Check if u32 keys are sorted", "[bptree_map][u32]") {
+// Try to start from N / 2 then outwards
+// Eg. N = 1000 ; 499, 500, 498, 501, 497, ..., 0, 999
+template <typename T> inline void test_centered(const ds::usize N) {
+  ds::bptree_map<T, T> map{};
+  T* pointer = nullptr;
   ds::error_code error_code{};
-  ds::usize* pointer = nullptr;
-  ds::expected<ds::usize*, ds::error_code> expected{};
+  ds::expected<T*, ds::error_code> expected{};
 
-  const ds::usize N = 64;
-  ds::bptree_map<ds::u32, ds::usize> map{};
+  T key = 0;
+  for (T i = 0; i < N / 2; ++i) {
+    key = N / 2 - i - 1;
 
-  ds::u32 tmp = 0;
-  for (ds::usize i = 0; i < N; ++i) {
-    tmp = std::rand();
-    error_code = map.insert(tmp, i);
+    error_code = map.insert(key, i);
     REQUIRE(ds_test::handle_error(error_code));
+    REQUIRE(map.get_size() == (i * 2) + 1);
 
-    pointer = map[tmp];
+    pointer = map[key];
     REQUIRE(pointer != nullptr);
     REQUIRE(*pointer == i);
 
-    expected = map.at(tmp);
+    expected = map.at(key);
+    REQUIRE(ds_test::handle_error(expected));
+    REQUIRE(**expected == i);
+
+    // --- //
+
+    key = N / 2 + i;
+
+    error_code = map.insert(key, i);
+    REQUIRE(ds_test::handle_error(error_code));
+    REQUIRE(map.get_size() == (i + 1) * 2);
+
+    pointer = map[key];
+    REQUIRE(pointer != nullptr);
+    REQUIRE(*pointer == i);
+
+    expected = map.at(key);
     REQUIRE(ds_test::handle_error(expected));
     REQUIRE(**expected == i);
   }
 
-  ds::u32 previous = 0U;
-  error_code = map.insert(previous, 0);
-  REQUIRE(ds_test::handle_error(error_code));
+  REQUIRE_FALSE(map.is_empty());
 
-  SECTION("Check if sorted (iterators)") {
-    auto iterator = map.begin();
-    for (++iterator; iterator != map.end(); ++iterator) {
-      REQUIRE(iterator.key() > previous);
-      previous = iterator.key();
+  auto iterator = map.begin();
+  key = iterator.key();
+  for (++iterator; iterator != map.end(); ++iterator) {
+    REQUIRE(iterator.key() > key);
+    key = iterator.key();
+  }
+
+  for (T i = 0; i < N / 2; ++i) {
+    key = N / 2 - i - 1;
+    map.erase(key);
+    REQUIRE(map.get_size() + (2 * i) + 1 == N);
+
+    pointer = map[key];
+    REQUIRE(pointer == nullptr);
+
+    expected = map.at(key);
+    REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+    // --- //
+
+    key = N / 2 + i;
+    map.erase(key);
+    REQUIRE(map.get_size() + 2 * (i + 1) == N);
+
+    pointer = map[key];
+    REQUIRE(pointer == nullptr);
+
+    expected = map.at(key);
+    if (i == N / 2 - 1) {
+      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+    } else {
+      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
     }
   }
+
+  REQUIRE(map.is_empty());
 }
 
-TEST_CASE("Check if u64 elements are sorted", "[bptree_map][u64]") {
-  ds::error_code error_code{};
-  ds::u64* pointer = nullptr;
-  ds::expected<ds::u64*, ds::error_code> expected{};
-
-  const ds::usize N = 64;
-  ds::bptree_map<ds::u64, ds::usize> map{};
-
-  ds::u64 tmp = 0;
-  for (ds::usize i = 0; i < N; ++i) {
-    tmp = std::rand();
-    error_code = map.insert(tmp, i);
-    REQUIRE(ds_test::handle_error(error_code));
-
-    pointer = map[tmp];
-    REQUIRE(pointer != nullptr);
-    REQUIRE(*pointer == i);
-
-    expected = map.at(tmp);
-    REQUIRE(ds_test::handle_error(expected));
-    REQUIRE(**expected == i);
-  }
-
-  ds::u64 previous = 0U;
-  error_code = map.insert(previous, 0);
-  REQUIRE(ds_test::handle_error(error_code));
-
-  SECTION("Check if sorted (iterators)") {
-    auto iterator = map.begin();
-    for (++iterator; iterator != map.end(); ++iterator) {
-      REQUIRE(iterator.key() > previous);
-      previous = iterator.key();
-    }
-  }
-}
-
-TEST_CASE("Benchmarks", "[bptree_map]"){
-    // NOLINT
-
-    SECTION("1,000"){const ds::i32 N = 1'000;
-std::array<ds::i32, N> random{};
-
-for (ds::i32 i = 0; i < N; ++i) {
-  random[i] = std::rand();
-}
-
-BENCHMARK("ds::bptree_map") {
-  ds::error_code error_code{};
-  ds::bptree_map<ds::i32, ds::i32> map{};
-
-  for (ds::i32 i = 0; i < N; ++i) {
-    error_code = map.insert(random[i], i);
-  }
-
-  for (ds::i32 i = 0; i < N; ++i) {
-    static_cast<void>(map[i]);
-  }
-};
-
-BENCHMARK("std::map") {
-  std::map<ds::i32, ds::i32> map{};
-  for (ds::i32 i = 0; i < N; ++i) {
-    map[random[i]] = i;
-  }
-
-  for (ds::i32 i = 0; i < N; ++i) {
-    static_cast<void>(map[i]);
-  }
-};
-}
-
-SECTION("10,000") {
-  const ds::usize N = 10'000;
+template <typename T, ds::usize N> void benchmark() {
   std::array<ds::i32, N> random{};
-
-  for (ds::usize i = 0; i < N; ++i) {
+  for (ds::i32 i = 0; i < N; ++i) {
     random[i] = std::rand();
   }
 
@@ -229,5 +221,47 @@ SECTION("10,000") {
     }
   };
 }
+
+const ds::usize SIZE = 256;
+
+TEST_CASE("Check if i32 keys", "[bptree_map][i32]") {
+  test_ascending<ds::i32>(SIZE);
+  test_descending<ds::i32>(SIZE);
+  test_centered<ds::i32>(SIZE);
 }
-;
+
+TEST_CASE("Check if i64 keys", "[bptree_map][i64]") {
+  test_ascending<ds::i64>(SIZE);
+  test_descending<ds::i64>(SIZE);
+  test_centered<ds::i64>(SIZE);
+}
+
+TEST_CASE("Check if u32 keys", "[bptree_map][u32]") {
+  test_ascending<ds::u32>(SIZE);
+  test_descending<ds::u32>(SIZE);
+  test_centered<ds::u32>(SIZE);
+}
+
+TEST_CASE("Check if u64", "[bptree_map][u64]") {
+  test_ascending<ds::u64>(SIZE);
+  test_descending<ds::u64>(SIZE);
+  test_centered<ds::u64>(SIZE);
+}
+
+TEST_CASE("Benchmarks", "[bptree_map]") {
+  SECTION("i32 ; 1,000") {
+    benchmark<ds::i32, 1'000>();
+  }
+
+  SECTION("i64 ; 1,000") {
+    benchmark<ds::i64, 1'000>();
+  }
+
+  SECTION("i32 ; 10,000") {
+    benchmark<ds::i32, 10'000>();
+  }
+
+  SECTION("i64 ; 10,000") {
+    benchmark<ds::i64, 10'000>();
+  }
+}

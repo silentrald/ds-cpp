@@ -27,6 +27,12 @@
 #endif
 #endif
 
+#ifdef BIT_64
+#define USIZE_FORMAT "%llu"
+#else
+#define USIZE_FORMAT "%u"
+#endif
+
 namespace ds {
 
 using u8 = std::uint8_t;
@@ -75,6 +81,11 @@ enum error_code : u32 {
 
 inline bool is_error(error_code error) noexcept {
   return error != error_code::OK;
+}
+
+template <typename T>
+inline bool is_error(const expected<T, error_code>& expected) noexcept {
+  return !expected;
 }
 
 inline unexpected<error_code> to_unexpected(error_code error) noexcept {

@@ -35,7 +35,7 @@ error_code base_vector<Derived, T>::copy(const base_vector& rhs) noexcept {
   }
 
   for (usize i = 0U; i < rhs.top; ++i) {
-    if constexpr (std::is_copy_assignable<value>::value) {
+    if constexpr (std::is_copy_assignable<T>::value) {
       this->arr[i] = rhs.arr[i]; // Copyable
     } else {
       TRY(this->arr[i].copy(rhs.arr[i])); // Custom Object
@@ -84,7 +84,7 @@ void base_vector<Derived, T>::destroy() noexcept {
     ds_test::free_ptr = this->arr;
 #endif
 
-    if constexpr (std::is_class<value>::value) {
+    if constexpr (std::is_class<T>::value) {
       for (usize i = 0U; i < this->capacity; ++i) {
         this->arr[i].~T();
       }
@@ -107,13 +107,13 @@ error_code base_vector<Derived, T>::allocate(usize size) noexcept {
   assert(size > 0U);
 
   // NOLINTNEXTLINE
-  this->arr = static_cast<ptr>(std::malloc(size * sizeof(T)));
+  this->arr = static_cast<T*>(std::malloc(size * sizeof(T)));
   if (this->arr == nullptr) {
     return error_code::BAD_ALLOCATION;
   }
 
   // Data initialization
-  if constexpr (std::is_class<value>::value) {
+  if constexpr (std::is_class<T>::value) {
     new (this->arr) T[size];
   } else {
     std::memset(this->arr, 0, size * sizeof(T));
@@ -128,7 +128,7 @@ error_code base_vector<Derived, T>::reallocate(usize size) noexcept {
   assert(size >= this->capacity);
 
   // Free the data
-  if constexpr (std::is_class<value>::value) {
+  if constexpr (std::is_class<T>::value) {
     for (usize i = size; i < this->top; ++i) {
       this->arr[i].~T();
     }
@@ -139,9 +139,9 @@ error_code base_vector<Derived, T>::reallocate(usize size) noexcept {
   if (_ptr == nullptr) {
     return error_code::BAD_ALLOCATION;
   }
-  this->arr = static_cast<ptr>(_ptr);
+  this->arr = static_cast<T*>(_ptr);
 
-  if constexpr (std::is_class<value>::value) {
+  if constexpr (std::is_class<T>::value) {
     for (usize i = this->capacity; i < size; ++i) {
       new (this->arr + i) T;
     }
@@ -200,8 +200,7 @@ expected<T*, error_code> base_vector<Derived, T>::at(usize index
 }
 
 template <typename Derived, typename T>
-typename base_vector<Derived, T>::ref
-base_vector<Derived, T>::operator[](usize index) const noexcept {
+T& base_vector<Derived, T>::operator[](usize index) const noexcept {
   assert(index < this->top);
   return this->arr[index];
 }
@@ -235,8 +234,7 @@ T& base_vector<Derived, T>::back_unsafe() const noexcept {
 }
 
 template <typename Derived, typename T>
-typename base_vector<Derived, T>::ptr
-base_vector<Derived, T>::data() const noexcept {
+T* base_vector<Derived, T>::data() const noexcept {
   return this->arr;
 }
 
@@ -325,7 +323,7 @@ error_code base_vector<Derived, T>::reserve(usize size) noexcept {
 // === Modifiers === //
 template <typename Derived, typename T>
 void base_vector<Derived, T>::clear() noexcept {
-  if constexpr (std::is_class<value>::value) {
+  if constexpr (std::is_class<T>::value) {
     for (usize i = 0U; i < this->top; ++i) {
       this->arr[i].~T();
     }
@@ -338,10 +336,9 @@ void base_vector<Derived, T>::clear() noexcept {
 template <typename Derived, typename T>
 template <typename... Args>
 error_code base_vector<Derived, T>::insert_helper(
-    usize index, cref first, Args&&... args
+    usize index, const T& first, Args&&... args
 ) noexcept {
-  if constexpr (std::is_class<value>::value &&
-                !std::is_copy_assignable<value>::value) {
+  if constexpr (std::is_class<T>::value && !std::is_copy_assignable<T>::value) {
     TRY(this->arr[index].copy(first));
   } else {
     this->arr[index] = first;
@@ -357,7 +354,7 @@ error_code base_vector<Derived, T>::insert_helper(
 template <typename Derived, typename T>
 template <typename... Args>
 error_code base_vector<Derived, T>::insert_helper(
-    usize index, rref first, Args&&... args
+    usize index, T&& first, Args&&... args
 ) noexcept {
   this->arr[index] = std::move(first);
 
@@ -371,9 +368,10 @@ error_code base_vector<Derived, T>::insert_helper(
 // * Push Back * //
 template <typename Derived, typename T>
 template <typename... Args>
-error_code
-base_vector<Derived, T>::push_back_helper(cref first, Args&&... args) noexcept {
-  if constexpr (std::is_copy_assignable<value>::value) {
+error_code base_vector<Derived, T>::push_back_helper(
+    const T& first, Args&&... args
+) noexcept {
+  if constexpr (std::is_copy_assignable<T>::value) {
     this->arr[this->top] = first;
   } else {
     TRY(this->arr[this->top].copy(first));
@@ -390,7 +388,7 @@ base_vector<Derived, T>::push_back_helper(cref first, Args&&... args) noexcept {
 template <typename Derived, typename T>
 template <typename... Args>
 error_code
-base_vector<Derived, T>::push_back_helper(rref first, Args&&... args) noexcept {
+base_vector<Derived, T>::push_back_helper(T&& first, Args&&... args) noexcept {
   this->arr[this->top++] = std::move(first);
 
   if constexpr (sizeof...(Args)) {

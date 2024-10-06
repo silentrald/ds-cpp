@@ -16,9 +16,6 @@ namespace ds {
 template <typename T, typename E> class expected;
 
 template <class E> class unexpected {
-private:
-  E err{};
-
 public:
   unexpected() noexcept = default;
   unexpected(const unexpected&) noexcept = delete;
@@ -37,6 +34,7 @@ public:
   unexpected(const E& other) noexcept { // NOLINT
     this->err = other;
   }
+
   E& error() const noexcept {
     return this->err;
   }
@@ -44,6 +42,9 @@ public:
   E&& error() noexcept {
     return std::move(this->err);
   }
+
+private:
+  E err{};
 };
 
 template <class T, class E> class expected {
@@ -51,18 +52,6 @@ public:
   using value_type = T;
   using error_type = T;
 
-private:
-  union {
-    T val;
-    E err;
-  };
-  bool has_val = false;
-  bool has_err = false;
-
-  // === Destructor === //
-  void destroy() noexcept;
-
-public:
   expected() noexcept {}; // NOLINT
   expected(const expected&) noexcept = delete;
   expected& operator=(const expected&) noexcept = delete;
@@ -103,71 +92,46 @@ public:
   template <typename T2, typename E2>
   friend constexpr bool
   operator==(const expected<T2, E2>& lhs, const unexpected<E2>& rhs) noexcept;
-};
-
-template <class T, class E> class expected_ptr {
-public:
-  using value_type = T;
-  using error_type = T;
 
 private:
-  T* ptr = nullptr;
-  E err{};
-  bool has_ptr = false;
-  bool has_err = false;
+  union {
+    T val;
+    E err;
+  };
+  bool has_value = false;
+  bool has_error = false;
+
+  // === Initializers === //
+
+  inline void init_value() noexcept {
+    if constexpr (std::is_class<T>::value) {
+      new (&this->val) T;
+    }
+  }
+
+  inline void init_error() noexcept {
+    if constexpr (std::is_class<E>::value) {
+      new (&this->err) E;
+    }
+  }
 
   // === Destructor === //
+
   void destroy() noexcept;
 
-public:
-  expected_ptr() noexcept = default;
-  expected_ptr(const expected_ptr&) noexcept = delete;
-  expected_ptr& operator=(const expected_ptr&) noexcept = delete;
+  inline void destroy_value() noexcept {
+    this->has_value = false;
+    if constexpr (std::is_class<T>::value) {
+      this->val.~T();
+    }
+  }
 
-  // === Move === //
-  expected_ptr(expected_ptr&& rhs) noexcept;
-  expected_ptr(T* rhs) noexcept;              // NOLINT
-  expected_ptr(unexpected<E>&& rhs) noexcept; // NOLINT
-  expected_ptr& operator=(expected_ptr&& rhs) noexcept;
-  expected_ptr& operator=(T* rhs) noexcept;
-  expected_ptr& operator=(unexpected<E>&& rhs) noexcept;
-
-  // === Destructor === //
-  ~expected_ptr() noexcept;
-
-  // === Observers === //
-  explicit operator bool() const noexcept;
-  [[nodiscard]] bool is_null() const noexcept;
-
-  [[nodiscard]] T* operator->() noexcept;
-  [[nodiscard]] const T* operator->() const noexcept;
-  [[nodiscard]] T& operator*() & noexcept;
-  [[nodiscard]] const T& operator*() const& noexcept;
-
-  [[nodiscard]] T& value() noexcept;
-  [[nodiscard]] const T& value() const noexcept;
-  [[nodiscard]] T* data() noexcept;
-  [[nodiscard]] const T* data() const noexcept;
-  [[nodiscard]] E& error() noexcept;
-  [[nodiscard]] const E& error() const noexcept;
-
-  [[nodiscard]] T* value_or(T* default_value) const noexcept;
-
-  // === Non-member function === //
-  template <typename T2, typename E2>
-  friend constexpr bool operator==(
-      const expected_ptr<T2, E2>& lhs, const expected_ptr<T2, E2>& rhs
-  ) noexcept;
-  template <typename T2, typename E2>
-  friend constexpr bool
-  operator==(const expected_ptr<T2, E2>& lhs, const T2& val) noexcept;
-  template <typename T2, typename E2>
-  friend constexpr bool
-  operator==(const expected_ptr<T2, E2>& lhs, const T2* val) noexcept;
-  template <typename T2, typename E2>
-  friend constexpr bool operator==(
-      const expected_ptr<T2, E2>& lhs, const unexpected<E2>& rhs
-  ) noexcept;
+  inline void destroy_error() noexcept {
+    this->has_error = false;
+    if constexpr (std::is_class<E>::value) {
+      this->err.~T();
+    }
+  }
 };
 
 } // namespace ds
@@ -177,4 +141,3 @@ public:
 #endif
 
 #endif
-

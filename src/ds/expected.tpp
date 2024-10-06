@@ -13,38 +13,41 @@
 
 namespace ds {
 
-// * expected * //
 // === Move === //
+
 template <typename T, typename E>
 expected<T, E>::expected(expected&& rhs) noexcept
-    : has_val(rhs.has_val), has_err(rhs.has_err) {
-  if (this->has_val) {
-    new (&this->val) T;
+    : has_value(rhs.has_value), has_error(rhs.has_error) {
+  if (this->has_value) {
+    this->init_value();
     this->val = std::move(rhs.val);
-    return;
-  }
-
-  if (this->has_err) {
-    new (&this->err) E;
+    rhs.has_value = false;
+  } else if (this->has_error) {
+    this->init_error();
     this->err = std::move(rhs.err);
+    rhs.has_error = false;
   }
 }
 
 template <typename T, typename E>
-expected<T, E>::expected(T&& rhs) noexcept : has_val(true) {
-  new (&this->val) T;
+expected<T, E>::expected(T&& rhs) noexcept : has_value(true) {
+  this->init_value();
   this->val = std::move(rhs);
 }
 
 template <typename T, typename E>
-expected<T, E>::expected(const T& rhs) noexcept : has_val(true) {
-  new (&this->val) T;
-  this->val = rhs; // Will fail if not copyable
+expected<T, E>::expected(const T& rhs) noexcept : has_value(true) {
+  if constexpr (std::is_class<T>::value) {
+    new (&this->val) T;
+    this->val.copy(rhs);
+  } else {
+    this->val = rhs; // Will fail if not copyable
+  }
 }
 
 template <typename T, typename E>
-expected<T, E>::expected(unexpected<E>&& rhs) noexcept : has_err(true) {
-  new (&this->err) E;
+expected<T, E>::expected(unexpected<E>&& rhs) noexcept : has_error(true) {
+  this->init_error();
   this->err = std::move(rhs.error());
 }
 
@@ -55,17 +58,17 @@ expected<T, E>& expected<T, E>::operator=(expected&& rhs) noexcept {
   }
   this->destroy();
 
-  if (rhs.has_val) {
-    this->has_val = true;
-    rhs.has_val = false;
+  if (rhs.has_value) {
+    this->has_value = true;
+    rhs.has_value = false;
 
-    new (&this->val) T;
+    this->init_value();
     this->val = std::move(rhs.val);
-  } else if (this->has_err) {
-    this->has_err = true;
-    rhs.has_err = false;
+  } else if (rhs.has_error) {
+    this->has_error = true;
+    rhs.has_error = false;
 
-    new (&this->err) E;
+    this->init_error();
     this->err = std::move(rhs.err);
   }
 
@@ -74,17 +77,17 @@ expected<T, E>& expected<T, E>::operator=(expected&& rhs) noexcept {
 
 template <typename T, typename E>
 expected<T, E>& expected<T, E>::operator=(T&& rhs) noexcept {
-  if (this->has_val) {
+  if (this->has_value) {
     this->val = std::move(rhs);
     return *this;
   }
 
-  if (this->has_err) {
-    this->has_err = false;
-    this->err.~E();
+  if (this->has_error) {
+    this->destroy_error();
   }
-  this->has_val = true;
-  new (&this->val) T;
+
+  this->has_value = true;
+  this->init_value();
   this->val = std::move(rhs.val);
 
   return *this;
@@ -92,17 +95,17 @@ expected<T, E>& expected<T, E>::operator=(T&& rhs) noexcept {
 
 template <typename T, typename E>
 expected<T, E>& expected<T, E>::operator=(unexpected<E>&& rhs) noexcept {
-  if (this->has_err) {
+  if (this->has_error) {
     this->err = std::move(rhs.error());
     return *this;
   }
 
-  if (this->has_val) {
-    this->has_val = false;
-    this->val.~T();
+  if (this->has_value) {
+    this->destroy_value();
   }
-  this->has_err = true;
-  new (&this->err) E;
+
+  this->has_error = true;
+  this->init_error();
   this->err = std::move(rhs.error());
 
   return *this;
@@ -114,16 +117,15 @@ template <typename T, typename E> expected<T, E>::~expected() noexcept {
 }
 
 template <typename T, typename E> void expected<T, E>::destroy() noexcept {
-  if (this->has_val) {
-    this->has_val = false;
-    this->val.~T();
-  } else if (this->has_err) {
-    this->has_err = false;
-    this->err.~E();
+  if (this->has_value) {
+    this->destroy_value();
+  } else if (this->has_error) {
+    this->destroy_error();
   }
 }
 
 // === Observers === //
+
 template <typename T, typename E> T* expected<T, E>::operator->() noexcept {
   return &this->val;
 }
@@ -144,7 +146,7 @@ const T& expected<T, E>::operator*() const& noexcept {
 
 template <typename T, typename E>
 expected<T, E>::operator bool() const noexcept {
-  return this->has_val;
+  return this->has_value;
 }
 
 template <typename T, typename E> T& expected<T, E>::value() noexcept {
@@ -167,190 +169,35 @@ const E& expected<T, E>::error() const noexcept {
 
 template <typename T, typename E>
 T& expected<T, E>::value_or(T&& default_value) const& noexcept {
-  return this->has_val ? this->val : default_value;
+  return this->has_value ? this->val : default_value;
 }
 
 // === Non-member function === //
 template <typename T, typename E>
 constexpr bool
 operator==(const expected<T, E>& lhs, const expected<T, E>& rhs) noexcept {
-  if (lhs.has_val && rhs.has_val) {
+  if (lhs.has_value && rhs.has_value) {
     return lhs.val == rhs.val;
   }
 
-  if (lhs.has_err && rhs.has_err) {
+  if (lhs.has_error && rhs.has_error) {
     return lhs.err == rhs.err;
   }
 
-  return !lhs.has_val && !lhs.has_err && !rhs.has_val && !rhs.has_err;
+  return !lhs.has_value && !lhs.has_error && !rhs.has_value && !rhs.has_error;
 }
 
 template <typename T, typename E>
 constexpr bool operator==(const expected<T, E>& lhs, const T& rhs) noexcept {
-  return lhs.has_val ? lhs.val == rhs : false;
+  return lhs.has_value ? lhs.val == rhs : false;
 }
 
 template <typename T, typename E>
 constexpr bool
 operator==(const expected<T, E>& lhs, const unexpected<E>& rhs) noexcept {
-  return lhs.has_err ? false : lhs.err = rhs.err;
-}
-
-// * expected_ptr * //
-// === Move === //
-template <typename T, typename E>
-expected_ptr<T, E>::expected_ptr(expected_ptr&& rhs) noexcept
-    : ptr(rhs.ptr),
-      err(std::move(rhs.err)),
-      has_err(rhs.has_err),
-      has_ptr(rhs.has_ptr) {
-  rhs.ptr = nullptr;
-}
-
-template <typename T, typename E>
-expected_ptr<T, E>::expected_ptr(T* rhs) noexcept {
-  if (rhs) {
-    this->has_ptr = true;
-    this->ptr = rhs;
-  }
-}
-
-template <typename T, typename E>
-expected_ptr<T, E>::expected_ptr(unexpected<E>&& rhs) noexcept
-    : err(std::move(rhs.error())), has_err(true) {}
-
-template <typename T, typename E>
-expected_ptr<T, E>& expected_ptr<T, E>::operator=(expected_ptr&& rhs) noexcept {
-  if (&rhs == this) {
-    return *this;
-  }
-  this->destroy();
-
-  if (rhs.has_ptr) {
-    this->has_ptr = true;
-    rhs.has_ptr = false;
-    this->ptr = rhs.ptr;
-  } else if (rhs.has_err) {
-    this->has_err = true;
-    rhs.has_err = false;
-    this->err = std::move(rhs.err);
-  }
-
-  return *this;
-}
-
-// === Destructor === //
-template <typename T, typename E> expected_ptr<T, E>::~expected_ptr() noexcept {
-  this->destroy();
-}
-
-template <typename T, typename E> void expected_ptr<T, E>::destroy() noexcept {
-  if (this->has_ptr) {
-    this->has_ptr = false;
-    this->ptr = nullptr;
-  } else if (this->has_err) {
-    this->has_err = false;
-    this->err.~E();
-  }
-}
-
-// === Observers === //
-template <typename T, typename E> T* expected_ptr<T, E>::operator->() noexcept {
-  return this->ptr;
-}
-
-template <typename T, typename E>
-const T* expected_ptr<T, E>::operator->() const noexcept {
-  return this->ptr;
-}
-
-template <typename T, typename E>
-T& expected_ptr<T, E>::operator*() & noexcept {
-  return *this->ptr;
-}
-
-template <typename T, typename E>
-const T& expected_ptr<T, E>::operator*() const& noexcept {
-  return *this->ptr;
-}
-
-template <typename T, typename E>
-expected_ptr<T, E>::operator bool() const noexcept {
-  return this->has_ptr;
-}
-
-template <typename T, typename E>
-bool expected_ptr<T, E>::is_null() const noexcept {
-  return this->ptr == nullptr;
-}
-
-template <typename T, typename E> T& expected_ptr<T, E>::value() noexcept {
-  return *this->ptr;
-}
-
-template <typename T, typename E>
-const T& expected_ptr<T, E>::value() const noexcept {
-  return *this->ptr;
-}
-
-template <typename T, typename E> T* expected_ptr<T, E>::data() noexcept {
-  return this->ptr;
-}
-
-template <typename T, typename E>
-const T* expected_ptr<T, E>::data() const noexcept {
-  return this->ptr;
-}
-
-template <typename T, typename E> E& expected_ptr<T, E>::error() noexcept {
-  return this->err;
-}
-
-template <typename T, typename E>
-const E& expected_ptr<T, E>::error() const noexcept {
-  return this->err;
-}
-
-template <typename T, typename E>
-T* expected_ptr<T, E>::value_or(T* default_value) const noexcept {
-  return this->has_ptr ? this->ptr : default_value;
-}
-
-// === Non-member function === //
-template <typename T, typename E>
-constexpr bool operator==(
-    const expected_ptr<T, E>& lhs, const expected_ptr<T, E>& rhs
-) noexcept {
-  if (lhs.has_ptr == rhs.has_ptr) {
-    return lhs.ptr == rhs.ptr;
-  }
-
-  if (lhs.has_err == rhs.has_err) {
-    return lhs.err == rhs.err;
-  }
-
-  return !lhs.has_ptr && !lhs.has_err && !rhs.has_ptr && !rhs.has_err;
-}
-
-template <typename T, typename E>
-constexpr bool
-operator==(const expected_ptr<T, E>& lhs, const T& rhs) noexcept {
-  return lhs.has_val ? *lhs.ptr == rhs : false;
-}
-
-template <typename T, typename E>
-constexpr bool
-operator==(const expected_ptr<T, E>& lhs, const T* rhs) noexcept {
-  return lhs.has_val ? lhs.ptr == rhs : false;
-}
-
-template <typename T, typename E>
-constexpr bool
-operator==(const expected_ptr<T, E>& lhs, const unexpected<E>& rhs) noexcept {
-  return lhs.has_err ? lhs.err = rhs.err : false;
+  return lhs.has_error ? false : lhs.err = rhs.err;
 }
 
 } // namespace ds
 
 #endif
-

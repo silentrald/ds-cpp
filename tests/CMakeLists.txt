@@ -2,7 +2,14 @@ add_compile_definitions(DS_ERROR_MSG=${DS_ERROR_MSG})
 
 # Bptree Map
 add_executable(bptree_map bptree_map.cpp main.cpp)
+target_compile_definitions(bptree_map PRIVATE DS_TEST)
 target_link_libraries(bptree_map PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
+
+add_executable(bptree_map_mem bptree_map_mem.cpp main.cpp)
+target_compile_definitions(bptree_map_mem PRIVATE DS_TEST)
+target_link_libraries(bptree_map_mem PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 

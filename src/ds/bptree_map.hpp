@@ -11,7 +11,13 @@
 #include "./bptree_map_iterator.hpp"
 #include "ds/compare.hpp"
 #include "types.hpp"
-#include <utility>
+#include <cstring>
+#include <type_traits>
+
+#ifdef DS_TEST
+#include "ds/vector.hpp"
+#include <cstdio>
+#endif
 
 namespace ds {
 
@@ -33,39 +39,40 @@ public:
   class inner_node;
 
   using key_type = Key;
-  using key_ptr = Key*;
-  using key_ref = Key&;
-  using key_cref = const Key&;
-  using key_rref = Key&&;
-
   using value_type = Value;
-  using value_ptr = Value*;
-  using value_ref = Value&;
-  using value_cref = const Value&;
-  using value_rref = Value&&;
-
   using iterator =
       bptree_map_iterator<base_bptree_map<Derived, Key, Value, KeyCompare>>;
   using citerator = bptree_map_iterator<
       const base_bptree_map<Derived, Key, Value, KeyCompare>>;
 
+protected:
+  // === Definitions === //
+
+  [[nodiscard]] static constexpr i32 get_degree() noexcept {
+    // Minimum degree is 3
+    return 64U / sizeof(Key) > 3U ? 64U / sizeof(Key) : 3U;
+  }
+
+  [[nodiscard]] constexpr i32 middle() const noexcept {
+    return this->get_degree() / 2;
+  }
+
+  [[nodiscard]] constexpr i32 min_inner_children() const noexcept {
+    // Ceiling function = adding the odd bit
+    return this->get_degree() / 2 + (this->get_degree() & 1) - 1;
+  }
+
+  [[nodiscard]] constexpr i32 min_leaf_children() const noexcept {
+    // Ceiling function = adding the odd bit
+    return this->get_degree() / 2 + (this->get_degree() & 1);
+  }
+
+public:
   class leaf_node {
   public:
     leaf_node() = default;
     leaf_node(const leaf_node&) = delete;
     leaf_node& operator=(const leaf_node&) = delete;
-
-    // === Initializers === //
-
-    /**
-     * Call this once on initialization
-     *
-     * This will create the arrays for the keys and values
-     *
-     * @errors
-     *  - error_code::BAD_ALLOCATION
-     **/
-    error_code init(usize capacity) noexcept;
 
     // === Move === //
 
@@ -75,6 +82,7 @@ public:
     // === Destructor === //
 
     ~leaf_node() noexcept;
+    void destroy() noexcept;
 
     // === Setters === //
 
@@ -84,51 +92,69 @@ public:
 
     // === Getters === //
 
-    [[nodiscard]] key_ptr get_keys() const noexcept;
-    [[nodiscard]] value_ptr get_values() const noexcept;
-    [[nodiscard]] usize get_size() const noexcept;
-    [[nodiscard]] inner_node* get_parent() const noexcept;
-    [[nodiscard]] leaf_node* get_next() const noexcept;
-    [[nodiscard]] leaf_node* get_prev() const noexcept;
+    [[nodiscard]] Key* get_keys() noexcept {
+      return this->keys;
+    }
+
+    [[nodiscard]] Value* get_values() noexcept {
+      return this->values;
+    }
+
+    [[nodiscard]] i32 get_size() const noexcept {
+      return this->size;
+    }
+
+    [[nodiscard]] inner_node* get_parent() const noexcept {
+      return this->parent;
+    }
+
+    [[nodiscard]] leaf_node* get_next() const noexcept {
+      return this->next;
+    }
+
+    [[nodiscard]] leaf_node* get_prev() const noexcept {
+      return this->prev;
+    }
 
     // === Element Access === //
 
-    [[nodiscard]] key_type at_key(usize index) const noexcept;
-    [[nodiscard]] key_type front_key() const noexcept;
-    [[nodiscard]] key_type back_key() const noexcept;
-    [[nodiscard]] Value& at_value(usize index) const noexcept;
+    [[nodiscard]] Key at_key(i32 index) const noexcept;
+    [[nodiscard]] Key front_key() const noexcept;
+    [[nodiscard]] Key back_key() const noexcept;
+    [[nodiscard]] Value& at_value(i32 index) const noexcept;
 
     // === Modifiers === //
 
-    usize insert(key_type key, value_rref value) noexcept;
-    void push_back(key_type key, value_rref value) noexcept;
-    void erase(usize index) noexcept;
+    i32 insert(Key key, Value&& value) noexcept;
+    void push_back(Key key, Value&& value) noexcept;
+    void erase(i32 index) noexcept;
     void clear() noexcept;
 
-    void redistribute(leaf_node* other, usize mid) noexcept;
+    void redistribute(leaf_node* other, i32 mid) noexcept;
     void borrow_right_sibling() noexcept;
     void borrow_left_sibling() noexcept;
     void merge_right_sibling() noexcept;
 
     // === Lookup === //
 
-    [[nodiscard]] value_ptr get_value(key_type key) const noexcept;
-    [[nodiscard]] usize find_index(key_type key) const noexcept;
-    [[nodiscard]] usize find_smaller_index(key_type key) const noexcept;
-    [[nodiscard]] usize find_larger_index(key_type key) const noexcept;
-    [[nodiscard]] usize find_not_smaller_index(key_type key) const noexcept;
-    [[nodiscard]] usize find_not_larger_index(key_type key) const noexcept;
+    [[nodiscard]] Value* get_value(Key key) noexcept;
+    [[nodiscard]] i32 find_index(Key key) const noexcept;
+    [[nodiscard]] i32 find_smaller_index(Key key) const noexcept;
+    [[nodiscard]] i32 find_larger_index(Key key) const noexcept;
+    [[nodiscard]] i32 find_not_smaller_index(Key key) const noexcept;
+    [[nodiscard]] i32 find_not_larger_index(Key key) const noexcept;
 
   private:
-    key_ptr keys = nullptr;     // size
-    value_ptr values = nullptr; // size
-    usize size = 0;
+    Key keys[base_bptree_map::get_degree()]; // NOLINT
+    i32 size = 0;
 
     inner_node* parent = nullptr;
     leaf_node* next = nullptr;
     leaf_node* prev = nullptr;
 
-    void insert_indexed(usize index, key_type key, value_rref value) noexcept;
+    Value values[base_bptree_map::get_degree()]; // NOLINT
+
+    void insert_indexed(i32 index, Key key, Value&& value) noexcept;
   };
 
   class inner_node {
@@ -136,14 +162,6 @@ public:
     inner_node() = default;
     inner_node(const inner_node&) = delete;
     inner_node& operator=(const inner_node&) = delete;
-
-    // === Initializers === //
-
-    /**
-     * @errors
-     *  - error_code::BAD_ALLOCATION
-     **/
-    [[nodiscard]] error_code init(usize capacity, void* child) noexcept;
 
     // === Move === //
 
@@ -153,6 +171,7 @@ public:
     // === Destructor === //
 
     ~inner_node() noexcept;
+    void destroy() noexcept;
     void destroy_last_child() noexcept;
     void destroy_leaf_children() noexcept;
 
@@ -162,10 +181,24 @@ public:
 
     // === Getters === //
 
-    [[nodiscard]] key_ptr get_keys() const noexcept;
-    [[nodiscard]] void** get_children() const noexcept;
-    [[nodiscard]] usize get_size() const noexcept;
-    [[nodiscard]] inner_node* get_parent() const noexcept;
+    [[nodiscard]] Key* get_keys() noexcept {
+      return this->keys;
+    }
+
+    /**
+     * Can either be inner_node** or leaf_node**
+     **/
+    [[nodiscard]] void** get_children() noexcept {
+      return this->children;
+    }
+
+    [[nodiscard]] i32 get_size() const noexcept {
+      return this->size;
+    }
+
+    [[nodiscard]] inner_node* get_parent() const noexcept {
+      return this->parent;
+    }
 
     // === Element Access === //
 
@@ -173,90 +206,105 @@ public:
      * First child that is less than the key, if all keys are smaller than the
      * key passed, this returns the last child
      **/
-    [[nodiscard]] void* find_smaller_child(key_type key) const noexcept;
-    [[nodiscard]] usize find_smaller_index(key_type key) const noexcept;
+    [[nodiscard]] void* find_smaller_child(Key key) const noexcept;
+    [[nodiscard]] i32 find_smaller_index(Key key) const noexcept;
 
-    [[nodiscard]] key_type at_key(usize index) const noexcept;
-    [[nodiscard]] key_type front_key() const noexcept;
-    [[nodiscard]] key_type back_key() const noexcept;
+    [[nodiscard]] Key at_key(i32 index) const noexcept;
+    [[nodiscard]] Key front_key() const noexcept;
+    [[nodiscard]] Key back_key() const noexcept;
     [[nodiscard]] void* front_child() const noexcept;
     [[nodiscard]] void* back_child() const noexcept;
 
     // === Modifiers === //
 
-    void insert(key_type key, void* child) noexcept;
-    void push_front(key_type key, void* child) noexcept;
+    void insert(Key key, void* child) noexcept;
+    void push_front(Key key, void* child) noexcept;
     void pop_front() noexcept;
-    void push_back(key_type key, void* child) noexcept;
+    void push_back(Key key, void* child) noexcept;
     void pop_back() noexcept;
-    void erase(usize index) noexcept;
-    void set_key(usize index, key_type key) noexcept;
+    void erase(i32 index) noexcept;
+    void set_key(i32 index, Key key) noexcept;
 
     // === Reparenting === //
 
-    void reparent_leaf_children() noexcept;
     void reparent_children() noexcept;
 
     // === Inserting === //
 
-    void redistribute(inner_node* other, usize mid) noexcept;
+    void redistribute(inner_node* other, i32 mid) noexcept;
 
     // === Erasing === //
 
-    void borrow_from_right_uncle(
-        inner_node* right_uncle, usize parent_index, bool leaf_child
-    ) noexcept;
-    void borrow_from_left_uncle(
-        inner_node* left_uncle, usize parent_index, bool leaf_child
-    ) noexcept;
+    void
+    borrow_from_right_uncle(inner_node* right_uncle, i32 parent_index) noexcept;
+    void
+    borrow_from_left_uncle(inner_node* left_uncle, i32 parent_index) noexcept;
 
     // Merges index and index + 1
-    void merge_children(usize index) noexcept;
+    void merge_children(i32 index) noexcept;
 
   private:
-    Key* keys = nullptr;       // size
-    void** children = nullptr; // size + 1
-    usize size = 0;
+    Key keys[base_bptree_map::get_degree()]; // NOLINT
+    i32 size = 0;
 
     inner_node* parent = nullptr;
 
-    void insert_indexed(usize index, key_type key, void* child) noexcept;
+    void* children[base_bptree_map::get_degree() + 1]{}; // NOLINT
+
+    void insert_indexed(i32 index, Key key, void* child) noexcept;
   };
 
-  using inner_ptr = inner_node*;
-  using leaf_ptr = leaf_node*;
+  friend leaf_node;
+  friend inner_node;
 
 protected:
   void* root = nullptr;
   usize size = 0U;
   usize height = 0U;
-  static const usize degree = 6U; // TODO: Connect this to CMake?
 
-  // * Definitions * //
+  constexpr void move(leaf_node&& other) noexcept {
+    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
+      if constexpr (std::is_class<Key>::value) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_keys()[i] = std::move(other.get_keys()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_keys(), other.get_keys(),
+            sizeof(Key) *
+                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+        );
+      }
 
-  [[nodiscard]] constexpr usize middle() const noexcept {
-    return this->degree / 2;
+      if constexpr (std::is_class<Value>::value) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_values()[i] = std::move(other.get_values()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_values(), other.get_values(),
+            sizeof(Value) *
+                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+        );
+      }
+    } else {
+      std::memcpy(
+          this->get_keys(), other.get_keys(),
+          (sizeof(Key) + sizeof(Value)) *
+              base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+      );
+    }
   }
 
-  [[nodiscard]] constexpr usize min_inner_children() const noexcept {
-    // Ceiling function = adding the odd bit
-    return this->degree / 2 + (this->degree & 1) - 1;
-  }
-
-  [[nodiscard]] constexpr usize min_leaf_children() const noexcept {
-    // Ceiling function = adding the odd bit
-    return this->degree / 2 + (this->degree & 1);
-  }
-
-  // * Lookup * //
+  // === Lookup === //
 
   /**
    * Finds the leaf node containing the key we want to find
    * This requires the tree to be height >= 1
    **/
-  [[nodiscard]] leaf_ptr find_leaf_node_containing(key_type key) const noexcept;
+  [[nodiscard]] leaf_node* find_leaf_node_containing(Key key) const noexcept;
 
-  // * Insert Helpers * //
+  // === Insert Helpers === //
 
   /**
    * Creates a internal node, if an error happens, this will return nullptr
@@ -267,7 +315,7 @@ protected:
    *
    * @return inner_ptr
    **/
-  [[nodiscard]] inner_ptr create_inner_node(void* child) noexcept;
+  [[nodiscard]] inner_node* create_inner_node(void* child) noexcept;
 
   /**
    * Creates a leaf node, if an error happens, this will return nullptr
@@ -276,9 +324,9 @@ protected:
    *  - bad allocation in creating the node
    *  - bad allocation in copying the key
    *
-   * @return leaf_ptr
+   * @return leaf_node*
    **/
-  [[nodiscard]] leaf_ptr create_leaf_node() noexcept;
+  [[nodiscard]] leaf_node* create_leaf_node() noexcept;
 
   /**
    * Splits the internal node
@@ -288,7 +336,7 @@ protected:
    *    - bad allocation in creating the new containers
    *    - bad allocation in copying the key
    **/
-  [[nodiscard]] error_code split_inner_node(inner_ptr left_node) noexcept;
+  [[nodiscard]] error_code split_inner_node(inner_node* left_node) noexcept;
 
   /**
    * Splits the leaf node
@@ -297,29 +345,29 @@ protected:
    *  - bad allocation in creating the new containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] error_code split_leaf_node(leaf_ptr left_leaf) noexcept;
+  [[nodiscard]] error_code split_leaf_node(leaf_node* left_leaf) noexcept;
 
   template <typename Value_>
-  [[nodiscard]] error_code insert_impl(key_type key, Value_ value) noexcept;
+  [[nodiscard]] error_code insert_impl(Key key, Value_ value) noexcept;
 
-  // * Erase Helpers * //
+  // === Erase Helpers === //
 
   /**
    * Tries to borrow from siblings or merge inner nodes,
    * this will also propagate to the parent nodes
    **/
-  void borrow_or_merge_inner(inner_ptr parent, key_type key) noexcept;
+  void borrow_or_merge_inner(inner_node* parent, Key key) noexcept;
 
   /**
    * Tries to borrows from siblings or merge leaf nodes,
    * this will also propagate to the parent nodes
    **/
-  void borrow_or_merge_leaf(leaf_ptr leaf) noexcept;
+  void borrow_or_merge_leaf(leaf_node* leaf) noexcept;
 
   /**
    * Erases the root node being a leaf node
    **/
-  void erase_root_leaf(key_type key) noexcept;
+  void erase_root_leaf(Key key) noexcept;
 
 public:
   base_bptree_map() noexcept = default;
@@ -344,8 +392,7 @@ public:
    *  - error_code::CONTAINER_EMPTY - tree is empty
    *  - error_code::NOT_FOUND - key is not found in the tree
    **/
-  [[nodiscard]] expected<value_type*, error_code> at(key_type key
-  ) const noexcept;
+  [[nodiscard]] expected<value_type*, error_code> at(Key key) const noexcept;
 
   /**
    * Get the first element less than the key
@@ -354,7 +401,7 @@ public:
    *  - error_code::CONTAINER_EMPTY - tree is empty
    *  - error_code::NOT_FOUND - key is smaller than the smallest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_smaller(key_type key
+  [[nodiscard]] expected<value_type*, error_code> at_smaller(Key key
   ) const noexcept;
 
   /**
@@ -364,7 +411,7 @@ public:
    *  - error_code::CONTAINER_EMPTY - tree is empty
    *  - error_code::NOT_FOUND - key is larger than the largest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_larger(key_type key
+  [[nodiscard]] expected<value_type*, error_code> at_larger(Key key
   ) const noexcept;
 
   /**
@@ -374,7 +421,7 @@ public:
    *  - error_code::CONTAINER_EMPTY - tree is empty
    *  - error_code::NOT_FOUND - key is larger than the greater element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_not_smaller(key_type key
+  [[nodiscard]] expected<value_type*, error_code> at_not_smaller(Key key
   ) const noexcept;
 
   /**
@@ -384,7 +431,7 @@ public:
    *  - error_code::CONTAINER_EMPTY - tree is empty
    *  - error_code::NOT_FOUND - key is smaller than the smallest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_not_larger(key_type key
+  [[nodiscard]] expected<value_type*, error_code> at_not_larger(Key key
   ) const noexcept;
 
   /**
@@ -393,7 +440,7 @@ public:
    *
    * @return value_ptr
    **/
-  [[nodiscard]] value_ptr operator[](key_type key) noexcept;
+  [[nodiscard]] Value* operator[](Key key) noexcept;
 
   // === Iterators === //
 
@@ -465,8 +512,8 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key or value
    **/
-  [[nodiscard]] error_code insert(key_type key, value_cref value) noexcept {
-    return this->insert_impl<value_cref>(key, value);
+  [[nodiscard]] error_code insert(Key key, const Value& value) noexcept {
+    return this->insert_impl<const Value&>(key, value);
   }
 
   /**
@@ -476,16 +523,16 @@ public:
    *  - bad allocation in creating the containers
    *  - bad allocation in copying the key
    **/
-  [[nodiscard]] error_code insert(key_type key, value_rref value) noexcept {
-    return this->insert_impl<value_rref>(key, std::move(value));
+  [[nodiscard]] error_code insert(Key key, Value&& value) noexcept {
+    return this->insert_impl<Value&&>(key, std::move(value));
   }
 
-  /**
+  /*
    * Erases an element in the bptree
    * If the element does not exist in the bptree, then this will not change
    * anything in the bptree and no error is thrown
    **/
-  void erase(key_type key) noexcept;
+  void erase(Key key) noexcept;
 
   // === Lookup === //
 
@@ -496,7 +543,7 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find(key_type key) noexcept;
+  [[nodiscard]] iterator find(Key key) noexcept;
 
   /**
    * Returns the iterator with the corresponding key.
@@ -505,7 +552,7 @@ public:
    *
    * @return citerator
    **/
-  [[nodiscard]] citerator find(key_type key) const noexcept;
+  [[nodiscard]] citerator find(Key key) const noexcept;
 
   /**
    * Returns an iterator to the first element less than the key.
@@ -514,7 +561,7 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_smaller(key_type key) noexcept;
+  [[nodiscard]] iterator find_smaller(Key key) noexcept;
 
   /**
    * Returns an iterator to the first element less than the key.
@@ -523,7 +570,7 @@ public:
    *
    * @return citerator
    **/
-  [[nodiscard]] citerator find_smaller(key_type key) const noexcept;
+  [[nodiscard]] citerator find_smaller(Key key) const noexcept;
 
   /**
    * Returns an iterator to the first element greater than the key.
@@ -532,7 +579,7 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_larger(key_type key) noexcept;
+  [[nodiscard]] iterator find_larger(Key key) noexcept;
 
   /**
    * Returns an iterator to the first element greater than the key.
@@ -541,7 +588,7 @@ public:
    *
    * @return citerator
    **/
-  [[nodiscard]] citerator find_larger(key_type key) const noexcept;
+  [[nodiscard]] citerator find_larger(Key key) const noexcept;
 
   /**
    * Returns an iterator to the first element not less than (greater than or
@@ -550,7 +597,7 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_not_smaller(key_type key) noexcept;
+  [[nodiscard]] iterator find_not_smaller(Key key) noexcept;
 
   /**
    * Returns an iterator to the first element not less than (greater than or
@@ -559,7 +606,7 @@ public:
    *
    * @return citerator
    **/
-  [[nodiscard]] citerator find_not_smaller(key_type key) const noexcept;
+  [[nodiscard]] citerator find_not_smaller(Key key) const noexcept;
 
   /**
    * Returns an iterator to the first element not greater than (less than or
@@ -568,7 +615,7 @@ public:
    *
    * @return iterator
    **/
-  [[nodiscard]] iterator find_not_larger(key_type key) noexcept;
+  [[nodiscard]] iterator find_not_larger(Key key) noexcept;
 
   /**
    * Returns an iterator to the first element not greater than (less than or
@@ -577,14 +624,81 @@ public:
    *
    * @return citerator
    **/
-  [[nodiscard]] citerator find_not_larger(key_type key) const noexcept;
+  [[nodiscard]] citerator find_not_larger(Key key) const noexcept;
 
   /**
    * Checks if the key exists in the bptree_map
    *
    * @return bool
    **/
-  [[nodiscard]] bool contains(key_type key) const noexcept;
+  [[nodiscard]] bool contains(Key key) const noexcept;
+
+#if DS_TEST
+  void print_inner_nodes() const noexcept {
+    if (this->height <= 1) {
+      printf("No inner nodes\n");
+      return;
+    }
+
+    ds::vector<inner_node*> stack{};
+    ds::vector<inner_node*> next{};
+    ds::error_code error = stack.push_back((inner_node*)this->root);
+
+    for (usize i = this->height; i > 1; --i) {
+      printf("=== Map Height " USIZE_FORMAT " ===\n", i);
+
+      for (auto* node : stack) {
+        printf(
+            "Inner %p | parent: %p ; children %d[", node, node->get_parent(),
+            node->get_size() + 1
+        );
+        for (usize j = 0; j <= node->get_size(); ++j) {
+          printf(
+              " (%x:%p)", j == node->get_size() ? 0U : node->get_keys()[j],
+              node->get_children()[j]
+          );
+          if (i > 2) {
+            error = next.push_back((inner_node*)node->get_children()[j]);
+          }
+        }
+        printf(" ]\n");
+      }
+
+      stack = std::move(next);
+    }
+  }
+
+  void print_leaf_nodes() const noexcept {
+    if (this->height == 0) {
+      printf("No leaf nodes\n");
+      return;
+    }
+
+    leaf_node* leaf = nullptr;
+    if (this->height == 1) {
+      leaf = (leaf_node*)this->root;
+    } else {
+      auto* node = (inner_node*)this->root;
+      for (usize i = 2; i < this->height; ++i) {
+        node = (inner_node*)node->front_child();
+      }
+
+      leaf = (leaf_node*)node->front_child();
+    }
+
+    while (leaf != nullptr) {
+      printf(
+          "Leaf %p | parent %p ; %p %p ; %d[", leaf, leaf->get_parent(),
+          leaf->get_prev(), leaf->get_next(), leaf->get_size()
+      );
+      for (i32 i = 0; i < leaf->get_size(); ++i) {
+        printf(" %x", leaf->get_values()[i]);
+      }
+      printf(" ]\n");
+      leaf = leaf->get_next();
+    }
+  }
+#endif
 };
 
 } // namespace ds

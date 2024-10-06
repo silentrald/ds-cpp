@@ -68,11 +68,11 @@ public:
   }
 
 private:
-  // * Insert * //
+  // === Insert === //
 
   template <typename... Args>
   [[nodiscard]] error_code
-  insert_helper(i32 index, cref first, Args&&... args) noexcept {
+  insert_helper(i32 index, const string& first, Args&&... args) noexcept {
     TRY(this->arr[index].copy(first));
 
     if constexpr (sizeof...(Args)) {
@@ -84,7 +84,7 @@ private:
 
   template <typename... Args>
   [[nodiscard]] error_code
-  insert_helper(i32 index, rref first, Args&&... args) noexcept {
+  insert_helper(i32 index, string&& first, Args&&... args) noexcept {
     this->arr[index] = std::move(first);
 
     if constexpr (sizeof...(Args)) {
@@ -108,7 +108,7 @@ private:
 
   template <typename... Args>
   [[nodiscard]] error_code
-  push_back_helper(cref first, Args&&... args) noexcept {
+  push_back_helper(const string& first, Args&&... args) noexcept {
     TRY(this->arr[this->top].copy(first));
     ++this->top;
 
@@ -121,7 +121,7 @@ private:
 
   template <typename... Args>
   [[nodiscard]] error_code
-  push_back_helper(rref first, Args&&... args) noexcept {
+  push_back_helper(string&& first, Args&&... args) noexcept {
     this->arr[this->top++] = std::move(first);
 
     if constexpr (sizeof...(Args)) {

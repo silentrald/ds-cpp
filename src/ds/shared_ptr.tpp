@@ -98,7 +98,7 @@ error_code shared_ptr<T>::set_impl(Data_ data) noexcept {
 
   if constexpr (std::is_rvalue_reference<Data_>::value) {
     this->data->val = std::move(data);
-  } else if constexpr (std::is_copy_assignable<value>::value) {
+  } else if constexpr (std::is_copy_assignable<T>::value) {
     this->data->val = data;
   } else {
     if (is_error(this->data->val.copy(data))) {

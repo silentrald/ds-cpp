@@ -14,31 +14,29 @@ namespace ds {
 
 template <typename Vector> class vector_iterator {
 public:
-  using value = typename Vector::value;
-  using ptr = value*;
-  using ref = value&;
-  using cref = const value&;
-  using cptr = const value*;
+  using value_type = typename Vector::value_type;
 
 private:
-  ptr pointer = nullptr;
+  using T = typename Vector::value_type;
+
+  T* pointer = nullptr;
 
 public:
-  explicit vector_iterator(ptr pointer) noexcept : pointer(pointer) {}
+  explicit vector_iterator(T* pointer) noexcept : pointer(pointer) {}
 
-  ref operator*() noexcept {
+  T& operator*() noexcept {
     return *this->pointer;
   }
 
-  cref operator*() const noexcept {
+  const T& operator*() const noexcept {
     return *this->pointer;
   }
 
-  ptr operator->() noexcept {
+  T* operator->() noexcept {
     return this->pointer;
   }
 
-  cptr operator->() const noexcept {
+  const T* operator->() const noexcept {
     return this->pointer;
   }
 

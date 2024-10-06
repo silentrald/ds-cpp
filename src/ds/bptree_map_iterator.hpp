@@ -15,34 +15,28 @@ namespace ds {
 template <typename BPTreeMap> class bptree_map_iterator {
 public:
   using key_type = typename BPTreeMap::key_type;
-  using key_ptr = key_type*;
-  using key_ref = key_type&;
-
   using value_type = typename BPTreeMap::value_type;
-  using value_ptr = value_type*;
-  using value_ref = value_type&;
-
-  using leaf_type = typename BPTreeMap::leaf_node;
-  using leaf_ptr = leaf_type*;
+  using leaf_node = typename BPTreeMap::leaf_node;
 
 private:
-  leaf_ptr pointer = nullptr;
-  usize index = 0;
+  leaf_node* pointer = nullptr;
+  isize index = 0;
 
 public:
   bptree_map_iterator() noexcept = default;
 
-  explicit bptree_map_iterator(leaf_ptr pointer) noexcept : pointer(pointer) {}
+  explicit bptree_map_iterator(leaf_node* pointer) noexcept
+      : pointer(pointer) {}
 
-  explicit bptree_map_iterator(leaf_ptr pointer, usize index) noexcept
+  explicit bptree_map_iterator(leaf_node* pointer, isize index) noexcept
       : pointer(pointer), index(index) {}
 
   // Element Access
-  key_type key() const noexcept {
+  [[nodiscard]] key_type key() const noexcept {
     return this->pointer->at_key(this->index);
   }
 
-  value_ref value() const noexcept {
+  [[nodiscard]] value_type& value() const noexcept {
     return this->pointer->at_value(this->index);
   }
 
