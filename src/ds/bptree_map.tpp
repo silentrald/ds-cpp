@@ -123,6 +123,8 @@ typename base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node*
 base_bptree_map<Derived, Key, Value, KeyCompare>::find_leaf_node_containing(
     Key key
 ) const noexcept {
+  // NOTE: In the future, can test if fast traversal for ancestor can be fast
+  // here
   auto* node = static_cast<inner_node*>(this->root);
 
   // Traverse the internal nodes until the parent containing the leaf nodes
@@ -432,7 +434,7 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
       }
     }
 
-    // Get the middle node(right bias) and move it to the parent
+    // Get the middle node(left bias) and move it to the parent
     key = left_node->get_keys()[mid];
 
     // Set the nodes parents
@@ -661,7 +663,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::borrow_or_merge_inner(
     if (this->root == grandparent) { // This is already the root node
       if (sz < 2) {                  // 0 children
         this->root = grandparent->get_children()[0];
-        // NOTE: Can either be inner_node or leaf_node
+        // NOTE: inner_node & leaf_node parent are aligned
         static_cast<inner_node*>(this->root)->set_parent(nullptr);
 
         --this->height;
@@ -767,59 +769,14 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::erase(Key key) noexcept {
   }
 
   // Just try to handle leaf deletion
-  auto* node = static_cast<inner_node*>(this->root);
+  i32 index = 0;
+  leaf_node* leaf = nullptr;
 
   // Ancestor same key value with the leaf node
   inner_node* ancestor = nullptr;
   i32 ancestor_index = 0;
 
-  i32 index = 0;
-  i32 sz = 0;
-  Key* keys = nullptr;
-  isize comparison = 0;
-
-  // NOTE: Can optimize the ancestor to traverse without doing any comparison
-
-  // Traverse the internal nodes until the parent containing the leaf nodes
-  for (usize h = this->height; h > 2; --h) {
-    sz = node->get_size();
-    keys = node->get_keys();
-
-    for (index = 0; index < sz; ++index) {
-      comparison = KeyCompare{}(key, keys[index]);
-      if (comparison == 0) {
-        ancestor = node;
-        ancestor_index = index;
-        ++index;
-        // Fast traversal here, path is right then all left afterwards, and set
-        // the height = 1
-        break;
-      }
-
-      if (comparison < 0) {
-        break;
-      }
-    }
-    node = static_cast<inner_node*>(node->get_children()[index]);
-  }
-
-  // Traverse the parent containing leaf nodes
-  sz = node->get_size();
-  keys = node->get_keys();
-  for (index = 0; index < sz; ++index) {
-    comparison = KeyCompare{}(key, keys[index]);
-    if (comparison == 0) {
-      ancestor = node;
-      ancestor_index = index;
-      ++index;
-      break;
-    }
-
-    if (comparison < 0) {
-      break;
-    }
-  }
-  auto* leaf = static_cast<leaf_node*>(node->get_children()[index]);
+  this->erase_traversal(key, ancestor, ancestor_index, leaf, index);
 
   if (ancestor != nullptr) {
     if constexpr (this->get_degree() > 3) {

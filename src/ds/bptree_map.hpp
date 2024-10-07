@@ -22,13 +22,11 @@
 namespace ds {
 
 /**
- * NOTE: This should only handle non class type keys
- * Key class type will produce an error if copied,
- * and it will pose a problem in erase since its hard
- * to revert it to the original form. As much as possible,
- * key type should be a primitive
- *
+ * B+ Tree implementation
+ * NOTE: No support for Key class type, might need in the future
  * NOTE: No implementation for strings yet, might need in the future
+ *
+ * Reference: https://en.wikipedia.org/wiki/B%2B_tree
  **/
 template <
     typename Derived, typename Key, typename Value,
@@ -45,7 +43,7 @@ public:
   using citerator = bptree_map_iterator<
       const base_bptree_map<Derived, Key, Value, KeyCompare>>;
 
-protected:
+private:
   // === Definitions === //
 
   [[nodiscard]] static constexpr i32 get_degree() noexcept {
@@ -143,6 +141,19 @@ public:
     [[nodiscard]] i32 find_larger_index(Key key) const noexcept;
     [[nodiscard]] i32 find_not_smaller_index(Key key) const noexcept;
     [[nodiscard]] i32 find_not_larger_index(Key key) const noexcept;
+
+#ifdef DS_TEST
+    void print() const noexcept {
+      printf(
+          "Leaf %p | parent %p ; %p %p ; %d[", this, this->parent, this->prev,
+          this->next, this->size
+      );
+      for (i32 i = 0; i < this->size; ++i) {
+        printf(" %x", this->values[i]);
+      }
+      printf(" ]\n");
+    }
+#endif
 
   private:
     Key keys[base_bptree_map::get_degree()]; // NOLINT
@@ -243,6 +254,21 @@ public:
     // Merges index and index + 1
     void merge_children(i32 index) noexcept;
 
+#ifdef DS_TEST
+    void print() const noexcept {
+      printf(
+          "Inner %p | parent: %p ; children %d[", this, this->parent,
+          this->size + 1
+      );
+      for (i32 i = 0; i <= this->size; ++i) {
+        printf(
+            " (%x:%p)", i == this->size ? 0U : this->keys[i], this->children[i]
+        );
+      }
+      printf(" ]\n");
+    }
+#endif
+
   private:
     Key keys[base_bptree_map::get_degree()]; // NOLINT
     i32 size = 0;
@@ -257,119 +283,6 @@ public:
   friend leaf_node;
   friend inner_node;
 
-protected:
-  void* root = nullptr;
-  usize size = 0U;
-  usize height = 0U;
-
-  constexpr void move(leaf_node&& other) noexcept {
-    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
-      if constexpr (std::is_class<Key>::value) {
-        for (u32 i = 0; i < this->size; ++i) {
-          this->get_keys()[i] = std::move(other.get_keys()[i]);
-        }
-      } else {
-        std::memcpy(
-            this->get_keys(), other.get_keys(),
-            sizeof(Key) *
-                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-        );
-      }
-
-      if constexpr (std::is_class<Value>::value) {
-        for (u32 i = 0; i < this->size; ++i) {
-          this->get_values()[i] = std::move(other.get_values()[i]);
-        }
-      } else {
-        std::memcpy(
-            this->get_values(), other.get_values(),
-            sizeof(Value) *
-                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-        );
-      }
-    } else {
-      std::memcpy(
-          this->get_keys(), other.get_keys(),
-          (sizeof(Key) + sizeof(Value)) *
-              base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-      );
-    }
-  }
-
-  // === Lookup === //
-
-  /**
-   * Finds the leaf node containing the key we want to find
-   * This requires the tree to be height >= 1
-   **/
-  [[nodiscard]] leaf_node* find_leaf_node_containing(Key key) const noexcept;
-
-  // === Insert Helpers === //
-
-  /**
-   * Creates a internal node, if an error happens, this will return nullptr
-   *
-   * @errors
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying the key
-   *
-   * @return inner_ptr
-   **/
-  [[nodiscard]] inner_node* create_inner_node(void* child) noexcept;
-
-  /**
-   * Creates a leaf node, if an error happens, this will return nullptr
-   *
-   * @errors
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying the key
-   *
-   * @return leaf_node*
-   **/
-  [[nodiscard]] leaf_node* create_leaf_node() noexcept;
-
-  /**
-   * Splits the internal node
-   *
-   * @errors
-   *  error_code::BAD_ALLOCATION
-   *    - bad allocation in creating the new containers
-   *    - bad allocation in copying the key
-   **/
-  [[nodiscard]] error_code split_inner_node(inner_node* left_node) noexcept;
-
-  /**
-   * Splits the leaf node
-   *
-   * @errors
-   *  - bad allocation in creating the new containers
-   *  - bad allocation in copying the key
-   **/
-  [[nodiscard]] error_code split_leaf_node(leaf_node* left_leaf) noexcept;
-
-  template <typename Value_>
-  [[nodiscard]] error_code insert_impl(Key key, Value_ value) noexcept;
-
-  // === Erase Helpers === //
-
-  /**
-   * Tries to borrow from siblings or merge inner nodes,
-   * this will also propagate to the parent nodes
-   **/
-  void borrow_or_merge_inner(inner_node* parent, Key key) noexcept;
-
-  /**
-   * Tries to borrows from siblings or merge leaf nodes,
-   * this will also propagate to the parent nodes
-   **/
-  void borrow_or_merge_leaf(leaf_node* leaf) noexcept;
-
-  /**
-   * Erases the root node being a leaf node
-   **/
-  void erase_root_leaf(Key key) noexcept;
-
-public:
   base_bptree_map() noexcept = default;
   base_bptree_map(const base_bptree_map&) = delete;
   base_bptree_map& operator=(const base_bptree_map&) = delete;
@@ -648,20 +561,12 @@ public:
       printf("=== Map Height " USIZE_FORMAT " ===\n", i);
 
       for (auto* node : stack) {
-        printf(
-            "Inner %p | parent: %p ; children %d[", node, node->get_parent(),
-            node->get_size() + 1
-        );
-        for (usize j = 0; j <= node->get_size(); ++j) {
-          printf(
-              " (%x:%p)", j == node->get_size() ? 0U : node->get_keys()[j],
-              node->get_children()[j]
-          );
-          if (i > 2) {
+        node->print();
+        if (i > 2) {
+          for (i32 j = 0; j <= node->get_size(); ++j) {
             error = next.push_back((inner_node*)node->get_children()[j]);
           }
         }
-        printf(" ]\n");
       }
 
       stack = std::move(next);
@@ -687,18 +592,184 @@ public:
     }
 
     while (leaf != nullptr) {
-      printf(
-          "Leaf %p | parent %p ; %p %p ; %d[", leaf, leaf->get_parent(),
-          leaf->get_prev(), leaf->get_next(), leaf->get_size()
-      );
-      for (i32 i = 0; i < leaf->get_size(); ++i) {
-        printf(" %x", leaf->get_values()[i]);
-      }
-      printf(" ]\n");
+      leaf->print();
       leaf = leaf->get_next();
     }
   }
 #endif
+
+private:
+  void* root = nullptr;
+  usize size = 0U;
+  usize height = 0U;
+
+  constexpr void move(leaf_node&& other) noexcept {
+    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
+      if constexpr (std::is_class<Key>::value) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_keys()[i] = std::move(other.get_keys()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_keys(), other.get_keys(),
+            sizeof(Key) *
+                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+        );
+      }
+
+      if constexpr (std::is_class<Value>::value) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_values()[i] = std::move(other.get_values()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_values(), other.get_values(),
+            sizeof(Value) *
+                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+        );
+      }
+    } else {
+      std::memcpy(
+          this->get_keys(), other.get_keys(),
+          (sizeof(Key) + sizeof(Value)) *
+              base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
+      );
+    }
+  }
+
+  // === Lookup === //
+
+  /**
+   * Finds the leaf node containing the key we want to find
+   * This requires the tree to be height >= 1
+   **/
+  [[nodiscard]] leaf_node* find_leaf_node_containing(Key key) const noexcept;
+
+  // === Insert Helpers === //
+
+  /**
+   * Creates a internal node, if an error happens, this will return nullptr
+   *
+   * @errors
+   *  - bad allocation in creating the node
+   *  - bad allocation in copying the key
+   *
+   * @return inner_ptr
+   **/
+  [[nodiscard]] inner_node* create_inner_node(void* child) noexcept;
+
+  /**
+   * Creates a leaf node, if an error happens, this will return nullptr
+   *
+   * @errors
+   *  - bad allocation in creating the node
+   *  - bad allocation in copying the key
+   *
+   * @return leaf_node*
+   **/
+  [[nodiscard]] leaf_node* create_leaf_node() noexcept;
+
+  /**
+   * Splits the internal node
+   *
+   * @errors
+   *  error_code::BAD_ALLOCATION
+   *    - bad allocation in creating the new containers
+   *    - bad allocation in copying the key
+   **/
+  [[nodiscard]] error_code split_inner_node(inner_node* left_node) noexcept;
+
+  /**
+   * Splits the leaf node
+   *
+   * @errors
+   *  - bad allocation in creating the new containers
+   *  - bad allocation in copying the key
+   **/
+  [[nodiscard]] error_code split_leaf_node(leaf_node* left_leaf) noexcept;
+
+  template <typename Value_>
+  [[nodiscard]] error_code insert_impl(Key key, Value_ value) noexcept;
+
+  // === Erase Helpers === //
+
+  inline void erase_traversal(
+      Key key, inner_node*& ancestor, i32& ancestor_index, leaf_node*& leaf,
+      i32& index
+  ) noexcept {
+    auto* node = static_cast<inner_node*>(this->root);
+
+    i32 sz = 0;
+    Key* keys = nullptr;
+    isize comparison = 0;
+
+    // Traverse the internal nodes until the parent containing the leaf nodes
+    for (usize h = this->height; h > 2; --h) {
+      sz = node->get_size();
+      keys = node->get_keys();
+
+      for (index = 0; index < sz; ++index) {
+        comparison = KeyCompare{}(key, keys[index]);
+        if (comparison == 0) {
+          ancestor = node;
+          ancestor_index = index;
+
+          // Fast traversal since ancestors have equivalent leaf nodes
+          // No need for any comparison
+          node = static_cast<inner_node*>(node->get_children()[index + 1]);
+          index = 0U;
+          for (; h > 3; --h) {
+            node = static_cast<inner_node*>(node->get_children()[0]);
+          }
+          leaf = static_cast<leaf_node*>(node->get_children()[0]);
+          break;
+        }
+
+        if (comparison < 0) {
+          break;
+        }
+      }
+
+      node = static_cast<inner_node*>(node->get_children()[index]);
+    }
+
+    if (ancestor == nullptr) {
+      // Traverse the parent containing leaf nodes
+      sz = node->get_size();
+      keys = node->get_keys();
+      for (index = 0; index < sz; ++index) {
+        comparison = KeyCompare{}(key, keys[index]);
+        if (comparison == 0) {
+          ancestor = node;
+          ancestor_index = index;
+          ++index;
+          break;
+        }
+
+        if (comparison < 0) {
+          break;
+        }
+      }
+      leaf = static_cast<leaf_node*>(node->get_children()[index]);
+    }
+  }
+
+  /**
+   * Tries to borrow from siblings or merge inner nodes,
+   * this will also propagate to the parent nodes
+   **/
+  void borrow_or_merge_inner(inner_node* parent, Key key) noexcept;
+
+  /**
+   * Tries to borrows from siblings or merge leaf nodes,
+   * this will also propagate to the parent nodes
+   **/
+  void borrow_or_merge_leaf(leaf_node* leaf) noexcept;
+
+  /**
+   * Erases the root node being a leaf node
+   **/
+  void erase_root_leaf(Key key) noexcept;
 };
 
 } // namespace ds

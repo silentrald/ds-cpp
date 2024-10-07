@@ -6,13 +6,10 @@
  *===============================*/
 
 #include "ds/bptree_map.hpp"
-#include "catch2/benchmark/catch_benchmark.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "main.hpp"
 #include "types.hpp"
-#include <array>
 #include <cstdlib>
-#include <map>
 
 // NOTE: Test class, string class
 
@@ -191,77 +188,61 @@ template <typename T> inline void test_centered(const ds::usize N) {
   REQUIRE(map.is_empty());
 }
 
-template <typename T, ds::usize N> void benchmark() {
-  std::array<ds::i32, N> random{};
-  for (ds::i32 i = 0; i < N; ++i) {
-    random[i] = std::rand();
-  }
-
-  BENCHMARK("ds::bptree_map") {
-    ds::error_code error_code{};
-    ds::bptree_map<ds::i32, ds::i32> map{};
-
-    for (ds::i32 i = 0; i < N; ++i) {
-      error_code = map.insert(random[i], i);
-    }
-
-    for (ds::i32 i = 0; i < N; ++i) {
-      static_cast<void>(map[i]);
-    }
-  };
-
-  BENCHMARK("std::map") {
-    std::map<ds::i32, ds::i32> map{};
-    for (ds::i32 i = 0; i < N; ++i) {
-      map[random[i]] = i;
-    }
-
-    for (ds::i32 i = 0; i < N; ++i) {
-      static_cast<void>(map[i]);
-    }
-  };
-}
-
-const ds::usize SIZE = 256;
+const ds::usize N_SMALL = 16;
+const ds::usize N_BIG = 512;
 
 TEST_CASE("Check if i32 keys", "[bptree_map][i32]") {
-  test_ascending<ds::i32>(SIZE);
-  test_descending<ds::i32>(SIZE);
-  test_centered<ds::i32>(SIZE);
+  SECTION("Small N") {
+    test_ascending<ds::i32>(N_SMALL);
+    test_descending<ds::i32>(N_SMALL);
+    test_centered<ds::i32>(N_SMALL);
+  }
+
+  SECTION("Big N") {
+    test_ascending<ds::i32>(N_BIG);
+    test_descending<ds::i32>(N_BIG);
+    test_centered<ds::i32>(N_BIG);
+  }
 }
 
 TEST_CASE("Check if i64 keys", "[bptree_map][i64]") {
-  test_ascending<ds::i64>(SIZE);
-  test_descending<ds::i64>(SIZE);
-  test_centered<ds::i64>(SIZE);
+  SECTION("Small N") {
+    test_ascending<ds::i64>(N_SMALL);
+    test_descending<ds::i64>(N_SMALL);
+    test_centered<ds::i64>(N_SMALL);
+  }
+
+  SECTION("Big N") {
+    test_ascending<ds::i64>(N_BIG);
+    test_descending<ds::i64>(N_BIG);
+    test_centered<ds::i64>(N_BIG);
+  }
 }
 
 TEST_CASE("Check if u32 keys", "[bptree_map][u32]") {
-  test_ascending<ds::u32>(SIZE);
-  test_descending<ds::u32>(SIZE);
-  test_centered<ds::u32>(SIZE);
+  SECTION("Small N") {
+    test_ascending<ds::u32>(N_SMALL);
+    test_descending<ds::u32>(N_SMALL);
+    test_centered<ds::u32>(N_SMALL);
+  }
+
+  SECTION("Big N") {
+    test_ascending<ds::u32>(N_BIG);
+    test_descending<ds::u32>(N_BIG);
+    test_centered<ds::u32>(N_BIG);
+  }
 }
 
 TEST_CASE("Check if u64", "[bptree_map][u64]") {
-  test_ascending<ds::u64>(SIZE);
-  test_descending<ds::u64>(SIZE);
-  test_centered<ds::u64>(SIZE);
-}
-
-TEST_CASE("Benchmarks", "[bptree_map]") {
-  SECTION("i32 ; 1,000") {
-    benchmark<ds::i32, 1'000>();
+  SECTION("Small N") {
+    test_ascending<ds::u64>(N_SMALL);
+    test_descending<ds::u64>(N_SMALL);
+    test_centered<ds::u64>(N_SMALL);
   }
 
-  SECTION("i64 ; 1,000") {
-    benchmark<ds::i64, 1'000>();
-  }
-
-  SECTION("i32 ; 10,000") {
-    benchmark<ds::i32, 10'000>();
-  }
-
-  SECTION("i64 ; 10,000") {
-    benchmark<ds::i64, 10'000>();
+  SECTION("Big N") {
+    test_ascending<ds::u64>(N_BIG);
+    test_descending<ds::u64>(N_BIG);
+    test_centered<ds::u64>(N_BIG);
   }
 }

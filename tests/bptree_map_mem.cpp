@@ -13,10 +13,11 @@
 #include <cstdlib>
 
 // Only even
-const ds::i32 N = 100'000'000;
+const ds::i32 N_BIG = 1'000'000;
+const ds::i32 N_SMALL = 16;
 
-template <typename T> bool test_ascending() noexcept {
-  printf("Testing ascending to %lu bytes\n", sizeof(T));
+template <typename T> bool test_ascending(const ds::i32 N) noexcept {
+  printf("Testing ascending to %lu bytes and N = %d\n", sizeof(T), N);
 
   ds::bptree_map<T, ds::i32> map{};
   ds::error_code error_code{};
@@ -58,8 +59,8 @@ template <typename T> bool test_ascending() noexcept {
   return true;
 }
 
-template <typename T> bool test_descending() noexcept {
-  printf("Testing descending to %lu bytes\n", sizeof(T));
+template <typename T> bool test_descending(const ds::i32 N) noexcept {
+  printf("Testing descending to %lu bytes and N = %d\n", sizeof(T), N);
 
   ds::bptree_map<T, ds::i32> map{};
   ds::error_code error_code{};
@@ -103,8 +104,8 @@ template <typename T> bool test_descending() noexcept {
 
 // Try to start from N / 2 then outwards
 // Eg. N = 1000 ; 499, 500, 498, 501, 497, ..., 0, 999
-template <typename T> bool test_centered() noexcept {
-  printf("Testing centered to %lu bytes\n", sizeof(T));
+template <typename T> bool test_centered(const ds::i32 N) noexcept {
+  printf("Testing centered to %lu bytes and N = %d\n", sizeof(T), N);
 
   ds::bptree_map<T, ds::i32> map{};
   ds::error_code error_code{};
@@ -148,9 +149,15 @@ template <typename T> bool test_centered() noexcept {
 }
 
 int main() {
-  if (!test_ascending<ds::i32>() || !test_descending<ds::i32>() ||
-      !test_centered<ds::i32>() || !test_ascending<ds::i64>() ||
-      !test_descending<ds::i64>() || !test_centered<ds::i64>()) {
+  if (!test_ascending<ds::i32>(N_SMALL) || !test_descending<ds::i32>(N_SMALL) ||
+      !test_centered<ds::i32>(N_SMALL) || !test_ascending<ds::i64>(N_SMALL) ||
+      !test_descending<ds::i64>(N_SMALL) || !test_centered<ds::i64>(N_SMALL)) {
+    return -1;
+  }
+
+  if (!test_ascending<ds::i32>(N_BIG) || !test_descending<ds::i32>(N_BIG) ||
+      !test_centered<ds::i32>(N_BIG) || !test_ascending<ds::i64>(N_BIG) ||
+      !test_descending<ds::i64>(N_BIG) || !test_centered<ds::i64>(N_BIG)) {
     return -1;
   }
 

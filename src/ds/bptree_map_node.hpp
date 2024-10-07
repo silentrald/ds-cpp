@@ -227,19 +227,12 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   this->push_back(key, std::move(this->next->values[0]));
   this->next->erase(0);
 
-  Key* keys = this->parent->get_keys();
-  i32 sz = this->parent->get_size() - 1;
-
-  // NOTE: Can be optimized by just comparing the child pointers instead of the
-  // keys
-  for (i32 i = 0; i < sz; ++i) {
-    if (KeyCompare{}(key, keys[i]) == 0) {
-      keys[i] = this->next->keys[0];
-      return;
+  for (i32 i = 0;; ++i) {
+    if (this->parent->get_children()[i] == this) {
+      this->parent->get_keys()[i] = this->next->front_key();
+      break;
     }
   }
-
-  keys[sz] = this->next->keys[0];
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -251,11 +244,12 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   this->insert_indexed(0, key, std::move(this->prev->values[sz]));
   this->prev->erase(sz);
 
-  Key* keys = this->parent->get_keys();
-  sz = this->parent->get_size() - 1;
-
-  // NOTE: Can optimize by just comparing the child pointers instead of keys
-  keys[this->parent->find_smaller_index(key)] = key;
+  for (i32 i = 1;; ++i) {
+    if (this->parent->get_children()[i] == this) {
+      this->parent->get_keys()[i - 1] = key;
+      break;
+    }
+  }
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -405,7 +399,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::destroy(
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
     destroy_last_child() noexcept {
-  // NOTE: Can either be inner_node or leaf_node
+  // NOTE: inner_node & leaf_node parent are aligned
   std::free(this->children[this->size]); // NOLINT
   --this->size;
 }

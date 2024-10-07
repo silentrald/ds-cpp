@@ -1,9 +1,19 @@
-add_compile_definitions(DS_ERROR_MSG=${DS_ERROR_MSG})
-
 # Bptree Map
-add_executable(bptree_map bptree_map.cpp main.cpp)
-target_compile_definitions(bptree_map PRIVATE DS_TEST)
-target_link_libraries(bptree_map PRIVATE
+add_executable(tests main.cpp
+  # String
+  string.cpp
+  ../src/ds/string.cpp
+
+  # Smart pointers
+  shared_ptr.cpp
+  unique_ptr.cpp
+
+  # Containers
+  bptree_map.cpp
+  vector.cpp
+)
+target_compile_definitions(tests PRIVATE DS_TEST)
+target_link_libraries(tests PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
@@ -47,35 +57,6 @@ target_link_libraries(bptree_map_mem PRIVATE
 # target_link_libraries(hash_set PRIVATE
 #   Catch2::Catch2 Catch2::Catch2WithMain
 # )
-
-add_executable(shared_ptr shared_ptr.cpp main.cpp)
-target_link_libraries(shared_ptr PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
-
-# String
-add_executable(string string.cpp main.cpp
-  ../src/ds/string.cpp
-)
-target_compile_definitions(string PRIVATE DS_TEST)
-target_link_libraries(string PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
-
-# Unique_ptr
-add_executable(unique_ptr unique_ptr.cpp main.cpp)
-target_link_libraries(unique_ptr PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
-
-# Vector
-add_executable(vector vector.cpp main.cpp
-  ../src/ds/string.cpp
-)
-target_compile_definitions(vector PRIVATE DS_TEST)
-target_link_libraries(vector PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
 
 # Geometry
 # add_executable(geom geom.cpp

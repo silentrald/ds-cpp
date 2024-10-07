@@ -15,6 +15,7 @@ add_library(ds
 )
 
 option(DS_TEST "DS Test Cases" OFF)
+option(DS_BENCHMARK "DS Benchmarks" OFF)
 option(DS_GEOM "DS Geom Enabled" OFF)
 option(DS_THREAD "DS Thread Enabled" OFF)
 
@@ -25,13 +26,16 @@ if (DS_THREAD)
   )
 endif (DS_THREAD)
 
-if (NOT DS_ERROR_MSG)
-  set(DS_ERROR_MSG 256)
-endif (NOT DS_ERROR_MSG)
-target_compile_definitions(${PROJECT_NAME} PRIVATE DS_ERROR_MSG=${DS_ERROR_MSG})
+if (DS_TEST OR DS_BENCHMARK)
+  add_subdirectory(external/catch2)
+endif (DS_TEST OR DS_BENCHMARK)
 
 if (DS_TEST)
-  add_subdirectory(external/catch2)
   add_subdirectory(tests)
 endif (DS_TEST)
 
+if (DS_BENCHMARK)
+  set(DS_TEST ON)
+  add_subdirectory(benchmarks)
+  set(DS_TEST OFF)
+endif (DS_BENCHMARK)
