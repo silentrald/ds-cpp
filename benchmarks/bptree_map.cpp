@@ -9,7 +9,7 @@
 #include "catch2/benchmark/catch_benchmark.hpp"
 #include "catch2/benchmark/catch_chronometer.hpp"
 #include "catch2/catch_test_macros.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 #include <array>
 #include <map>
 

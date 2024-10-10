@@ -7,8 +7,8 @@
 
 #include "ds/bptree_map.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/types.hpp"
 #include "main.hpp"
-#include "types.hpp"
 #include <cstdlib>
 
 // NOTE: Test class, string class

@@ -286,6 +286,7 @@ public:
    **/
   void pop_back_disc() noexcept;
 
+  // TODO: Change this to usize index
   error_code insert(const iterator& it) noexcept = delete;
   error_code push_back() noexcept = delete;
 

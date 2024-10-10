@@ -7,8 +7,8 @@
 
 #include "ds/unique_ptr.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/types.hpp"
 #include "main.hpp"
-#include "types.hpp"
 #include <cstdlib>
 
 TEST_CASE("primitive test", "[unique_ptr][i32]") {

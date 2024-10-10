@@ -2,105 +2,67 @@
  * Author/s:
  *  - silentrald
  * Version: 1.0
- * Created: 2022-12-27
+ * Created: 2024-10-08
  *===============================*/
 
 #ifndef DS_HASH_MAP_HPP
 #define DS_HASH_MAP_HPP
 
 #include "./hash.hpp"
-#include "./hash_map_iterator.hpp"
+// #include "./hash_map_iterator.hpp"
 #include "ds/equal.hpp"
-#include "ds/macro.hpp"
-#include "ds/types.hpp"
-#include "ds/vector.hpp"
+#include "prime.hpp"
+#include "types.hpp"
+#include <cstdlib>
+#include <type_traits>
 #include <utility>
 
 namespace ds {
 
+inline const f32 HASHMAP_LOAD_FACTOR = 0.9F;
+inline const usize HASHMAP_MAX_SIZE = USIZE_MAX - 1U;
+// Indicator if the node is empty or not
+inline const usize HASHMAP_EMPTY_VALUE = USIZE_MAX;
+
+/**
+ * Hash map / table implementation with robin hood hashing
+ *   backward shift deletion
+ *
+ * References:
+ *  https://programming.guide/robin-hood-hashing.html
+ *  https://codecapsule.com/2013/11/17/robin-hood-hashing-backward-shift-deletion
+ **/
 template <
-    typename Derived, typename Key, typename Value, typename Hash = hash<Key, i32>,
+    typename Derived, typename Key, typename Value, typename Hash = hash<Key>,
     typename KeyEqual = equal<Key>>
 class base_hash_map {
 public:
   friend Derived;
 
   using key_type = Key;
-  using key_ptr = Key*;
-  using key_ref = Key&;
-  using key_cref = const Key&;
-  using key_rref = Key&&;
-
   using value_type = Value;
-  using value_ptr = Value*;
-  using value_ref = Value&;
-  using value_cref = const Value&;
-  using value_rref = Value&&;
 
-  using hash_type = i32;
+  // NOTE: Check if key/value pair can be separated with distance
+  //   Since accessing is faster caching
+  struct node_type {
+    Key key{};
+    Value value{};
+    usize distance = HASHMAP_EMPTY_VALUE;
 
-  struct node {
-    Key key;
-    Value value;
-    node* next = nullptr;
+    inline void to_empty() noexcept {
+      this->distance = HASHMAP_EMPTY_VALUE;
+    }
+
+    [[nodiscard]] inline bool is_node_empty() const noexcept {
+      return this->distance == HASHMAP_EMPTY_VALUE;
+    }
   };
 
-  using node_type = node;
-  using node_ptr = node*;
-  using bucket_container = vector<node_ptr>;
+  // using iterator =
+  //     hash_map_iterator<base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
+  // using citerator = hash_map_const_iterator<
+  //     base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
 
-  using iterator =
-      hash_map_iterator<base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
-  using citerator = hash_map_const_iterator<
-      base_hash_map<Derived, Key, Value, Hash, KeyEqual>>;
-
-protected:
-  bucket_container buckets{};
-  i32 _size = 0;
-  i32 _max_size = 0;
-  f32 _max_load_factor = 1.0F;
-
-  // === Hashing ===
-
-  /**
-   * Calculates the hash for the value, which already resizes the index within
-   * the range of the bucket count
-   *
-   * @return hash_type
-   **/
-  template <typename Key_>
-  [[nodiscard]] hash_type calculate_hash_index(Key_ key) const noexcept;
-
-  // * Insert Helper *
-
-  /**
-   * Create the node pointer, returns null if a bad allocation error happened
-   *
-   * @errors
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying key or value
-   **/
-  template <typename Key_, typename Value_>
-  [[nodiscard]] node_ptr create_node(Key_ key, Value_ value) noexcept;
-
-  template <typename Key_, typename Value_>
-  [[nodiscard]] opt_err insert_impl(Key_ key, Value_ value) noexcept;
-  template <typename Key_> void erase_impl(Key_ key) noexcept;
-
-  // * Lookup Helper *
-
-  /**
-   * Returns the node at with the key provided
-   *
-   * @return node_ptr
-   **/
-  template <typename Key_>
-  [[nodiscard]] node_ptr get_node(Key_ key) const noexcept;
-
-  template <typename Key_>
-  [[nodiscard]] bool contains_impl(Key_ key) const noexcept;
-
-public:
   base_hash_map() noexcept = default;
   base_hash_map(const base_hash_map&) = delete;
   base_hash_map& operator=(const base_hash_map&) = delete;
@@ -111,192 +73,511 @@ public:
    * Copies the hash map
    *
    * @errors
-   *  - bad allocation resizing the bucket
-   *  - bad allocation in node creation
+   *  - error_code::BAD_ALLOCATION - bucket resize
    **/
-  [[nodiscard]] opt_err copy(const base_hash_map& other) noexcept;
+  [[nodiscard]] error_code copy(const base_hash_map& other) noexcept {
+    return error_code::NOT_IMPLEMENTED;
+  }
 
   // === Move ===
-  base_hash_map(base_hash_map&& rhs) noexcept;
-  base_hash_map& operator=(base_hash_map&& rhs) noexcept;
 
-  // === Destructor ===
-  ~base_hash_map() noexcept;
+  base_hash_map(base_hash_map&& other) noexcept
+      : bucket(other.bucket),
+        size(other.size),
+        max_size(other.max_size),
+        capacity(other.capacity) {
+    other.bucket = nullptr;
+  }
 
-  // === Iterator ===
+  base_hash_map& operator=(base_hash_map&& rhs) noexcept {
+    if (this == &rhs) {
+      return *this;
+    }
+
+    this->bucket = rhs.bucket;
+    this->size = rhs.size;
+    this->max_size = rhs.max_size;
+    this->capacity = rhs.capacity;
+    rhs.bucket = nullptr;
+
+    return *this;
+  }
+
+  // === Destructor === //
+
+  ~base_hash_map() noexcept {
+    this->clear();
+  }
 
   /**
-   * Returns an iterator pointing at the first element found
-   *
-   * @return iterator
+   * Removes all the nodes from the hash map
    **/
-  [[nodiscard]] iterator begin() noexcept;
+  void clear() noexcept {
+    if (this->bucket == nullptr) {
+      return;
+    }
 
-  /**
-   * Returns an iterator pointing at the first element found
-   *
-   * @return citerator
-   **/
-  [[nodiscard]] citerator cbegin() const noexcept;
+    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
+      for (usize i = 0; i < this->capacity; ++i) {
+        this->bucket[i].~node_type();
+      }
+    }
 
-  /**
-   * Returns an iterator pointing to null
-   *
-   * @return iterator
-   **/
-  [[nodiscard]] iterator end() noexcept;
+    std::free(this->bucket); // NOLINT
+    this->bucket = nullptr;
+    this->size = this->max_size = this->capacity = 0U;
+  }
 
-  /**
-   * Returns an iterator pointing to null
-   *
-   * @return citerator
-   **/
-  [[nodiscard]] citerator cend() const noexcept;
+  // === Iterator === //
+
+  // /**
+  //  * Returns an iterator pointing at the first element found
+  //  *
+  //  * @return iterator
+  //  **/
+  // [[nodiscard]] iterator begin() noexcept;
+  //
+  // /**
+  //  * Returns an iterator pointing at the first element found
+  //  *
+  //  * @return citerator
+  //  **/
+  // [[nodiscard]] citerator cbegin() const noexcept;
+  //
+  // /**
+  //  * Returns an iterator pointing to null
+  //  *
+  //  * @return iterator
+  //  **/
+  // [[nodiscard]] iterator end() noexcept;
+  //
+  // /**
+  //  * Returns an iterator pointing to null
+  //  *
+  //  * @return citerator
+  //  **/
+  // [[nodiscard]] citerator cend() const noexcept;
 
   // === Capacity ===
 
   /**
    * Check if the hash node has no nodes
-   *
-   * @return bool
    **/
-  [[nodiscard]] bool is_empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept {
+    return this->size == 0;
+  }
 
   /**
    * Returns the current size of the hash map
-   *
-   * @return i32
    **/
-  [[nodiscard]] i32 size() const noexcept;
+  [[nodiscard]] usize get_size() const noexcept {
+    return this->size;
+  }
 
   // === Modifiers ===
 
   /**
-   * Removes all the nodes from the hash map
-   **/
-  void clear() noexcept;
-
-  /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying key or value
+   *  - error_code::BAD_ALLOCATION - bucket resize or key/value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for key or value
    **/
-  [[nodiscard]] opt_err insert(key_cref key, value_cref value) noexcept {
-    return this->insert_impl<key_cref, value_cref>(key, value);
+  [[nodiscard]] error_code insert(const Key& key, const Value& value) noexcept {
+    return this->insert_impl(key, value);
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying key
+   *  - error_code::BAD_ALLOCATION - bucket resize or key copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for key
    **/
-  [[nodiscard]] opt_err insert(key_cref key, value_rref value) noexcept {
-    return this->insert_impl<key_cref, value_rref>(key, std::move(value));
+  [[nodiscard]] error_code insert(const Key& key, Value&& value) noexcept {
+    return this->insert_impl(key, std::move(value));
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
-   *  - bad allocation in copying value
+   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for value
    **/
-  [[nodiscard]] opt_err insert(key_rref key, value_cref value) noexcept {
-    return this->insert_impl<key_rref, value_cref>(std::move(key), value);
+  [[nodiscard]] error_code insert(Key&& key, const Value& value) noexcept {
+    return this->insert_impl(std::move(key), value);
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
+   *  - error_code::BAD_ALLOCATION - bucket resize
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
    **/
-  [[nodiscard]] opt_err insert(key_rref key, value_rref value) noexcept {
-    return this->insert_impl<key_rref, value_rref>(
-        std::move(key), std::move(value)
-    );
+  [[nodiscard]] error_code insert(Key&& key, Value&& value) noexcept {
+    return this->insert_impl(std::move(key), std::move(value));
   }
 
   /**
-   * Deletes a key in the hash map
+   * Removes a key/value pair in the hash map
+   * If no key was found, nothing will happen to the hash map
    **/
-  void erase(key_cref key) noexcept {
-    this->erase_impl<key_cref>(key);
+  void remove(const Key& key) noexcept {
+    this->erase_impl<const Key&>(key);
   }
 
-  // === Lookup ===
+  // === Accessors === //
 
   /**
-   * Safe lookup
-   *
-   *   If the key was found then return the value
-   *   Else return an error
+   * Safe lookup - If the key was found then return the value else return an
+   *error
    *
    * @errors
-   *   - key was not found
+   *   - error_code::NOT_FOUND
    **/
-  [[nodiscard]] exp_ptr_err<value_type> at(key_cref key) noexcept {
-    auto* node = this->get_node<key_cref>(key);
-    if (node == nullptr) {
-      return NOT_FOUND_EXP;
+  [[nodiscard]] expected<Value*, error_code> at(const Key& key) noexcept {
+    auto* value = this->find<Value*>(key);
+    if (value == nullptr) {
+      return unexpected{error_code::NOT_FOUND};
     }
-
-    return &node->value;
+    return value;
   }
 
   /**
-   * Unsafe lookup
-   *
-   *   If a value was found then return the value's address
-   *   Else return nullptr
-   *
-   * @return value_ptr
+   * Unsafe lookup - if a value was found then return the value's address
+   *   else return nullptr
    **/
-  [[nodiscard]] value_ptr operator[](key_cref key) const noexcept {
-    auto* node = this->get_node<key_cref>(key);
-    return node ? &node->value : nullptr;
+  [[nodiscard]] Value* operator[](const Key& key) noexcept {
+    return this->find<Value*>(key);
+  }
+
+  /**
+   * Unsafe lookup - if a value was found then return the value's address
+   *   else return nullptr
+   **/
+  [[nodiscard]] const Value* operator[](const Key& key) const noexcept {
+    return this->find<Value*>(key);
   }
 
   /**
    * Checks if the value exists in the hash map
    **/
-  [[nodiscard]] bool contains(key_cref key) const noexcept {
-    return this->contains_impl<key_cref>(key);
+  [[nodiscard]] bool contains(const Key& key) const noexcept {
+    return this->find<bool>(key);
   }
 
-  // === Bucket Interface ===
-
-  /**
-   * Get the number of buckets in the hash table
-   *
-   * @return i32
-   **/
-  [[nodiscard]] i32 bucket_count() const noexcept;
-
-  /**
-   * Grows and rehashes the hash map
-   *
-   * @errors
-   *  - bad allocation in resizing the number of buckets
-   **/
-  [[nodiscard]] opt_err rehash(i32 count) noexcept;
-};
-
-} // namespace ds
-
-#ifndef DS_HASH_MAP_TPP
-#include "./hash_map.tpp"
+#ifdef DS_TEST
+  void print() const noexcept {
+    printf("=== hash_map ===\n");
+    if (this->bucket == nullptr) {
+      printf("No elements\n");
+    }
+    for (usize i = 0; i < this->capacity; ++i) {
+      printf(
+          USIZE_FORMAT ": (%16llx, %16llx) distance: %16llx\n", i,
+          this->bucket[i].key, this->bucket[i].value, this->bucket[i].distance
+      );
+    }
+  }
 #endif
 
-namespace ds {
+protected:
+  node_type* bucket = nullptr;
+  usize size = 0U;
+  usize max_size = 0U;
+  usize capacity = 0U;
+
+  // === Helpers === //
+
+  /**
+   * Calculates the hash for the value, which already resizes the index within
+   * the range of the bucket count
+   **/
+  template <typename Key_>
+  [[nodiscard]] inline usize calculate_hash_index(Key_ key) const noexcept {
+    return Hash{}(key) % this->capacity;
+  }
+
+  inline void insert_node(node_type&& node) noexcept {
+    // NOTE: No infinite loop since 1 node will always be empty in any case
+    for (usize index = this->calculate_hash_index<const Key&>(node.key);;) {
+      // Place the node on an empty bucket slot
+      if (this->bucket[index].is_node_empty()) {
+        this->bucket[index] = std::move(node);
+        ++this->size;
+        break;
+      }
+
+      // If the key already exists, overwrite the value
+      if (KeyEqual()(node.key, this->bucket[index].key)) {
+        this->bucket[index].value = std::move(node.value);
+        break;
+      }
+
+      // Swapping between the `rich` and `poor` nodes
+      if (node.distance > this->bucket[index].distance) {
+        std::swap(node, this->bucket[index]);
+      }
+      ++node.distance;
+
+      if (++index >= this->capacity) {
+        index = 0;
+      }
+    }
+  }
+
+  /**
+   * Inserts a value in the hash map
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION - bucket resize or key/value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for key or value
+   **/
+  [[nodiscard]] inline error_code
+  insert_impl(const Key& key, const Value& value) noexcept {
+    TRY(this->check_allocation());
+
+    node_type node{.distance = 0U};
+    if constexpr (std::is_fundamental<Key>::value) {
+      node.key = key;
+    } else {
+      TRY(node.key.copy(key));
+    }
+
+    if constexpr (std::is_fundamental<Value>::value) {
+      node.value = value;
+    } else {
+      TRY(node.value.copy(value));
+    }
+    this->insert_node(std::move(node));
+
+    return error_code::OK;
+  }
+
+  /**
+   * Inserts a value in the hash map
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION - bucket resize or key copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for key
+   **/
+  [[nodiscard]] inline error_code
+  insert_impl(const Key& key, Value&& value) noexcept {
+    TRY(this->check_allocation());
+
+    node_type node{.value = std::move(value), .distance = 0U};
+    if constexpr (std::is_fundamental<Key>::value) {
+      node.key = key;
+    } else {
+      TRY(node.key.copy(key));
+    }
+    this->insert_node(std::move(node));
+
+    return error_code::OK;
+  }
+
+  /**
+   * Inserts a value in the hash map
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for value
+   **/
+  [[nodiscard]] inline error_code
+  insert_impl(Key&& key, const Value& value) noexcept {
+    TRY(this->check_allocation());
+
+    node_type node{.key = std::move(key), .distance = 0U};
+    if constexpr (std::is_fundamental<Value>::value) {
+      node.value = value;
+    } else {
+      TRY(node.value.copy(value));
+    }
+    this->insert_node(std::move(node));
+
+    return error_code::OK;
+  }
+
+  /**
+   * Inserts a value in the hash map
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION - bucket resize
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   **/
+  [[nodiscard]] inline error_code
+  insert_impl(Key&& key, Value&& value) noexcept {
+    TRY(this->check_allocation());
+
+    this->insert_node(node_type{
+        .key = std::move(key), .value = std::move(value), .distance = 0U
+    });
+
+    return error_code::OK;
+  }
+
+  template <typename Key_> inline void erase_impl(Key_ key) noexcept {
+    usize index = this->calculate_hash_index<Key_>(key);
+
+    // NOTE: No infinite loop since 1 node will always be empty in any case
+    while (true) {
+      if (this->bucket[index].is_node_empty()) {
+        return;
+      }
+
+      if (KeyEqual()(key, this->bucket[index].key)) {
+        --this->size;
+        break;
+      }
+
+      if (++index >= this->capacity) {
+        index = 0;
+      }
+    }
+
+    // Backward shift delete algorithm
+
+    // index -> capacity
+    for (++index; index < this->capacity; ++index) {
+      if (this->bucket[index].is_node_empty() ||
+          this->bucket[index].distance == 0U) {
+        this->bucket[index - 1U].to_empty();
+        return;
+      }
+      --this->bucket[index].distance;
+      this->bucket[index - 1U] = std::move(this->bucket[index]);
+    }
+
+    // capacity -> 0
+    if (this->bucket[0].is_node_empty() || this->bucket[0].distance == 0U) {
+      this->bucket[this->capacity - 1U].to_empty();
+      return;
+    }
+    --this->bucket[0].distance;
+    this->bucket[this->capacity - 1U] = std::move(this->bucket[0]);
+
+    // 0 -> original hash
+    // NOTE: No infinite loop since 1 node will always be empty in any case
+    for (index = 1U;; ++index) {
+      if (this->bucket[index].is_node_empty() ||
+          this->bucket[index].distance == 0U) {
+        this->bucket[index - 1U].to_empty();
+        return;
+      }
+      --this->bucket[index].distance;
+      this->bucket[index - 1U] = std::move(this->bucket[index]);
+    }
+  }
+
+  template <typename Return>
+  [[nodiscard]] Return find(const Key& key) const noexcept {
+    // NOTE: No infinite loop since 1 node will always be empty in any case
+    for (usize index = this->calculate_hash_index<const Key&>(key);;) {
+      if (this->bucket[index].is_node_empty()) {
+        if constexpr (std::is_same<Return, Value*>::value) {
+          return nullptr;
+        } else if constexpr (std::is_same<Return, bool>::value) {
+          return false;
+        }
+      }
+
+      if (KeyEqual()(key, this->bucket[index].key)) {
+        if constexpr (std::is_same<Return, Value*>::value) {
+          return &this->bucket[index].value;
+        } else if constexpr (std::is_same<Return, bool>::value) {
+          return true;
+        }
+      }
+
+      if (++index >= this->capacity) {
+        index = 0U;
+      }
+    }
+  }
+
+  // === Memory === //
+
+  /**
+   * Check if the allocation can handle any mutation done to the hash map
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION
+   **/
+  [[nodiscard]] error_code check_allocation() noexcept {
+    if (this->bucket == nullptr) {
+      return this->allocate(get_first_prime());
+    }
+
+    if (this->size >= HASHMAP_MAX_SIZE) {
+      return error_code::CONTAINER_FULL;
+    }
+
+    if (this->size >= this->max_size) {
+      return this->reallocate(this->capacity * 2U + 1U);
+    }
+
+    return error_code::OK;
+  }
+
+  /**
+   *
+   **/
+  [[nodiscard]] error_code allocate(usize new_capacity) noexcept {
+    // NOLINTNEXTLINE
+    this->bucket = (node_type*)std::malloc(new_capacity * sizeof(node_type));
+    if (this->bucket == nullptr) {
+      return error_code::BAD_ALLOCATION;
+    }
+
+    new (this->bucket) node_type[new_capacity];
+
+    this->capacity = new_capacity;
+    this->max_size = new_capacity * HASHMAP_LOAD_FACTOR;
+
+    return error_code::OK;
+  }
+
+  [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
+    // NOLINTNEXTLINE
+    auto* new_bucket =
+        // NOLINTNEXTLINE
+        (node_type*)std::malloc(new_capacity * sizeof(node_type));
+    if (new_bucket == nullptr) {
+      return error_code::BAD_ALLOCATION;
+    }
+
+    new (new_bucket) node_type[new_capacity];
+
+    // Swap the pointers and capacity to easily use the insert function
+    std::swap(this->bucket, new_bucket);
+    std::swap(this->capacity, new_capacity);
+    this->size = 0;
+    this->max_size = this->capacity * HASHMAP_LOAD_FACTOR;
+
+    // Transfer the old bucket to the new bucket
+    for (usize i = 0; i < new_capacity; ++i) {
+      if (new_bucket[i].is_node_empty()) {
+        continue;
+      }
+
+      new_bucket[i].distance = 0U;
+      this->insert_node(std::move(new_bucket[i]));
+    }
+
+    std::free(new_bucket); // NOLINT
+    return error_code::OK;
+  }
+};
+
+// === hash_map definition === //
 
 template <
     typename Key, typename Value, typename Hash = hash<Key>,
@@ -312,4 +593,3 @@ class hash_map
 #endif
 
 #endif
-

@@ -8,7 +8,7 @@
 // NOTE: Mainly for valgrind checking
 
 #include "ds/bptree_map.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 #include <cstdio>
 #include <cstdlib>
 

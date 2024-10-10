@@ -1,15 +1,19 @@
 # Bptree Map
 add_executable(tests main.cpp
   # String
-  string.cpp
   ../src/ds/string.cpp
 
   # Smart pointers
   shared_ptr.cpp
   unique_ptr.cpp
 
-  # Containers
+  # Hash
+  ../src/hash/murmur3.cpp
+
+  # DS Container Tests
   bptree_map.cpp
+  hash_map.cpp
+  string.cpp
   vector.cpp
 )
 target_compile_definitions(tests PRIVATE DS_TEST)
@@ -23,24 +27,19 @@ target_link_libraries(bptree_map_mem PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
+add_executable(hash_map_mem hash_map_mem.cpp main.cpp
+  ../src/hash/murmur3.cpp
+  ../src/ds/string.cpp
+)
+target_compile_definitions(hash_map_mem PRIVATE DS_TEST)
+target_link_libraries(hash_map_mem PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)
+
 # Fixed Deque
 # add_executable(fixed_deque fixed_deque.cpp main.cpp
 #   ../src/ds-error/error.cpp)
 # target_link_libraries(fixed_deque PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
-
-# Hash Map
-# add_executable(hash_map hash_map.cpp main.cpp
-#   ../src/hash/number.cpp
-#   ../src/hash/murmur3.cpp
-#   
-#   ../src/ds/string.cpp
-#   ../src/ds-error/error.cpp
-#
-#   ../src/prime.cpp
-# )
-# target_link_libraries(hash_map PRIVATE
 #   Catch2::Catch2 Catch2::Catch2WithMain
 # )
 

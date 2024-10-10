@@ -8,7 +8,7 @@
 #ifndef DS_EQUAL_HPP
 #define DS_EQUAL_HPP
 
-#include "ds/string.hpp"
+#include "./string.hpp"
 #include <cstring>
 
 namespace ds {

@@ -9,8 +9,8 @@
 #define DS_BPTREE_MAP_HPP
 
 #include "./bptree_map_iterator.hpp"
-#include "ds/compare.hpp"
-#include "types.hpp"
+#include "./compare.hpp"
+#include "./types.hpp"
 #include <cstring>
 #include <type_traits>
 

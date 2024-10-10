@@ -8,7 +8,7 @@
 #ifndef DS_COMPARE_HPP
 #define DS_COMPARE_HPP
 
-#include "ds/string.hpp"
+#include "./string.hpp"
 #include <cstring>
 
 // NOTE: Subtraction can overflow

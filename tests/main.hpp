@@ -9,7 +9,7 @@
 #define DS_TEST_MAIN_HPP
 
 #include "catch2/catch_message.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 
 namespace ds_test {
 

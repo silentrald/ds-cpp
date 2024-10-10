@@ -9,7 +9,7 @@
 #define DS_UNIQUE_PTR_TPP
 
 #include "./unique_ptr.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 #include <cstdlib>
 #include <type_traits>
 

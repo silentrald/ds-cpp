@@ -9,7 +9,7 @@
 #include "./main.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "ds/string.hpp"
-#include "types.hpp"
+#include "ds/types.hpp"
 
 using namespace ds_test;
 
@@ -690,8 +690,7 @@ TEST_CASE("vector with struct/class", "[vector]") {
       REQUIRE(vec[1] == 3);
       REQUIRE(vec[2] == 1);
 
-      CHECK(
-          handle_error(vec.insert(vec.begin() + 2, Test{4}, Test{5}, Test{6}))
+      CHECK(handle_error(vec.insert(vec.begin() + 2, Test{4}, Test{5}, Test{6}))
       );
       REQUIRE(vec[2] == 4);
       REQUIRE(vec[3] == 5);
@@ -776,9 +775,9 @@ TEST_CASE("vector with struct/class", "[vector]") {
   }
 
   SECTION("Erasing") {
-    CHECK(handle_error(
-        vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5})
-    ));
+    CHECK(
+        handle_error(vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5}))
+    );
 
     vec.erase(vec.begin() + 2);
     REQUIRE(vec.get_size() == 4);
@@ -834,8 +833,7 @@ TEST_CASE("vector with string class", "[vector][string]") {
     REQUIRE(vec[1] == "Hello");
     REQUIRE(vec[2] == "jeff");
 
-    CHECK(handle_error(vec.insert(vec.begin() + 2, "everybody", "my", "name"))
-    );
+    CHECK(handle_error(vec.insert(vec.begin() + 2, "everybody", "my", "name")));
     REQUIRE(vec[0] == "***");
     REQUIRE(vec[1] == "Hello");
     REQUIRE(vec[2] == "everybody");
@@ -851,8 +849,8 @@ TEST_CASE("vector with string class", "[vector][string]") {
     CHECK(handle_error(str_move.copy("owo")));
 
     SECTION("Init (move last)") {
-      CHECK(handle_error(vec.push_back("hello", str_copy, std::move(str_move))
-      ));
+      CHECK(handle_error(vec.push_back("hello", str_copy, std::move(str_move)))
+      );
       REQUIRE(vec[0] == "hello");
       REQUIRE(vec[1] == str_copy);
       REQUIRE(vec[2] == "owo");
@@ -860,8 +858,8 @@ TEST_CASE("vector with string class", "[vector][string]") {
     }
 
     SECTION("Init (copy last)") {
-      CHECK(handle_error(vec.push_back("hello", std::move(str_move), str_copy)
-      ));
+      CHECK(handle_error(vec.push_back("hello", std::move(str_move), str_copy))
+      );
       REQUIRE(vec[0] == "hello");
       REQUIRE(vec[1] == "owo");
       REQUIRE(vec[2] == str_copy);

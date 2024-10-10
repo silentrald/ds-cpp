@@ -8,7 +8,7 @@
 #ifndef DS_HASH_MAP_ITERATOR_HPP
 #define DS_HASH_MAP_ITERATOR_HPP
 
-#include "ds/types.hpp"
+#include "./types.hpp"
 
 namespace ds {
 
@@ -231,4 +231,3 @@ public:
 } // namespace ds
 
 #endif
-

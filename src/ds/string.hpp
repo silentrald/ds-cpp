@@ -8,7 +8,7 @@
 #ifndef DS_STRING_BUILD_HPP
 #define DS_STRING_BUILD_HPP
 
-#include "../types.hpp"
+#include "./types.hpp"
 #include "./expected.hpp"
 
 #if DS_TEST

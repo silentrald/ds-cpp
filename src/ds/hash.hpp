@@ -9,9 +9,8 @@
 #define DS_HASH_HPP
 
 #include "../hash/murmur3.h"
-#include "ds/string.hpp"
-#include "ds/type_traits.hpp"
-#include "ds/types.hpp"
+#include "./string.hpp"
+#include "types.hpp"
 #include <cstring>
 
 namespace ds {
@@ -19,30 +18,23 @@ namespace ds {
 // TODO: Configurable in cmake
 const i32 SEED = 69'420;
 
-template <
-    typename Derived, typename T, typename Return = i32,
-    typename = is_int<Return>>
-class base_hash {
+template <typename T> class hash {
 public:
-  friend Derived;
+  usize operator()(T data) const noexcept {
+    return (usize)data;
+  }
 };
 
-template <typename T, typename Return = i32>
-class hash : public base_hash<hash<T, Return>, T, Return> {
+template <> class hash<string> {
 public:
-  Return operator()(T data) const noexcept;
-};
-
-template <> class hash<string> : public base_hash<hash<string>, string> {
-public:
-  i32 operator()(const string& data) const noexcept {
-    i32 out = 0;
-    MurmurHash3_x86_32(data.c_str(), data.length(), SEED, &out);
+  usize operator()(const string& data) const noexcept {
+    usize out = 0U;
+    MurmurHash3_x86_32(data.c_str(), data.get_size(), SEED, &out);
     return out;
   }
 
-  i32 operator()(const char* data) const noexcept {
-    i32 out = 0;
+  usize operator()(const c8* data) const noexcept {
+    usize out = 0U;
     MurmurHash3_x86_32(data, std::strlen(data), SEED, &out);
     return out;
   }
@@ -51,4 +43,3 @@ public:
 } // namespace ds
 
 #endif
-

@@ -8,7 +8,7 @@
 #ifndef DS_TYPES_HPP
 #define DS_TYPES_HPP
 
-#include "ds/expected.hpp"
+#include "./expected.hpp"
 #include <cstdint>
 
 #if _WIN32 || _WIN64
@@ -72,7 +72,7 @@ enum error_code : u32 {
   NULL_VALUE = 2, // Accessing null pointer
   INDEX_OUT_OF_BOUNDS = 3,
   CONTAINER_EMPTY = 4,
-  ARRAY_FULL = 5,
+  CONTAINER_FULL = 5,
   NOT_FOUND = 6,
   INVALID_SIZE = 7, // When capacity is set to a negative value
   NOT_IMPLEMENTED = 8,
