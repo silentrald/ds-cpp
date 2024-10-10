@@ -36,13 +36,6 @@ target_link_libraries(hash_map_mem PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
-# Fixed Deque
-# add_executable(fixed_deque fixed_deque.cpp main.cpp
-#   ../src/ds-error/error.cpp)
-# target_link_libraries(fixed_deque PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
-
 # Hash Set
 # add_executable(hash_set hash_set.cpp main.cpp
 #   ../src/hash/number.cpp
