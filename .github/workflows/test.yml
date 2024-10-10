@@ -1,0 +1,27 @@
+
+name: Tests 📋
+on:
+  push:
+    branches: ["master"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code 🛒
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Building with cmake 🔨
+        run: |
+          cd ${{ github.workspace }}
+          mkdir build
+          cd build
+          cmake .. -DDS_TEST=ON
+          make
+
+      - name: Running tests 📋
+        run: |
+          cd build
+          ./tests/tests
+
