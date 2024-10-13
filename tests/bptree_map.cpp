@@ -191,7 +191,7 @@ template <typename T> inline void test_centered(const ds::usize N) {
 const ds::usize N_SMALL = 16;
 const ds::usize N_BIG = 512;
 
-TEST_CASE("Check if i32 keys", "[bptree_map][i32]") {
+TEST_CASE("Check if i32 keys", "[bptree_map]") {
   SECTION("Small N") {
     test_ascending<ds::i32>(N_SMALL);
     test_descending<ds::i32>(N_SMALL);
@@ -205,7 +205,7 @@ TEST_CASE("Check if i32 keys", "[bptree_map][i32]") {
   }
 }
 
-TEST_CASE("Check if i64 keys", "[bptree_map][i64]") {
+TEST_CASE("Check if i64 keys", "[bptree_map]") {
   SECTION("Small N") {
     test_ascending<ds::i64>(N_SMALL);
     test_descending<ds::i64>(N_SMALL);
@@ -219,7 +219,7 @@ TEST_CASE("Check if i64 keys", "[bptree_map][i64]") {
   }
 }
 
-TEST_CASE("Check if u32 keys", "[bptree_map][u32]") {
+TEST_CASE("Check if u32 keys", "[bptree_map]") {
   SECTION("Small N") {
     test_ascending<ds::u32>(N_SMALL);
     test_descending<ds::u32>(N_SMALL);
@@ -233,7 +233,7 @@ TEST_CASE("Check if u32 keys", "[bptree_map][u32]") {
   }
 }
 
-TEST_CASE("Check if u64", "[bptree_map][u64]") {
+TEST_CASE("Check if u64", "[bptree_map]") {
   SECTION("Small N") {
     test_ascending<ds::u64>(N_SMALL);
     test_descending<ds::u64>(N_SMALL);

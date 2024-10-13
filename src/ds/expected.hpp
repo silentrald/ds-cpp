@@ -30,7 +30,7 @@ public:
 
   unexpected(E&& rhs) noexcept : err(std::move(rhs)) {} // NOLINT
 
-  template <typename = std::enable_if<std::is_fundamental_v<E>>>
+  template <typename = std::enable_if<!std::is_class_v<E>>>
   unexpected(const E& other) noexcept { // NOLINT
     this->err = other;
   }

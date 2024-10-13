@@ -28,4 +28,5 @@ Checks: >
   -readability-const-return-type,
   -misc-no-recursion,
   -*-avoid-do-while,
-  -*-function-cognitive-complexity
+  -*-function-cognitive-complexity,
+  -modernize-loop-convert

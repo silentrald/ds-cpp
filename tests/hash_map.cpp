@@ -179,27 +179,27 @@ inline void test_hash_map_bad_collision() {
 
 const ds::usize SIZE = 32;
 
-TEST_CASE("hash_map<i32, i32>", "[hash_map][i32]") {
+TEST_CASE("hash_map<i32, i32>", "[hash_map]") {
   test_hash_map<ds::i32, ds::i32>(SIZE);
   test_hash_map_bad_collision<ds::i32, ds::i32>();
 }
 
-TEST_CASE("hash_map<u32, u32>", "[hash_map][u32]") {
+TEST_CASE("hash_map<u32, u32>", "[hash_map]") {
   test_hash_map<ds::u32, ds::u32>(SIZE);
   test_hash_map_bad_collision<ds::u32, ds::u32>();
 }
 
-TEST_CASE("hash_map<i64, i64>", "[hash_map][i64]") {
+TEST_CASE("hash_map<i64, i64>", "[hash_map]") {
   test_hash_map<ds::i64, ds::i64>(SIZE);
   test_hash_map_bad_collision<ds::i64, ds::i64>();
 }
 
-TEST_CASE("hash_map<u64, u64>", "[hash_map][u64]") {
+TEST_CASE("hash_map<u64, u64>", "[hash_map]") {
   test_hash_map<ds::u64, ds::u64>(SIZE);
   test_hash_map_bad_collision<ds::u64, ds::u64>();
 }
 
-TEST_CASE("hash_map<string, i64>", "[hash_map][string][i64]") {
+TEST_CASE("hash_map<string, i64>", "[hash_map]") {
   ds::hash_map<ds::string, ds::i64> map{};
   ds::i64* pointer = nullptr;
   ds::expected<ds::i64*, ds::error_code> expected{};
@@ -319,7 +319,7 @@ TEST_CASE("hash_map<string, i64>", "[hash_map][string][i64]") {
   }
 }
 
-TEST_CASE("hash_map<i64, string>", "[hash_map][string][i64]") {
+TEST_CASE("hash_map<i64, string>", "[hash_map]") {
   ds::hash_map<ds::i64, ds::string> map{};
   ds::string* pointer = nullptr;
   ds::expected<ds::string*, ds::error_code> expected{};
@@ -441,7 +441,7 @@ TEST_CASE("hash_map<i64, string>", "[hash_map][string][i64]") {
   }
 }
 
-TEST_CASE("hash_map<string, string>", "[hash_map][string]") {
+TEST_CASE("hash_map<string, string>", "[hash_map]") {
   ds::hash_map<ds::string, ds::string> map{};
   ds::string* pointer = nullptr;
   ds::expected<ds::string*, ds::error_code> expected{};

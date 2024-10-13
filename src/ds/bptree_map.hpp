@@ -124,7 +124,7 @@ public:
     // === Modifiers === //
 
     i32 insert(Key key, Value&& value) noexcept;
-    void push_back(Key key, Value&& value) noexcept;
+    void push(Key key, Value&& value) noexcept;
     void erase(i32 index) noexcept;
     void clear() noexcept;
 
@@ -231,7 +231,7 @@ public:
     void insert(Key key, void* child) noexcept;
     void push_front(Key key, void* child) noexcept;
     void pop_front() noexcept;
-    void push_back(Key key, void* child) noexcept;
+    void push(Key key, void* child) noexcept;
     void pop_back() noexcept;
     void erase(i32 index) noexcept;
     void set_key(i32 index, Key key) noexcept;
@@ -555,7 +555,7 @@ public:
 
     ds::vector<inner_node*> stack{};
     ds::vector<inner_node*> next{};
-    ds::error_code error = stack.push_back((inner_node*)this->root);
+    ds::error_code error = stack.push((inner_node*)this->root);
 
     for (usize i = this->height; i > 1; --i) {
       printf("=== Map Height " USIZE_FORMAT " ===\n", i);
@@ -564,7 +564,7 @@ public:
         node->print();
         if (i > 2) {
           for (i32 j = 0; j <= node->get_size(); ++j) {
-            error = next.push_back((inner_node*)node->get_children()[j]);
+            error = next.push((inner_node*)node->get_children()[j]);
           }
         }
       }

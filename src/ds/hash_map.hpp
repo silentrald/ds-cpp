@@ -17,6 +17,10 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef DS_TEST
+#include <cstdio>
+#endif
+
 namespace ds {
 
 inline const f32 HASHMAP_LOAD_FACTOR = 0.9F;
@@ -344,13 +348,13 @@ protected:
     TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
-    if constexpr (std::is_fundamental<Key>::value) {
+    if constexpr (!std::is_class<Key>::value) {
       node.key = key;
     } else {
       TRY(node.key.copy(key));
     }
 
-    if constexpr (std::is_fundamental<Value>::value) {
+    if constexpr (!std::is_class<Value>::value) {
       node.value = value;
     } else {
       TRY(node.value.copy(value));
@@ -373,7 +377,7 @@ protected:
     TRY(this->check_allocation());
 
     node_type node{.value = std::move(value), .distance = 0U};
-    if constexpr (std::is_fundamental<Key>::value) {
+    if constexpr (!std::is_class<Key>::value) {
       node.key = key;
     } else {
       TRY(node.key.copy(key));
@@ -396,7 +400,7 @@ protected:
     TRY(this->check_allocation());
 
     node_type node{.key = std::move(key), .distance = 0U};
-    if constexpr (std::is_fundamental<Value>::value) {
+    if constexpr (!std::is_class<Value>::value) {
       node.value = value;
     } else {
       TRY(node.value.copy(value));

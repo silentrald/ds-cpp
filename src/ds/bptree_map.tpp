@@ -412,8 +412,12 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
   inner_node* parent = nullptr;
   inner_node* right_node = nullptr;
   Key key;
+  // NOTE: Check if stack can be replaced, might check chaining since the nodes
+  // can be pointed to one another
   vector<inner_node*> stack{};
+  TRY(stack.reserve((this->height - 1) * 2));
 
+  // NOTE: Only the right node only the new element being malloc'ed
   while (true) {
     // Create the right and parent internal node
     right_node = this->create_inner_node(left_node->get_children()[mid + 1]);
@@ -427,8 +431,8 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
       if (parent == nullptr) {
         std::free(right_node); // NOLINT
         while (!stack.is_empty()) {
-          stack.pop_back_disc();              // Left node
-          std::free(stack.pop_back_unsafe()); // NOLINT
+          stack.pop();            // Left node
+          std::free(stack.pop()); // NOLINT
         }
         return error_code::BAD_ALLOCATION;
       }
@@ -443,20 +447,8 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
 
     parent->insert(key, right_node);
     if (parent->get_size() == this->get_degree()) { // parent will split
-      if (error_code error = stack.push_back(right_node, left_node)) {
-        std::free(right_node); // NOLINT
-        if (parent->get_size() == 1) {
-          std::free(parent); // NOLINT
-        }
-
-        while (!stack.is_empty()) {
-          stack.pop_back_disc();
-          std::free(stack.pop_back_unsafe()); // NOLINT
-        }
-
-        return error;
-      }
-
+      static_cast<void>(stack.push(right_node));
+      static_cast<void>(stack.push(left_node));
       left_node = parent;
       continue;
     }
@@ -475,8 +467,8 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::split_inner_node(
 
   // Empty the stack
   while (!stack.is_empty()) {
-    left_node = stack.pop_back_unsafe();
-    right_node = stack.pop_back_unsafe();
+    left_node = stack.pop();
+    right_node = stack.pop();
 
     left_node->redistribute(right_node, mid + 1);
     right_node->reparent_children();
@@ -562,7 +554,7 @@ error_code base_bptree_map<Derived, Key, Value, KeyCompare>::insert_impl(
       return error_code::BAD_ALLOCATION;
     }
 
-    leaf->push_back(key, std::move(value_copy));
+    leaf->push(key, std::move(value_copy));
     this->root = leaf;
     ++this->size;
     this->height = 1;

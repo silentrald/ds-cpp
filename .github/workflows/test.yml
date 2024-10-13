@@ -1,10 +1,11 @@
 
 name: Tests 📋
+
 on:
   push:
     branches: ["master"]
 jobs:
-  test:
+  Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code 🛒

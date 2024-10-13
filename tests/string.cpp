@@ -49,7 +49,6 @@ TEST_CASE("string empty handling", "[string]") {
   ds::expected<ds::c8*, ds::error_code> exp_ptr{};
   ds::expected<ds::c8, ds::error_code> exp{};
   ds::string str{};
-  free_ptr = nullptr;
 
   SECTION("Definition") {
     REQUIRE(str.is_empty());
@@ -98,7 +97,6 @@ TEST_CASE("string empty handling", "[string]") {
 
       char* ptr = str2.data();
       str2 = std::move(str);
-      REQUIRE(ptr == free_ptr);
 
       REQUIRE(str2.is_empty());
       REQUIRE(str2.get_capacity() == 0);

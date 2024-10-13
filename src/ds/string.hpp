@@ -8,12 +8,8 @@
 #ifndef DS_STRING_BUILD_HPP
 #define DS_STRING_BUILD_HPP
 
-#include "./types.hpp"
 #include "./expected.hpp"
-
-#if DS_TEST
-#include "../../tests/main.hpp"
-#endif
+#include "./types.hpp"
 
 namespace ds {
 
@@ -145,7 +141,7 @@ public:
    * @errors
    *  - error_code::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code push_back(c8 c) noexcept;
+  [[nodiscard]] error_code push(c8 c) noexcept;
 
   /**
    * Removes a character from the end/back of the string.

@@ -10,10 +10,6 @@
 
 #include "types.hpp"
 
-#if DS_TEST
-#include "../../tests/main.hpp"
-#endif
-
 namespace ds {
 
 // NOTE: Not thread safe

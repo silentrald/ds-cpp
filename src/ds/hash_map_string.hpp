@@ -491,7 +491,7 @@ protected:
     } else {
       node_type node{.distance = 0U};
       TRY(node.key.copy(key));
-      if constexpr (std::is_fundamental<value_type>::value) {
+      if constexpr (!std::is_class<value_type>::value) {
         node.value = value;
       } else {
         TRY(node.value.copy(value));
@@ -627,7 +627,7 @@ protected:
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
-      if constexpr (std::is_fundamental<key_type>::value) {
+      if constexpr (!std::is_class<key_type>::value) {
         node.key = key;
       } else {
         TRY(node.key.copy(key));

@@ -15,6 +15,9 @@ add_executable(tests main.cpp
   hash_map.cpp
   string.cpp
   vector.cpp
+
+  # Benchmarks
+  ../benchmarks/bptree_map.cpp
 )
 target_compile_definitions(tests PRIVATE DS_TEST)
 target_link_libraries(tests PRIVATE

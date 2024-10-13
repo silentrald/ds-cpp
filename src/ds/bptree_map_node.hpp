@@ -141,7 +141,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     insert_indexed(i32 index, Key key, Value&& value) noexcept {
   if (index == this->size) {
-    this->push_back(key, std::move(value));
+    this->push(key, std::move(value));
     return;
   }
 
@@ -178,12 +178,12 @@ i32 base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::insert(
     }
   }
 
-  this->push_back(key, std::move(value));
+  this->push(key, std::move(value));
   return this->size;
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::push_back(
+void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::push(
     Key key, Value&& value
 ) noexcept {
   this->keys[this->size] = key;
@@ -215,7 +215,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::redistribute(
     leaf_node* other, i32 mid
 ) noexcept {
   for (i32 i = mid; i < this->size; ++i) {
-    other->push_back(this->keys[i], std::move(this->values[i]));
+    other->push(this->keys[i], std::move(this->values[i]));
   }
   this->size = mid;
 }
@@ -224,7 +224,7 @@ template <typename Derived, typename Key, typename Value, typename KeyCompare>
 void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     borrow_right_sibling() noexcept {
   Key key = this->next->front_key();
-  this->push_back(key, std::move(this->next->values[0]));
+  this->push(key, std::move(this->next->values[0]));
   this->next->erase(0);
 
   for (i32 i = 0;; ++i) {
@@ -258,7 +258,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   // Move all the children of the right child to this node
   leaf_node* sibling = this->next;
   for (i32 i = 0; i < sibling->size; ++i) {
-    this->push_back(sibling->keys[i], std::move(sibling->values[i]));
+    this->push(sibling->keys[i], std::move(sibling->values[i]));
   }
 
   // Adjust the pointers to the correct values
@@ -507,7 +507,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::insert(
     }
   }
 
-  this->push_back(key, child);
+  this->push(key, child);
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
@@ -538,7 +538,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::pop_front(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::push_back(
+void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::push(
     Key key, void* child
 ) noexcept {
   this->keys[this->size] = key;
@@ -586,7 +586,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::redistribute(
     inner_node* other, i32 mid
 ) noexcept {
   for (i32 i = mid; i < this->size; ++i) {
-    other->push_back(this->keys[i], this->children[i + 1]);
+    other->push(this->keys[i], this->children[i + 1]);
   }
   // The mid should have the node that is transferred to the parent
   this->size = mid - 1;
@@ -605,7 +605,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::
   static_cast<inner_node*>(child)->set_parent(this);
 
   // Put the first child of the uncle to the last child of this node
-  this->push_back(this->parent->at_key(parent_index), child);
+  this->push(this->parent->at_key(parent_index), child);
 
   // Grandparents key change to the right uncle's key
   this->parent->set_key(parent_index, right_uncle->front_key());
@@ -648,13 +648,13 @@ void base_bptree_map<
   void* grandchild = sibling_children[0];
   // NOTE: inner_node & leaf_node parent are aligned
   static_cast<inner_node*>(grandchild)->parent = child;
-  child->push_back(this->keys[index], grandchild);
+  child->push(this->keys[index], grandchild);
 
   for (i32 i = 0; i < sibling->size; ++i) {
     grandchild = sibling_children[i + 1];
     // NOTE: inner_node & leaf_node parent are aligned
     static_cast<inner_node*>(grandchild)->parent = child;
-    child->push_back(sibling_keys[i], grandchild);
+    child->push(sibling_keys[i], grandchild);
   }
 
   std::free(sibling); // NOLINT

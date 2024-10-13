@@ -120,10 +120,6 @@ string::~string() noexcept {
     return;
   }
 
-#if DS_TEST
-  ds_test::free_ptr = this->str;
-#endif
-
   // NOLINTNEXTLINE
   std::free(this->str);
   this->str = nullptr;
@@ -250,7 +246,7 @@ void string::clear() noexcept {
   this->str[0] = '\0';
 }
 
-error_code string::push_back(char c) noexcept {
+error_code string::push(char c) noexcept {
   if (this->size == this->capacity) {
     TRY(this->reallocate(this->capacity + 10));
   }
@@ -364,7 +360,7 @@ bool string::operator==(const string& rhs) const noexcept {
   if (this->size == 0 && rhs.size == 0)
     return true;
 
-  return strcmp(this->str, rhs.str) == 0;
+  return std::strcmp(this->str, rhs.str) == 0;
 }
 
 bool string::operator==(const char* rhs) const noexcept {
@@ -373,7 +369,7 @@ bool string::operator==(const char* rhs) const noexcept {
   if (this->size == 0)
     return rhs[0] == '\0';
 
-  return strcmp(this->str, rhs) == 0;
+  return std::strcmp(this->str, rhs) == 0;
 }
 
 bool string::operator!=(const string& rhs) const noexcept {
@@ -389,11 +385,10 @@ bool string::operator!=(const char* rhs) const noexcept {
 bool operator==(const char* lhs, const string& rhs) noexcept {
   if (lhs == nullptr)
     return false;
-  if (rhs.size == 0) {
+  if (rhs.size == 0)
     return lhs[0] == '\0';
-  }
 
-  return strcmp(lhs, rhs.str) == 0;
+  return std::strcmp(lhs, rhs.str) == 0;
 }
 
 bool operator!=(const char* lhs, const string& rhs) noexcept {

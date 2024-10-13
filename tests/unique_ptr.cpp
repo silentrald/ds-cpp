@@ -11,7 +11,7 @@
 #include "main.hpp"
 #include <cstdlib>
 
-TEST_CASE("primitive test", "[unique_ptr][i32]") {
+TEST_CASE("primitive test", "[unique_ptr]") {
   ds::unique_ptr<ds::i32> smart{};
   ds::error_code error_code{};
 
@@ -33,7 +33,7 @@ TEST_CASE("primitive test", "[unique_ptr][i32]") {
 }
 
 TEST_CASE("class test", "[unique_ptr]") {
-  ds_test::counter = 0;
+  ds::isize counter = 0;
   ds::unique_ptr<ds_test::Test> smart{};
   ds::error_code error_code{};
 
@@ -41,10 +41,10 @@ TEST_CASE("class test", "[unique_ptr]") {
 
   for (ds::i32 i = 0; i < 16; ++i) {
     tmp = std::rand();
-    error_code = smart.set(ds_test::Test{tmp});
+    error_code = smart.set(ds_test::Test{&counter, tmp});
     REQUIRE(ds_test::handle_error(error_code));
 
-    REQUIRE(ds_test::counter == 1);
+    REQUIRE(counter == 1);
     REQUIRE(*smart == tmp);
 
     if (i & 1) {
@@ -52,7 +52,8 @@ TEST_CASE("class test", "[unique_ptr]") {
     } else {
       REQUIRE(smart.release() == tmp);
     }
+
     REQUIRE_FALSE(smart);
-    REQUIRE(ds_test::counter == 0);
+    REQUIRE(counter == 0);
   }
 }

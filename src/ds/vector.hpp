@@ -8,24 +8,23 @@
 #ifndef DS_VECTOR_HPP
 #define DS_VECTOR_HPP
 
-#include "./type_traits.hpp"
 #include "./vector_iterator.hpp"
 #include "types.hpp"
-#include <cstdio>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include <utility>
+#include <type_traits>
 
 #ifdef DS_TEST
-#include "../../tests/main.hpp"
+#include <cstdio>
 #endif
 
 namespace ds {
 
+inline const usize VECTOR_INITIAL_SIZE = 8U;
+
 /**
- * Vector class that uses expected as error handling
- *
- * @refer https://en.cppref.com/w/cpp/container/vector
+ * Array container with dynamic sizing.
  */
 template <typename Derived, typename T> class base_vector {
 public:
@@ -33,75 +32,49 @@ public:
 
   using value_type = T;
 
-  using iterator = vector_iterator<base_vector<Derived, T>>;
-  using citerator = vector_iterator<const base_vector<Derived, T>>;
+  using iterator = vector_iterator<T>;
+  using const_iterator = vector_iterator<const T>;
+  using reverse_iterator = vector_reverse_iterator<T>;
+  using const_reverse_iterator = vector_reverse_iterator<const T>;
 
-protected:
-  T* arr = nullptr;
-  usize top = 0;
-  usize capacity = 0;
-
-  void destroy() noexcept;
-
-  // === Memory ===
-  /**
-   * Allocates a new memory block for the container
-   *
-   * @errors
-   *  - bad allocation
-   **/
-  [[nodiscard]] error_code allocate(usize size) noexcept;
-
-  /**
-   * Reallocates the old memory block
-   *
-   * @errors
-   *  - bad allocation
-   **/
-  [[nodiscard]] error_code reallocate(usize size) noexcept;
-
-  /**
-   * Calculates the new size before allocation/reallocation
-   *
-   * @errors
-   *  - bad allocation
-   **/
-  [[nodiscard]] error_code grow(usize min_size) noexcept;
-
-  // Helper function for insert to move elements
-  /**
-   * Shift the elements to the right to the end of the array.
-   *
-   * [*****___] -> [**___***]
-   *    ^ - start
-   **/
-  void shift(usize start, usize n) noexcept;
-
-  // === Insert === //
-  template <typename... Args>
-  [[nodiscard]] error_code
-  insert_helper(usize index, const T& first, Args&&... args) noexcept;
-
-  template <typename... Args>
-  [[nodiscard]] error_code
-  insert_helper(usize index, T&& first, Args&&... args) noexcept;
-
-  // === Push Back === //
-  template <typename... Args>
-  [[nodiscard]] error_code
-  push_back_helper(const T& first, Args&&... args) noexcept;
-
-  template <typename... Args>
-  [[nodiscard]] error_code push_back_helper(T&& first, Args&&... args) noexcept;
-
-  void erase_impl(usize index) noexcept;
-
-public:
   base_vector() noexcept = default;
   base_vector(const base_vector&) = delete;
   base_vector& operator=(const base_vector& rhs) = delete;
 
+  // === Move === //
+
+  /**
+   * Initializes the vector and moves the passed vector
+   **/
+  base_vector(base_vector&& rhs) noexcept
+      : array(rhs.array), size(rhs.size), capacity(rhs.capacity) {
+    rhs.array = nullptr;
+    rhs.size = rhs.capacity = 0U;
+  }
+
+  /**
+   * Moves the passed vector
+   * This frees the currect vector
+   **/
+  base_vector& operator=(base_vector&& other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+
+    this->destroy();
+
+    this->array = other.array;
+    this->size = other.size;
+    this->capacity = other.capacity;
+
+    other.array = nullptr;
+    other.size = other.capacity = 0U;
+
+    return *this;
+  }
+
   // === Copy === //
+
   /**
    * Copies the passed vector.
    * This will resize if the passed vector is bigger
@@ -109,127 +82,241 @@ public:
    * @errors
    *  - error_code::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code copy(const base_vector& rhs) noexcept;
+  [[nodiscard]] error_code copy(const base_vector& other) noexcept {
+    if (this == &other) {
+      return error_code::OK;
+    }
 
-  // === Move === //
+    if (other.is_empty()) {
+      this->destroy();
+      return error_code::OK;
+    }
+
+    if (this->array == nullptr) {
+      TRY(this->allocate(other.capacity));
+    } else if (this->capacity < other.capacity) {
+      TRY(this->reallocate(other.capacity));
+    }
+
+    for (usize i = 0U; i < other.size; ++i) {
+      if constexpr (!std::is_class<T>::value) {
+        this->array[i] = other.array[i];
+      } else {
+        TRY(this->array[i].copy(other.array[i]));
+      }
+    }
+
+    this->size = other.size;
+    return error_code::OK;
+  }
+
+  // === Destructor === //
+
+  ~base_vector() noexcept {
+    this->destroy();
+  }
+
   /**
-   * Initializes the vector and moves the passed vector
+   * Frees the elements and data of the vector
    **/
-  base_vector(base_vector&& rhs) noexcept;
+  void destroy() noexcept {
+    if (this->array == nullptr) {
+      return;
+    }
+
+    if constexpr (std::is_class<T>::value) {
+      for (usize i = 0; i < this->capacity; ++i) {
+        this->array[i].~T();
+      }
+    }
+
+    std::free(this->array); // NOLINT
+    this->array = nullptr;
+    this->size = this->capacity = 0U;
+  }
 
   /**
-   * Moves the passed vector
-   * This frees the currect vector
+   * Empties the vector, but does not free the data
    **/
-  base_vector& operator=(base_vector&& rhs) noexcept;
+  void clear() noexcept {
+    this->size = 0;
+  }
 
-  // === Deconstructor === //
-  ~base_vector();
+  // === Accessing === //
 
-  // === Element Access === //
   /**
    * Safe index accessing
    *
    * @errors
    *  - error_code::INDEX_OUT_OF_BOUNDS
    **/
-  [[nodiscard]] expected<T*, error_code> at(usize index) const noexcept;
+  [[nodiscard]] expected<T*, error_code> at(usize index) const noexcept {
+    if (index > this->size) {
+      return unexpected{error_code::INDEX_OUT_OF_BOUNDS};
+    }
+    return this->array + index;
+  }
 
   /**
    * Unsafe index accessing
    **/
-  [[nodiscard]] T& operator[](usize index) const noexcept;
+  [[nodiscard]] T& operator[](usize index) noexcept {
+    assert(index <= this->size);
+    return this->array[index];
+  }
 
   /**
-   * Returns the expected ptr at the start of the vector
+   * Unsafe index accessing
+   **/
+  [[nodiscard]] const T& operator[](usize index) const noexcept {
+    assert(index <= this->size);
+    return this->array[index];
+  }
+
+  /**
+   * Unsafe accessing to return the first element of the array.
+   **/
+  [[nodiscard]] T& front() noexcept {
+    assert(this->size > 0U);
+    return this->array[0];
+  }
+
+  /**
+   * Unsafe accessing to return the first element of the array.
+   **/
+  [[nodiscard]] const T& front() const noexcept {
+    assert(this->size > 0U);
+    return this->array[0];
+  }
+
+  /**
+   * [Unsafe] accessing to return the last element of the array.
+   **/
+  [[nodiscard]] T& back() noexcept {
+    assert(this->size > 0U);
+    return this->array[this->size - 1U];
+  }
+
+  /**
+   * [Unsafe] accessing to return the last element of the array.
+   **/
+  [[nodiscard]] const T& back() const noexcept {
+    assert(this->size > 0U);
+    return this->array[this->size - 1U];
+  }
+
+  /**
+   * [Safe] accessing to return the first element of the array.
    *
    * @errors
-   *  - Out of range
+   *  - error_code::CONTAINER_EMPTY
    **/
-  [[nodiscard]] expected<T*, error_code> front() const noexcept;
+  [[nodiscard]] expected<T*, error_code> front_safe() const noexcept {
+    if (this->size == 0U) {
+      return unexpected{error_code::CONTAINER_EMPTY};
+    }
+    return this->array;
+  }
 
   /**
-   * Returns the expected ptr at the end of the vector
-   *
-   * @errors
-   *  - error_code::INDEX_OUT_OF_BOUNDS
-   *
+   * [Safe] accessing to return the last element of the array.
    **/
-  [[nodiscard]] expected<T*, error_code> back() const noexcept;
-
-  /**
-   * Returns the expected ptr at the start of the vector
-   **/
-  [[nodiscard]] T& front_unsafe() const noexcept;
-
-  /**
-   * Returns the expected ptr at the end of the vector
-   **/
-  [[nodiscard]] T& back_unsafe() const noexcept;
+  [[nodiscard]] expected<T*, error_code> back_safe() const noexcept {
+    if (this->size == 0U) {
+      return unexpected{error_code::CONTAINER_EMPTY};
+    }
+    return this->array + this->size - 1U;
+  }
 
   /**
    * Returns the ptr of the vector container
    **/
-  [[nodiscard]] T* data() const noexcept;
+  [[nodiscard]] T* get_data() const noexcept {
+    return this->array;
+  }
 
   // === Iterators === //
-  /**
-   * Points to the 0-th index of the vector
-   **/
-  [[nodiscard]] iterator begin() noexcept;
 
   /**
    * Points to the 0-th index of the vector
    **/
-  [[nodiscard]] citerator cbegin() const noexcept;
+  [[nodiscard]] iterator begin() noexcept {
+    return iterator{this->array};
+  }
+
+  /**
+   * Points to the 0-th index of the vector
+   **/
+  [[nodiscard]] const_iterator cbegin() const noexcept {
+    return const_iterator{this->array};
+  }
 
   /**
    * Points to the top index of the vector
    **/
-  [[nodiscard]] iterator end() noexcept;
+  [[nodiscard]] iterator end() noexcept {
+    return iterator{this->array + this->size};
+  }
 
   /**
    * Points to the top index of the vector
    **/
-  [[nodiscard]] citerator cend() const noexcept;
+  [[nodiscard]] const_iterator cend() const noexcept {
+    return const_iterator{this->array + this->size};
+  }
 
   /**
    * Points at the top-1 index of the vector
    **/
-  [[nodiscard]] iterator rbegin() noexcept;
+  [[nodiscard]] reverse_iterator rbegin() noexcept {
+    return reverse_iterator{this->array + this->size - 1U};
+  }
 
   /**
    * Points at the top-1 index of the vector
    **/
-  [[nodiscard]] citerator crbegin() const noexcept;
+  [[nodiscard]] const_reverse_iterator crbegin() const noexcept {
+    return const_reverse_iterator{this->array + this->size - 1U};
+  }
 
   /**
    * Points at the -1th index of the vector
    **/
-  [[nodiscard]] iterator rend() noexcept;
+  [[nodiscard]] reverse_iterator rend() noexcept {
+    return reverse_iterator{this->array - 1U};
+  }
 
   /**
    * Points at the -1th index of the vector
    **/
-  [[nodiscard]] citerator crend() const noexcept;
+  [[nodiscard]] const_reverse_iterator crend() const noexcept {
+    return const_reverse_iterator{this->array - 1U};
+  }
 
-  // === Capacity === //
+  // === Sizes === //
+
   /**
    * Check if the vector has no elements
    *
    * @return bool
    **/
-  [[nodiscard]] bool is_empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept {
+    return this->size == 0;
+  }
 
   /**
    * Returns the current size of the vector
    **/
-  [[nodiscard]] usize get_size() const noexcept;
+  [[nodiscard]] usize get_size() const noexcept {
+    return this->size;
+  }
 
   /**
    * Returns the size of the memory block allocated
    **/
-  [[nodiscard]] usize get_capacity() const noexcept;
+  [[nodiscard]] usize get_capacity() const noexcept {
+    return this->capacity;
+  }
 
   /**
    * Reserves size for the vector
@@ -237,13 +324,44 @@ public:
    * @errors
    *  - error_code::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code reserve(usize size) noexcept;
+  [[nodiscard]] error_code reserve(usize new_capacity) noexcept {
+    if (this->array == nullptr) {
+      TRY(this->allocate(new_capacity));
+    } else if (new_capacity > this->capacity) {
+      TRY(this->reallocate(new_capacity));
+    }
+    return error_code::OK;
+  }
 
-  // === Modifiers === //
-  /**
-   * Clears the vector
-   **/
-  void clear() noexcept;
+  // === Mutations === //
+
+  [[nodiscard]] error_code push(const T& element) noexcept {
+    if constexpr (std::is_class<T>::value) {
+      T e{};
+      TRY(e.copy(element));
+      return this->push_impl(std::move(e));
+    } else {
+      return this->push_impl(element);
+    }
+  }
+
+  [[nodiscard]] error_code push(T&& element) noexcept {
+    return this->push_impl(std::move(element));
+  }
+
+  [[nodiscard]] error_code insert(usize index, const T& element) noexcept {
+    if constexpr (std::is_class<T>::value) {
+      T e{};
+      TRY(e.copy(element));
+      return this->insert_impl(index, std::move(e));
+    } else {
+      return this->insert_impl(index, element);
+    }
+  }
+
+  [[nodiscard]] error_code insert(usize index, T&& element) noexcept {
+    return this->insert_impl(index, std::move(element));
+  }
 
   /**
    * Resizes the vector
@@ -251,111 +369,184 @@ public:
    * @errors
    *  - error_code::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code resize(usize size) noexcept;
-
-  /**
-   * Removes the element at the iterator
-   **/
-  void erase(const iterator& it) noexcept {
-    this->erase_impl(it - this->begin());
+  [[nodiscard]] error_code resize(usize size) noexcept {
+    if (this->array == nullptr) {
+      TRY(this->allocate(size));
+      if constexpr (!std::is_class<T>::value) {
+        std::memset(this->array, sizeof(T), size);
+      }
+    } else if (this->array) {
+      TRY(this->reallocate(size));
+      if constexpr (!std::is_class<T>::value) {
+        // Reinitialize the popped values
+        std::memset(this->array, sizeof(T), size - this->size);
+      }
+    }
+    this->size = size;
+    return error_code::OK;
   }
 
   /**
-   * Removes the element at the iterator
+   * [Unsafe] removes the element at the index
    **/
-  void erase(usize index) noexcept {
-    this->erase_impl(index);
+  void remove(usize index) noexcept {
+    assert(index < this->size);
+
+    --this->size;
+    for (; index < this->size; ++index) {
+      this->array[index] = std::move(this->array[index + 1]);
+    }
   }
 
   /**
-   * Pops an element from the back and returns the element
+   * [Safe] removes the element at the index
    *
    * @errors
-   * - error_code::CONTAINER_EMPTY
-   **/
-  [[nodiscard]] expected<T, error_code> pop_back() noexcept;
-
-  /**
-   * Pops an element from the back and returns the element
-   * Should crash when this is empty
-   **/
-  [[nodiscard]] T&& pop_back_unsafe() noexcept;
-
-  /**
-   * Pops an element from the back and discards it
-   **/
-  void pop_back_disc() noexcept;
-
-  // TODO: Change this to usize index
-  error_code insert(const iterator& it) noexcept = delete;
-  error_code push_back() noexcept = delete;
-
-  /**
-   * Inserts an element starting from the iterator
-   *
-   * @errors
-   *  - error_code::BAD_ALLOCATION
    *  - error_code::INDEX_OUT_OF_BOUNDS
    **/
-  template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] error_code insert(const iterator& it, Args&&... args) noexcept {
-    return this->insert(it - this->begin(), std::forward<Args>(args)...);
-  }
-
-  /**
-   * Inserts an element starting from the iterator
-   *
-   * @errors
-   *  - error_code::BAD_ALLOCATION
-   *  - error_code::INDEX_OUT_OF_BOUNDS
-   **/
-  template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] error_code insert(usize index, Args&&... args) noexcept {
-    if (index < 0 || index > this->top) {
+  [[nodiscard]] error_code remove_safe(usize index) noexcept {
+    if (index >= this->size) {
       return error_code::INDEX_OUT_OF_BOUNDS;
     }
 
-    if (index == this->top) {
-      return this->push_back(std::forward<Args>(args)...);
+    --this->size;
+    for (; index < this->size; ++index) {
+      this->array[index] = std::move(this->array[index + 1]);
     }
-
-    TRY(this->grow(this->top + sizeof...(Args)));
-    this->shift(index, sizeof...(Args));
-
-    return this->insert_helper(index, std::forward<Args>(args)...);
+    return error_code::OK;
   }
 
   /**
-   * Pushes an element at the back of the vector
+   * [Unsafe] pops an element from the back and returns the element
+   **/
+  T pop() noexcept {
+    assert(this->size > 0U);
+    return std::move(this->array[--this->size]);
+  }
+
+  /**
+   * [Safe] pops an element from the back and returns the element
+   *
+   * @errors
+   *  - error_code::CONTAINER_EMPTY
+   **/
+  [[nodiscard]] expected<T, error_code> pop_safe() noexcept {
+    if (this->size == 0U) {
+      return unexpected{error_code::CONTAINER_EMPTY};
+    }
+    return std::move(this->array[--this->size]);
+  }
+
+#ifdef DS_TEST
+  void print() const noexcept {
+    printf("=== vector ===\n> capacity: " USIZE_FORMAT "\n", this->capacity);
+    for (usize i = 0U; i < this->size; ++i) {
+      printf(USIZE_FORMAT ": %llx\n", i, this->array[i]);
+    }
+  }
+#endif
+
+protected:
+  T* array = nullptr;
+  usize size = 0;
+  usize capacity = 0;
+
+  // === Helpers === //
+
+  [[nodiscard]] inline error_code push_impl(T element) noexcept {
+    TRY(this->check_allocation());
+
+    this->array[this->size] = std::move(element);
+    ++this->size;
+
+    return error_code::OK;
+  }
+
+  [[nodiscard]] inline error_code insert_impl(usize index, T element) noexcept {
+    if (index > this->size) {
+      return error_code::INDEX_OUT_OF_BOUNDS;
+    }
+
+    TRY(this->check_allocation());
+
+    // Shift
+    for (usize i = this->size; i > index; --i) {
+      this->array[i] = std::move(this->array[i - 1]);
+    }
+    this->array[index] = std::move(element);
+    ++this->size;
+
+    return error_code::OK;
+  }
+
+  // === Memory === //
+
+  /**
+   * Allocates a new memory block for the container
    *
    * @errors
    *  - error_code::BAD_ALLOCATION
    **/
-  template <typename... Args, typename = all_same_type<T, Args...>>
-  [[nodiscard]] error_code push_back(Args&&... args) noexcept {
-    TRY(this->grow(this->top + sizeof...(Args)));
+  [[nodiscard]] error_code allocate(usize new_capacity) noexcept {
+    assert(new_capacity > 0U);
 
-    return this->push_back_helper(std::forward<Args>(args)...);
+    // NOLINTNEXTLINE
+    this->array = (T*)std::malloc(new_capacity * sizeof(T));
+    if (this->array == nullptr) {
+      return error_code::BAD_ALLOCATION;
+    }
+
+    // Data initialization
+    if constexpr (std::is_class<T>::value) {
+      new (this->array) T[new_capacity];
+    }
+
+    this->capacity = new_capacity;
+    return error_code::OK;
   }
 
-  // === Non-member Operators === //
+  /**
+   * Reallocates the old memory block, always assume that
+   *   new_capacity > this->capacity
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION
+   **/
+  [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
+    assert(new_capacity > 0U);
 
-  template <typename Derived_, typename T_>
-  friend bool operator==(
-      const base_vector<Derived_, T_>& lhs, const base_vector<Derived_, T_>& rhs
-  ) noexcept;
+    // NOLINTNEXTLINE
+    auto* new_array = (T*)std::realloc(this->array, new_capacity * sizeof(T));
+    if (new_array == nullptr) {
+      return error_code::BAD_ALLOCATION;
+    }
+    this->array = new_array;
 
-  template <typename Derived_, typename T_>
-  friend bool operator!=(
-      const base_vector<Derived_, T_>& lhs, const base_vector<Derived_, T_>& rhs
-  ) noexcept;
+    if constexpr (std::is_class<T>::value) {
+      new (this->array + this->capacity) T[new_capacity - this->capacity];
+    }
+
+    this->capacity = new_capacity;
+    return error_code::OK;
+  }
+
+  /**
+   * Calculates the new size before allocation/reallocation
+   *
+   * @errors
+   *  - error_code::BAD_ALLOCATION
+   **/
+  [[nodiscard]] error_code check_allocation() noexcept {
+    if (this->array == nullptr) {
+      TRY(this->allocate(VECTOR_INITIAL_SIZE));
+    } else if (this->size == this->capacity) {
+      TRY(this->reallocate(this->capacity * 2U));
+    }
+    return error_code::OK;
+  }
 };
 
 } // namespace ds
-
-#ifndef DS_VECTOR_TPP
-#include "./vector.tpp"
-#endif
 
 // * Vector declaration *
 namespace ds {

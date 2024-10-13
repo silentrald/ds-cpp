@@ -6,942 +6,574 @@
  *===============================*/
 
 #include "ds/vector.hpp"
-#include "./main.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "ds/string.hpp"
 #include "ds/types.hpp"
+#include "main.hpp"
 
-using namespace ds_test;
+// === vector<i32> === //
+
+ds::expected<ds::vector<ds::i32>, ds::error_code>
+create_vector_i32(const ds::usize N, const ds::usize multiplier) noexcept {
+  ds::vector<ds::i32> vector{};
+  TRY(vector.resize(N), ds::to_unexpected);
+
+  for (ds::usize i = 0; i < N; ++i) {
+    vector[i] = i * multiplier;
+  }
+
+  return std::move(vector);
+}
+
+TEST_CASE("vector<i32> insert elements", "[vector]") {
+  ds::vector<ds::i32> vector{};
+
+  const ds::i32 MULTIPLIER1 = 10;
+  const ds::i32 MULTIPLIER2 = 20;
+
+  for (ds::usize i = 1; i <= 32; ++i) {
+    REQUIRE(ds_test::handle_error(vector.push(i * MULTIPLIER1)));
+    REQUIRE(vector.get_size() == i);
+  }
+
+  for (ds::usize i = 8; i < 16; ++i) {
+    REQUIRE(ds_test::handle_error(vector.insert(i, i * MULTIPLIER2)));
+    REQUIRE(vector.get_size() == i + 33 - 8);
+  }
+
+  for (ds::usize i = 0; i < 8; ++i) {
+    REQUIRE(vector[i] == (i + 1) * MULTIPLIER1);
+  }
+  for (ds::usize i = 8; i < 16; ++i) {
+    REQUIRE(vector[i] == i * MULTIPLIER2);
+  }
+  for (ds::usize i = 16; i < 40; ++i) {
+    REQUIRE(vector[i] == (i - 7) * MULTIPLIER1);
+  }
+}
+
+TEST_CASE("vector<i32> removing elements", "[vector]") {
+  const ds::usize N = 27U;
+  const ds::isize MULTIPLIER = 10U;
+
+  const ds::usize SAFE = 0U;
+  const ds::usize UNSAFE = 1U;
+  const ds::usize REMOVE = 2U;
+
+  ds::i32 number = 0;
+  ds::expected<ds::i32, ds::error_code> expected{};
+  ds::expected<ds::i32*, ds::error_code> expected_pointer{};
+
+  ds::vector<ds::i32> vector = ({
+    auto expected_vector = create_vector_i32(N, MULTIPLIER);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  // Remove the center
+  for (ds::isize i = N / 3, size = N; i < N * 2 / 3; ++i) {
+    if (i & 1) {
+      vector.remove(N / 3);
+    } else {
+      REQUIRE(ds_test::handle_error(vector.remove_safe(N / 3)));
+    }
+    REQUIRE(vector.get_size() == --size);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(N / 3)));
+    REQUIRE(**expected_pointer == (i + 1) * MULTIPLIER);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(0U)));
+    REQUIRE(**expected_pointer == 0);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.front_safe()));
+    REQUIRE(**expected_pointer == 0);
+
+    REQUIRE(ds_test::handle_error(
+        expected_pointer = vector.at(vector.get_size() - 1U)
+    ));
+    REQUIRE(**expected_pointer == (N - 1) * MULTIPLIER);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.back_safe()));
+    REQUIRE(**expected_pointer == (N - 1) * MULTIPLIER);
+  }
+
+  // Pop at the back
+  for (ds::usize i = N * 2 / 3 - 1U, j = (N - 1) * MULTIPLIER; i >= N / 3;
+       --i) {
+    switch (i % 3) {
+    case SAFE:
+      REQUIRE(ds_test::handle_error(expected = vector.pop_safe()));
+      number = *expected;
+      break;
+
+    case UNSAFE:
+      number = vector.pop();
+      break;
+
+    case REMOVE:
+      number = vector[vector.get_size() - 1U];
+      vector.remove(vector.get_size() - 1U);
+      break;
+    }
+    REQUIRE(vector.get_size() == i);
+    REQUIRE(number == j);
+    j -= MULTIPLIER;
+
+    REQUIRE(vector[0U] == 0);
+  }
+
+  // Pop at the front
+  for (ds::usize i = 0U, size = N / 3; i < N / 3; ++i) {
+    vector.remove(0U);
+    REQUIRE(vector.get_size() == --size);
+    if (vector.get_size() != 0U) {
+      REQUIRE(vector[0U] == (i + 1) * MULTIPLIER);
+    }
+  }
+
+  REQUIRE(vector.is_empty());
+}
+
+TEST_CASE("vector<i32> forward iterators", "[vector]") {
+  const ds::usize N = 40U;
+  const ds::usize MULTIPLIER = 10U;
+
+  ds::vector<ds::i32> vector = ({
+    auto expected_vector = create_vector_i32(N, MULTIPLIER);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  ds::usize expected = 0U;
+  for (auto actual : vector) {
+    REQUIRE(actual == expected);
+    expected += MULTIPLIER;
+  }
+
+  expected = 0U;
+  for (const auto actual : vector) {
+    REQUIRE(actual == expected);
+    expected += MULTIPLIER;
+  }
+
+  expected = 0U;
+  for (auto it = vector.begin(); it != vector.end(); ++it) {
+    REQUIRE(*it == expected);
+    expected += MULTIPLIER;
+  }
+
+  expected = 0U;
+  for (auto it = vector.cbegin(); it != vector.cend(); ++it) {
+    REQUIRE(*it == expected);
+    expected += MULTIPLIER;
+  }
+}
+
+TEST_CASE("vector<i32> reverse iterators", "[vector]") {
+  const ds::usize N = 40U;
+  const ds::usize MULTIPLIER = 10U;
+
+  ds::vector<ds::i32> vector = ({
+    auto expected_vector = create_vector_i32(N, MULTIPLIER);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  ds::usize expected = (N - 1) * MULTIPLIER;
+  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+    REQUIRE(*it == expected);
+    expected -= MULTIPLIER;
+  }
+
+  expected = (N - 1) * MULTIPLIER;
+  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+    REQUIRE(*it == expected);
+    expected -= MULTIPLIER;
+  }
+}
+
+// === vector<Test> === //
+
+ds::expected<ds::vector<ds_test::Test>, ds::error_code> create_vector_test(
+    const ds::isize N, const ds::isize multiplier, ds::isize* pointer
+) noexcept {
+  ds::vector<ds_test::Test> vector{};
+  TRY(vector.resize(N), ds::to_unexpected);
+
+  for (ds::isize i = 0; i < N; ++i) {
+    vector[i] = ds_test::Test{pointer, i * multiplier};
+  }
+
+  return std::move(vector);
+}
+
+// NOTE: 1 for 1 with vector<i32>
+
+TEST_CASE("vector<Test> insert elements", "[vector]") {
+  ds::vector<ds_test::Test> vector{};
+  ds::isize counter = 0;
+
+  const ds::isize MULTIPLIER1 = 10;
+  const ds::isize MULTIPLIER2 = 20;
+
+  for (ds::isize i = 1; i <= 32; ++i) {
+    REQUIRE(ds_test::handle_error(
+        vector.push(ds_test::Test{&counter, i * MULTIPLIER1})
+    ));
+    REQUIRE(vector.get_size() == i);
+    REQUIRE(counter == i);
+  }
+
+  for (ds::isize i = 8; i < 16; ++i) {
+    REQUIRE(ds_test::handle_error(
+        vector.insert(i, ds_test::Test{&counter, i * MULTIPLIER2})
+    ));
+    REQUIRE(vector.get_size() == i + 33 - 8);
+  }
+
+  for (ds::usize i = 0; i < 8; ++i) {
+    REQUIRE(vector[i] == (i + 1) * MULTIPLIER1);
+  }
+  for (ds::usize i = 8; i < 16; ++i) {
+    REQUIRE(vector[i] == i * MULTIPLIER2);
+  }
+  for (ds::usize i = 16; i < 40; ++i) {
+    REQUIRE(vector[i] == (i - 7) * MULTIPLIER1);
+  }
+}
+
+TEST_CASE("vector<Test> removing elements", "[vector]") {
+  const ds::isize N = 27;
+  const ds::isize MULTIPLIER = 10;
+
+  const ds::usize SAFE = 0U;
+  const ds::usize UNSAFE = 1U;
+  const ds::usize REMOVE = 2U;
+
+  ds_test::Test test{};
+  ds::isize counter = 0;
+  ds::expected<ds_test::Test, ds::error_code> expected{};
+  ds::expected<ds_test::Test*, ds::error_code> expected_pointer{};
+
+  ds::vector<ds_test::Test> vector = ({
+    auto expected_vector = create_vector_test(N, MULTIPLIER, &counter);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  // Remove the center
+  for (ds::isize i = N / 3, size = N; i < N * 2 / 3; ++i) {
+    if (i & 1) {
+      vector.remove(N / 3);
+    } else {
+      REQUIRE(ds_test::handle_error(vector.remove_safe(N / 3)));
+    }
+    REQUIRE(vector.get_size() == --size);
+    REQUIRE(counter == size);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(N / 3)));
+    REQUIRE(**expected_pointer == (i + 1) * MULTIPLIER);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(0U)));
+    REQUIRE(**expected_pointer == 0);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.front_safe()));
+    REQUIRE(**expected_pointer == 0);
+
+    REQUIRE(ds_test::handle_error(
+        expected_pointer = vector.at(vector.get_size() - 1U)
+    ));
+    REQUIRE(**expected_pointer == (N - 1) * MULTIPLIER);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.back_safe()));
+    REQUIRE(**expected_pointer == (N - 1) * MULTIPLIER);
+  }
+
+  // Pop at the back
+  for (ds::usize i = N * 2 / 3 - 1U, j = (N - 1) * MULTIPLIER; i >= N / 3;
+       --i) {
+    switch (i % 3) {
+    case SAFE:
+      REQUIRE(ds_test::handle_error(expected = vector.pop_safe()));
+      test = std::move(*expected);
+      break;
+
+    case UNSAFE:
+      test = vector.pop();
+      break;
+
+    case REMOVE:
+      test = std::move(vector[vector.get_size() - 1U]);
+      vector.remove(vector.get_size() - 1U);
+      break;
+    }
+    REQUIRE(vector.get_size() == i);
+    REQUIRE(test == j);
+    j -= MULTIPLIER;
+
+    REQUIRE(vector[0U] == 0);
+  }
+
+  // Pop at the front
+  for (ds::usize i = 0U, size = N / 3; i < N / 3; ++i) {
+    vector.remove(0U);
+    REQUIRE(vector.get_size() == --size);
+    if (vector.get_size() != 0U) {
+      REQUIRE(vector[0U] == (i + 1) * MULTIPLIER);
+    }
+  }
+
+  REQUIRE(vector.is_empty());
+
+  test.destroy();
+  vector.destroy();
+
+  REQUIRE(counter == 0);
+}
+
+TEST_CASE("vector<Test> forward iterators", "[vector]") {
+  const ds::isize N = 40U;
+  const ds::isize MULTIPLIER = 10U;
+
+  ds::isize counter = 0;
+  ds::vector<ds_test::Test> vector = ({
+    auto expected_vector = create_vector_test(N, MULTIPLIER, &counter);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  ds::isize expected = 0U;
+  for (auto it = vector.begin(); it != vector.end(); ++it) {
+    REQUIRE(*it == expected);
+    expected += MULTIPLIER;
+  }
+
+  expected = 0U;
+  for (auto it = vector.cbegin(); it != vector.cend(); ++it) {
+    REQUIRE(*it == expected);
+    expected += MULTIPLIER;
+  }
+  REQUIRE(counter == vector.get_size());
+}
+
+TEST_CASE("vector<Test> reverse iterators", "[vector]") {
+  const ds::isize N = 40U;
+  const ds::isize MULTIPLIER = 10U;
+
+  ds::isize counter = 0;
+  ds::vector<ds_test::Test> vector = ({
+    auto expected_vector = create_vector_test(N, MULTIPLIER, &counter);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  ds::isize expected = (N - 1) * MULTIPLIER;
+  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+    REQUIRE(*it == expected);
+    expected -= MULTIPLIER;
+  }
+
+  expected = (N - 1) * MULTIPLIER;
+  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+    REQUIRE(*it == expected);
+    expected -= MULTIPLIER;
+  }
+}
+
+// === vector<string> === //
+
+ds::expected<ds::vector<ds::string>, ds::error_code>
+create_vector_string(const ds::c8** words, ds::usize size) noexcept {
+  ds::vector<ds::string> vector{};
+  TRY(vector.resize(size), ds::to_unexpected);
+
+  for (ds::usize i = 0; i < size; ++i) {
+    TRY(vector[i].copy(words[i]), ds::to_unexpected);
+  }
+
+  return std::move(vector);
+}
 
 // NOLINTNEXTLINE
-TEST_CASE("vector with primitive datatype", "[vector]") {
-  ds::vector<ds::i32> vec{};
-  ds::expected<ds::i32, ds::error_code> exp{};
-  ds::expected<ds::i32*, ds::error_code> exp_ptr{};
+const ds::c8* WORDS[] = {"liability", "ignite",   "arrow",  "fight",
+                         "excuse",    "fibre",    "scheme", "cage",
+                         "soprano",   "dealer",   "rabbit", "mask",
+                         "plaintiff", "specimen", "stem",   "castle",
+                         "point",     "dragon"};
+const ds::usize WORDS_SIZE = 18U;
 
-  SECTION("Empty initialization") {
-    REQUIRE(vec.is_empty());
-    REQUIRE(vec.get_size() == 0);
+TEST_CASE("vector<string> insert elements", "[vector]") {
+  ds::vector<ds::string> vector{};
+  ds::string string{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+
+  const ds::usize CONST_CHAR = 0;
+  const ds::usize COPY = 1;
+
+  for (ds::usize i = 0; i < WORDS_SIZE / 2; ++i) {
+    switch (i % 3) {
+    case CONST_CHAR:
+      REQUIRE(ds_test::handle_error(vector.push(WORDS[i])));
+      break;
+
+    case COPY:
+      REQUIRE(ds_test::handle_error(string.copy(WORDS[i])));
+      REQUIRE(ds_test::handle_error(vector.push(string)));
+      break;
+
+    default: // MOVE
+      REQUIRE(ds_test::handle_error(string.copy(WORDS[i])));
+      REQUIRE(ds_test::handle_error(vector.push(std::move(string))));
+      break;
+    }
+    REQUIRE(vector.get_size() == i + 1U);
   }
 
-  SECTION("Single element initialization") {
-    CHECK(handle_error(vec.push_back(1)));
+  for (ds::usize i = WORDS_SIZE / 2; i < WORDS_SIZE; ++i) {
+    switch (i % 3) {
+    case CONST_CHAR:
+      REQUIRE(ds_test::handle_error(vector.insert(WORDS_SIZE / 3U, WORDS[i])));
+      break;
 
-    REQUIRE(!vec.is_empty());
-    REQUIRE(vec.get_size() == 1);
-    REQUIRE(vec[0] == 1);
+    case COPY:
+      REQUIRE(ds_test::handle_error(string.copy(WORDS[i])));
+      REQUIRE(ds_test::handle_error(vector.insert(WORDS_SIZE / 3U, string)));
+      break;
+
+    default: // MOVE
+      REQUIRE(ds_test::handle_error(string.copy(WORDS[i])));
+      REQUIRE(ds_test::handle_error(
+          vector.insert(WORDS_SIZE / 3U, std::move(string))
+      ));
+      break;
+    }
+    REQUIRE(vector.get_size() == i + 1U);
   }
 
-  SECTION("Multi element initialization") {
-    CHECK(handle_error(vec.push_back(1, 2, 3)));
-
-    REQUIRE(!vec.is_empty());
-    REQUIRE(vec.get_size() == 3);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 3);
+  for (ds::usize i = 0; i < WORDS_SIZE / 3; ++i) {
+    REQUIRE(ds_test::handle_error(expected = vector.at(i)));
+    REQUIRE(**expected == WORDS[i]);
   }
-
-  SECTION("Passing") {
-    free_ptr = nullptr;
-
-    SECTION("Init Move (empty move)") {
-      ds::vector<ds::i32> vec2 = std::move(vec);
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-    }
-
-    SECTION("Init Move (non-empty move)") {
-      CHECK(handle_error(vec.push_back(1, 2, 3)));
-
-      ds::i32* ptr = vec.data();
-      ds::vector<ds::i32> vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2.get_size() == 3);
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-    }
-
-    SECTION("Copy (empty -> empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-    }
-
-    SECTION("Copy (non-empty -> empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec.push_back(1, 2, 3)));
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-    }
-
-    SECTION("Copy (empty -> non-empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec2.push_back(1, 2, 3)));
-
-      ds::i32* ptr = vec2.data();
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-    }
-
-    SECTION("Copy (smaller non-empty -> bigger non-empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec.push_back(1, 2, 3)));
-      CHECK(handle_error(vec2.push_back(4, 5, 6, 7, 8)));
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(vec.get_capacity() == 3);
-      REQUIRE(vec2.get_capacity() == 5);
-    }
-
-    SECTION("Copy (bigger non-empty -> smaller non-empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec.push_back(1, 2, 3, 4, 5)));
-      CHECK(handle_error(vec2.push_back(6, 7, 8)));
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(vec2[3] == 4);
-      REQUIRE(vec2[4] == 5);
-      REQUIRE(vec.get_capacity() == 5);
-      REQUIRE(vec2.get_capacity() == 5);
-    }
-
-    SECTION("Move (empty -> empty)") {
-      ds::vector<ds::i32> vec2;
-
-      vec2 = std::move(vec);
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-    }
-
-    SECTION("Move (non-empty -> empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec.push_back(1, 2, 3)));
-
-      ds::i32* ptr = vec.data();
-      vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-    }
-
-    SECTION("Move (empty -> non-empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec2.push_back(4, 5, 6)));
-
-      ds::i32* ptr = vec2.data();
-      vec2 = std::move(vec);
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec.data() == nullptr);
-      REQUIRE(ptr == free_ptr);
-    }
-
-    SECTION("Move (non-empty -> non-empty)") {
-      ds::vector<ds::i32> vec2;
-
-      CHECK(handle_error(vec.push_back(1, 2, 3)));
-      CHECK(handle_error(vec2.push_back(4, 5, 6)));
-
-      ds::i32* ptr = vec.data();
-      ds::i32* ptr2 = vec2.data();
-      vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-      REQUIRE(ptr2 == free_ptr);
-    }
+  for (ds::usize i = 0; i < WORDS_SIZE / 2; ++i) {
+    REQUIRE(vector[i + WORDS_SIZE / 3U] == WORDS[WORDS_SIZE - i - 1U]);
   }
-
-  SECTION("Element accessing") {
-
-    SECTION("at") {
-      SECTION("Empty") {
-        exp_ptr = vec.at(0);
-        REQUIRE_FALSE(exp_ptr);
-      }
-
-      SECTION("Non-empty") {
-        CHECK(handle_error(vec.push_back(1, 2, 3, 4, 5)));
-
-        exp_ptr = vec.at(0);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 1);
-
-        exp_ptr = vec.at(2);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 3);
-
-        exp_ptr = vec.at(4);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 5);
-
-        // Out of bounds
-        exp_ptr = vec.at(5);
-        REQUIRE_FALSE(exp_ptr);
-      }
-    }
-
-    SECTION("front/back") {
-      SECTION("Empty") {
-        exp_ptr = vec.front();
-        REQUIRE_FALSE(exp_ptr);
-
-        exp_ptr = vec.back();
-        REQUIRE_FALSE(exp_ptr);
-      }
-
-      SECTION("Non-empty") {
-        CHECK(handle_error(vec.push_back(6, 7, 8, 9, 10)));
-
-        exp_ptr = vec.front();
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 6);
-
-        exp_ptr = vec.back();
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 10);
-      }
-    }
-  }
-
-  SECTION("Modifiers") {
-    SECTION("Push back") {
-      CHECK(handle_error(vec.push_back(1)));
-      REQUIRE(vec[0] == 1);
-
-      CHECK(handle_error(vec.push_back(2, 3, 4)));
-      REQUIRE(vec[1] == 2);
-      REQUIRE(vec[2] == 3);
-      REQUIRE(vec[3] == 4);
-    }
-
-    SECTION("Inserting") {
-      CHECK(handle_error(vec.insert(vec.begin(), 1)));
-      REQUIRE(vec[0] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin(), 2)));
-      REQUIRE(vec[0] == 2);
-      REQUIRE(vec[1] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin() + 1, 3)));
-      REQUIRE(vec[1] == 3);
-      REQUIRE(vec[2] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin() + 2, 4, 5, 6)));
-      REQUIRE(vec[2] == 4);
-      REQUIRE(vec[3] == 5);
-      REQUIRE(vec[4] == 6);
-      REQUIRE(vec[5] == 1);
-    }
-
-    SECTION("Clearing") {
-      CHECK(handle_error(vec.push_back(1, 2, 3, 4, 5)));
-      REQUIRE_FALSE(vec.is_empty());
-
-      vec.clear();
-      REQUIRE(vec.is_empty());
-    }
-  }
-
-  SECTION("Iterator") {
-    for (auto i : vec) {
-      CHECK(false);
-    }
-
-    CHECK(handle_error(vec.push_back(1)));
-    for (auto i : vec) {
-      REQUIRE(i == 1);
-    }
-
-    CHECK(handle_error(vec.push_back(2, 3, 4, 5)));
-    ds::i32 ei = 0;
-    for (auto i : vec) {
-      REQUIRE(i == ++ei);
-    }
-
-    ei = 0;
-    for (const auto i : vec) {
-      REQUIRE(i == ++ei);
-    }
-  }
-
-  SECTION("Reserving") {
-    CHECK(handle_error(vec.reserve(10)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.reserve(5)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.reserve(15)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 15);
-  }
-
-  SECTION("Resizing") {
-    CHECK(handle_error(vec.resize(10)));
-    REQUIRE(vec.get_size() == 10);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.resize(5)));
-    REQUIRE(vec.get_size() == 5);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.resize(15)));
-    REQUIRE(vec.get_size() == 15);
-    REQUIRE(vec.get_capacity() == 15);
-  }
-
-  SECTION("Erasing") {
-    CHECK(handle_error(vec.push_back(1, 2, 3, 4, 5)));
-
-    vec.erase(vec.begin() + 2);
-    REQUIRE(vec.get_size() == 4);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 4);
-    REQUIRE(vec[3] == 5);
-
-    vec.erase(vec.begin() + 3);
-    REQUIRE(vec.get_size() == 3);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 4);
+  for (ds::usize i = 0; i < WORDS_SIZE / 6; ++i) {
+    REQUIRE(vector[i + WORDS_SIZE * 5 / 6] == WORDS[i + WORDS_SIZE / 3U]);
   }
 }
 
-TEST_CASE("vector with struct/class", "[vector]") {
-  ds::vector<Test> vec{};
-  ds::expected<Test, ds::error_code> exp{};
-  ds::expected<Test*, ds::error_code> exp_ptr{};
-  counter = 0;
+TEST_CASE("vector<string> removing elements", "[vector]") {
+  ds::string string{};
+  ds::expected<ds::string, ds::error_code> expected{};
+  ds::expected<ds::string*, ds::error_code> expected_pointer{};
 
-  SECTION("Empty initialization") {
-    REQUIRE(vec.is_empty());
-    REQUIRE(vec.get_size() == 0);
+  const ds::usize SAFE = 0U;
+  const ds::usize UNSAFE = 1U;
+  const ds::usize REMOVE = 2U;
 
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
+  ds::vector<ds::string> vector = ({
+    auto expected_vector = create_vector_string(WORDS, WORDS_SIZE);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
 
-  SECTION("Single element initialization") {
-    CHECK(handle_error(vec.push_back(Test{1})));
-
-    REQUIRE(!vec.is_empty());
-    REQUIRE(vec.get_size() == 1);
-    REQUIRE(vec[0] == 1);
-
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
-
-  SECTION("Multi element initialization") {
-    CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-
-    REQUIRE(!vec.is_empty());
-    REQUIRE(vec.get_size() == 3);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 3);
-
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
-
-  SECTION("Passing") {
-    free_ptr = nullptr;
-    SECTION("Init Move (empty move)") {
-      ds::vector<Test> vec2 = std::move(vec);
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
+  // Remove the center
+  for (ds::usize i = WORDS_SIZE / 3, size = WORDS_SIZE; i < WORDS_SIZE * 2 / 3;
+       ++i) {
+    if (i & 1) {
+      vector.remove(WORDS_SIZE / 3);
+    } else {
+      REQUIRE(ds_test::handle_error(vector.remove_safe(WORDS_SIZE / 3)));
     }
+    REQUIRE(vector.get_size() == --size);
 
-    SECTION("Init Move (non-empty move)") {
-      CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-      Test* ptr = vec.data();
-      ds::vector<Test> vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2.get_size() == 3);
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Copy (empty -> empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-    }
-
-    SECTION("Copy (non-empty -> empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Copy (empty -> non-empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec2.push_back(Test{1}, Test{2}, Test{3})));
-
-      Test* ptr = vec2.data();
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Copy (smaller non-empty -> bigger non-empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-      CHECK(handle_error(
-          vec2.push_back(Test{4}, Test{5}, Test{6}, Test{7}, Test{8})
-      ));
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(vec.get_capacity() == 3);
-      REQUIRE(vec2.get_capacity() == 5);
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Copy (bigger non-empty -> smaller non-empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(
-          vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5})
-      ));
-      CHECK(handle_error(vec2.push_back(Test{6}, Test{7}, Test{8})));
-
-      CHECK(handle_error(vec2.copy(vec)));
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(vec2[3] == 4);
-      REQUIRE(vec2[4] == 5);
-      REQUIRE(vec.get_capacity() == 5);
-      REQUIRE(vec2.get_capacity() == 5);
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Move (empty -> empty)") {
-      ds::vector<Test> vec2;
-
-      vec2 = std::move(vec);
-      REQUIRE((vec == vec2));
-      REQUIRE(vec2.is_empty());
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Move (non-empty -> empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-
-      Test* ptr = vec.data();
-      vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Move (empty -> non-empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec2.push_back(Test{4}, Test{5}, Test{6})));
-
-      Test* ptr = vec2.data();
-      vec2 = std::move(vec);
-
-      REQUIRE((vec == vec2));
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec.data() == nullptr);
-      REQUIRE(ptr == free_ptr);
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Move (non-empty -> non-empty)") {
-      ds::vector<Test> vec2;
-
-      CHECK(handle_error(vec.push_back(Test{1}, Test{2}, Test{3})));
-      CHECK(handle_error(vec2.push_back(Test{4}, Test{5}, Test{6})));
-
-      Test* ptr = vec.data();
-      Test* ptr2 = vec2.data();
-      vec2 = std::move(vec);
-
-      REQUIRE(vec != vec2);
-      REQUIRE(vec.is_empty());
-      REQUIRE(vec2[0] == 1);
-      REQUIRE(vec2[1] == 2);
-      REQUIRE(vec2[2] == 3);
-      REQUIRE(ptr == vec2.data());
-      REQUIRE(ptr2 == free_ptr);
-
-      vec.~vector();
-      vec2.~vector();
-      REQUIRE(counter == 0);
-    }
-  }
-
-  SECTION("Element accessing") {
-    SECTION("at") {
-      SECTION("Empty") {
-        exp_ptr = vec.at(0);
-        REQUIRE_FALSE(exp_ptr);
-
-        vec.~vector();
-        REQUIRE(counter == 0);
-      }
-
-      SECTION("Non-empty") {
-        CHECK(handle_error(
-            vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5})
-        ));
-
-        exp_ptr = vec.at(0);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 1);
-
-        exp_ptr = vec.at(2);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 3);
-
-        exp_ptr = vec.at(4);
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 5);
-
-        // Out of bounds
-        exp_ptr = vec.at(5);
-        REQUIRE_FALSE(exp_ptr);
-
-        exp.~expected();
-        vec.~vector();
-        REQUIRE(counter == 0);
-      }
-    }
-
-    SECTION("front/back") {
-      SECTION("Empty") {
-        exp_ptr = vec.front();
-        REQUIRE_FALSE(exp_ptr);
-
-        exp_ptr = vec.back();
-        REQUIRE_FALSE(exp_ptr);
-
-        vec.~vector();
-        REQUIRE(counter == 0);
-      }
-
-      SECTION("Non-empty") {
-        CHECK(handle_error(
-            vec.push_back(Test{6}, Test{7}, Test{8}, Test{9}, Test{10})
-        ));
-
-        exp_ptr = vec.front();
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 6);
-
-        exp_ptr = vec.back();
-        CHECK(handle_error(exp_ptr));
-        REQUIRE_FALSE(*exp_ptr == nullptr);
-        REQUIRE(**exp_ptr == 10);
-
-        exp.~expected();
-        exp_ptr.~expected();
-        vec.~vector();
-        REQUIRE(counter == 0);
-      }
-    }
-  }
-
-  SECTION("Modifiers") {
-    SECTION("Push back") {
-      CHECK(handle_error(vec.push_back(Test{1})));
-      REQUIRE(vec[0] == 1);
-
-      CHECK(handle_error(vec.push_back(Test{2}, Test{3}, Test{4})));
-      REQUIRE(vec[1] == 2);
-      REQUIRE(vec[2] == 3);
-      REQUIRE(vec[3] == 4);
-
-      vec.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Inserting") {
-      CHECK(handle_error(vec.insert(vec.begin(), Test{1})));
-      REQUIRE(vec[0] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin(), Test{2})));
-      REQUIRE(vec[0] == 2);
-      REQUIRE(vec[1] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin() + 1, Test{3})));
-      REQUIRE(vec[1] == 3);
-      REQUIRE(vec[2] == 1);
-
-      CHECK(handle_error(vec.insert(vec.begin() + 2, Test{4}, Test{5}, Test{6}))
-      );
-      REQUIRE(vec[2] == 4);
-      REQUIRE(vec[3] == 5);
-      REQUIRE(vec[4] == 6);
-      REQUIRE(vec[5] == 1);
-
-      vec.~vector();
-      REQUIRE(counter == 0);
-    }
-
-    SECTION("Clearing") {
-      CHECK(handle_error(
-          vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5})
-      ));
-      REQUIRE_FALSE(vec.is_empty());
-
-      vec.clear();
-      REQUIRE(vec.is_empty());
-
-      vec.~vector();
-      REQUIRE(counter == 0);
-    }
-  }
-
-  SECTION("Iterator") {
-    for (auto& c : vec) {
-      CHECK(false);
-    }
-
-    CHECK(handle_error(vec.push_back(Test{1})));
-    for (auto& c : vec) {
-      REQUIRE(c == 1);
-    }
-
-    CHECK(handle_error(vec.push_back(Test{2}, Test{3}, Test{4}, Test{5})));
-    ds::i32 ei = 0;
-    for (auto& c : vec) {
-      REQUIRE(c == ++ei);
-    }
-
-    ei = 0;
-    for (const auto& c : vec) {
-      REQUIRE(c == ++ei);
-    }
-
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
-
-  SECTION("Reserving") {
-    CHECK(handle_error(vec.reserve(10)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.reserve(5)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.reserve(15)));
-    REQUIRE(vec.get_size() == 0);
-    REQUIRE(vec.get_capacity() == 15);
-
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
-
-  SECTION("Resizing") {
-    CHECK(handle_error(vec.resize(10)));
-    REQUIRE(vec.get_size() == 10);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.resize(5)));
-    REQUIRE(vec.get_size() == 5);
-    REQUIRE(vec.get_capacity() == 10);
-
-    CHECK(handle_error(vec.resize(15)));
-    REQUIRE(vec.get_size() == 15);
-    REQUIRE(vec.get_capacity() == 15);
-
-    vec.~vector();
-    REQUIRE(counter == 0);
-  }
-
-  SECTION("Erasing") {
-    CHECK(
-        handle_error(vec.push_back(Test{1}, Test{2}, Test{3}, Test{4}, Test{5}))
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(WORDS_SIZE / 3))
     );
+    REQUIRE(**expected_pointer == WORDS[i + 1U]);
 
-    vec.erase(vec.begin() + 2);
-    REQUIRE(vec.get_size() == 4);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 4);
-    REQUIRE(vec[3] == 5);
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.at(0U)));
+    REQUIRE(**expected_pointer == WORDS[0U]);
 
-    vec.erase(vec.begin() + 3);
-    REQUIRE(vec.get_size() == 3);
-    REQUIRE(vec[0] == 1);
-    REQUIRE(vec[1] == 2);
-    REQUIRE(vec[2] == 4);
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.front_safe()));
+    REQUIRE(**expected_pointer == WORDS[0U]);
 
-    vec.~vector();
-    REQUIRE(counter == 0);
+    REQUIRE(ds_test::handle_error(
+        expected_pointer = vector.at(vector.get_size() - 1U)
+    ));
+    REQUIRE(**expected_pointer == WORDS[WORDS_SIZE - 1U]);
+
+    REQUIRE(ds_test::handle_error(expected_pointer = vector.back_safe()));
+    REQUIRE(**expected_pointer == WORDS[WORDS_SIZE - 1U]);
+  }
+
+  // Pop at the back
+  for (ds::usize i = WORDS_SIZE * 2 / 3 - 1U, j = WORDS_SIZE;
+       i >= WORDS_SIZE / 3; --i) {
+    switch (i % 3) {
+    case SAFE:
+      REQUIRE(ds_test::handle_error(expected = vector.pop_safe()));
+      string = std::move(*expected);
+      break;
+
+    case UNSAFE:
+      string = std::move(vector.pop());
+      break;
+
+    case REMOVE:
+      string = std::move(vector[vector.get_size() - 1U]);
+      vector.remove(vector.get_size() - 1U);
+      break;
+    }
+    REQUIRE(vector.get_size() == i);
+    REQUIRE(string == WORDS[--j]);
+
+    REQUIRE(vector[0U] == WORDS[0U]);
+  }
+
+  // Pop at the front
+  for (ds::usize i = 0U, size = WORDS_SIZE / 3; i < WORDS_SIZE / 3; ++i) {
+    vector.remove(0U);
+    REQUIRE(vector.get_size() == --size);
+    if (vector.get_size() != 0U) {
+      REQUIRE(vector[0U] == WORDS[i + 1U]);
+    }
+  }
+
+  REQUIRE(vector.is_empty());
+}
+
+TEST_CASE("vector<string> forward iterators", "[vector]") {
+  ds::vector<ds::string> vector = ({
+    auto expected_vector = create_vector_string(WORDS, WORDS_SIZE);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
+
+  ds::usize index = 0U;
+  for (auto it = vector.begin(); it != vector.end(); ++it) {
+    REQUIRE(*it == WORDS[index++]);
+  }
+
+  index = 0U;
+  for (auto it = vector.cbegin(); it != vector.cend(); ++it) {
+    REQUIRE(*it == WORDS[index++]);
   }
 }
 
-TEST_CASE("vector with string class", "[vector][string]") {
-  ds::vector<ds::string> vec{};
-  ds::expected<ds::string, ds::error_code> exp{};
-  ds::expected<ds::string*, ds::error_code> exp_ptr{};
+TEST_CASE("vector<string> reverse iterators", "[vector]") {
+  ds::vector<ds::string> vector = ({
+    auto expected_vector = create_vector_string(WORDS, WORDS_SIZE);
+    REQUIRE(ds_test::handle_error(expected_vector));
+    std::move(*expected_vector);
+  });
 
-  SECTION("Init") {
-    CHECK(handle_error(vec.push_back("Hi", "world", "my", "name", "jeff")));
-
-    REQUIRE(vec[0] == "Hi");
-    REQUIRE(vec[2] == "my");
-    REQUIRE(vec[4] == "jeff");
+  ds::usize index = WORDS_SIZE;
+  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+    REQUIRE(*it == WORDS[--index]);
   }
 
-  SECTION("Push back") {
-    CHECK(handle_error(vec.push_back("Hi")));
-    REQUIRE(vec[0] == "Hi");
-
-    CHECK(handle_error(vec.push_back("my", "name", "jeff")));
-    REQUIRE(vec[0] == "Hi");
-    REQUIRE(vec[1] == "my");
-    REQUIRE(vec[3] == "jeff");
-  }
-
-  SECTION("Insert") {
-    CHECK(handle_error(vec.insert(vec.begin(), "Hello")));
-    REQUIRE(vec[0] == "Hello");
-
-    CHECK(handle_error(vec.insert(vec.begin() + 1, "jeff")));
-    REQUIRE(vec[0] == "Hello");
-    REQUIRE(vec[1] == "jeff");
-
-    CHECK(handle_error(vec.insert(vec.begin(), "***")));
-    REQUIRE(vec[0] == "***");
-    REQUIRE(vec[1] == "Hello");
-    REQUIRE(vec[2] == "jeff");
-
-    CHECK(handle_error(vec.insert(vec.begin() + 2, "everybody", "my", "name")));
-    REQUIRE(vec[0] == "***");
-    REQUIRE(vec[1] == "Hello");
-    REQUIRE(vec[2] == "everybody");
-    REQUIRE(vec[3] == "my");
-    REQUIRE(vec[4] == "name");
-    REQUIRE(vec[5] == "jeff");
-  }
-
-  SECTION("Mixed") {
-    ds::string str_copy;
-    ds::string str_move;
-    CHECK(handle_error(str_copy.copy("uwu")));
-    CHECK(handle_error(str_move.copy("owo")));
-
-    SECTION("Init (move last)") {
-      CHECK(handle_error(vec.push_back("hello", str_copy, std::move(str_move)))
-      );
-      REQUIRE(vec[0] == "hello");
-      REQUIRE(vec[1] == str_copy);
-      REQUIRE(vec[2] == "owo");
-      REQUIRE(str_move.is_empty());
-    }
-
-    SECTION("Init (copy last)") {
-      CHECK(handle_error(vec.push_back("hello", std::move(str_move), str_copy))
-      );
-      REQUIRE(vec[0] == "hello");
-      REQUIRE(vec[1] == "owo");
-      REQUIRE(vec[2] == str_copy);
-      REQUIRE(str_move.is_empty());
-
-      // NOLINTNEXTLINE
-      const char* exp_strings[] = {"hello", "owo", "uwu", "<>", "<>"};
-      ds::i32 i = 0;
-      for (auto& s : vec) {
-        // NOLINTNEXTLINE
-        REQUIRE(s == exp_strings[i++]);
-      }
-    }
-
-    SECTION("Push back (move last)") {
-      CHECK(handle_error(vec.push_back("hi", str_copy, std::move(str_move))));
-      REQUIRE(vec[0] == "hi");
-      REQUIRE(vec[1] == str_copy);
-      REQUIRE(vec[2] == "owo");
-      REQUIRE(str_move.is_empty());
-
-      // NOLINTNEXTLINE
-      const char* exp_strings[] = {"hi", "uwu", "owo", "<>", "<>"};
-      ds::i32 i = 0;
-      for (auto& s : vec) {
-        REQUIRE(s == exp_strings[i++]);
-      }
-    }
-
-    SECTION("Push back (copy last)") {
-      CHECK(handle_error(vec.push_back("hi", std::move(str_move), str_copy)));
-      REQUIRE(vec[0] == "hi");
-      REQUIRE(vec[1] == "owo");
-      REQUIRE(vec[2] == str_copy);
-      REQUIRE(str_move.is_empty());
-
-      // NOLINTNEXTLINE
-      const char* exp_strings[] = {"hi", "owo", "uwu", "<>", "<>"};
-      ds::i32 i = 0;
-      for (auto& s : vec) {
-        REQUIRE(s == exp_strings[i++]);
-      }
-    }
-
-    SECTION("Insert (move last)") {
-      CHECK(handle_error(vec.push_back("some", "values")));
-
-      CHECK(handle_error(
-          vec.insert(vec.begin() + 1, ":^)", str_copy, std::move(str_move))
-      ));
-      REQUIRE(vec[1] == ":^)");
-      REQUIRE(vec[2] == str_copy);
-      REQUIRE(vec[3] == "owo");
-      REQUIRE(str_move.is_empty());
-
-      // NOLINTNEXTLINE
-      const char* exp_strings[] = {"some",   ":^)", "uwu", "owo",
-                                   "values", "<>",  "<>"};
-      ds::i32 i = 0;
-      for (auto& s : vec) {
-        REQUIRE(s == exp_strings[i++]);
-      }
-    }
-
-    SECTION("Insert (copy last)") {
-      CHECK(handle_error(vec.push_back("some", "values")));
-
-      CHECK(handle_error(
-          vec.insert(vec.begin() + 1, ":^)", std::move(str_move), str_copy)
-      ));
-      REQUIRE(vec[1] == ":^)");
-      REQUIRE(vec[2] == "owo");
-      REQUIRE(vec[3] == str_copy);
-      REQUIRE(str_move.is_empty());
-
-      // NOLINTNEXTLINE
-      const char* exp_strings[] = {"some",   ":^)", "owo", "uwu",
-                                   "values", "<>",  "<>"};
-      ds::i32 i = 0;
-      for (auto& s : vec) {
-        REQUIRE(s == exp_strings[i++]);
-      }
-    }
+  index = WORDS_SIZE;
+  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+    REQUIRE(*it == WORDS[--index]);
   }
 }

@@ -13,10 +13,7 @@
 
 namespace ds_test {
 
-extern ds::i32 counter; // NOLINT
-extern void* free_ptr;  // NOLINT
-
-[[nodiscard]] bool handle_error(const ds::error_code& err) noexcept;
+[[nodiscard]] bool handle_error(ds::error_code error) noexcept;
 
 template <typename T>
 bool handle_error(const ds::expected<T, ds::error_code>& exp) noexcept {
@@ -30,40 +27,49 @@ bool handle_error(const ds::expected<T, ds::error_code>& exp) noexcept {
 
 class Test {
 public:
-  Test() = default;
   Test(const Test& rhs) = delete;
   Test& operator=(const Test& rhs) = delete;
 
   // === Initializers === //
-  explicit Test(ds::i32 i) : i(i), initialized(true) {
-    ++ds_test::counter;
-  }
 
-  // === Copy === //
-  [[nodiscard]] ds::error_code copy(const Test& other) noexcept;
+  Test() noexcept = default;
+  explicit Test(ds::isize* pointer) noexcept;
+  Test(ds::isize* pointer, ds::isize value) noexcept;
 
-  // === Move === //
+  // Only call when destroy is called
+  [[nodiscard]] bool reinit(ds::isize* pointer) noexcept;
+
+  // Only call when destroy is called
+  [[nodiscard]] bool reinit(ds::isize* pointer, ds::isize value) noexcept;
+
+  // === Move/Copy === //
+
   Test(Test&& rhs) noexcept;
-  Test& operator=(Test&& rhs) noexcept;
+  Test& operator=(Test&& other) noexcept;
+  ds::error_code copy(const Test& other) noexcept;
 
   // === Destructor === //
-  ~Test();
+
+  ~Test() noexcept;
+  void destroy() noexcept;
 
   // === Setter/Getter === //
-  void set_int(ds::i32 i) noexcept;
-  [[nodiscard]] ds::i32 get_int() const noexcept;
+
+  void set_value(ds::isize value) noexcept;
+  [[nodiscard]] ds::isize get_value() const noexcept;
 
   // === Checkers === //
-  [[nodiscard]] bool is_initialized() const noexcept;
 
-  friend bool operator==(const Test& lhs, const Test& rhs) noexcept;
-  friend bool operator==(const Test& lhs, ds::i32 rhs) noexcept;
-  friend bool operator!=(const Test& lhs, const Test& rhs) noexcept;
-  friend bool operator!=(const Test& lhs, ds::i32 rhs) noexcept;
+  [[nodiscard]] bool operator==(const Test& rhs) const noexcept;
+  [[nodiscard]] bool operator==(ds::isize rhs) const noexcept;
+  [[nodiscard]] bool operator!=(const Test& rhs) const noexcept;
+  [[nodiscard]] bool operator!=(ds::isize rhs) const noexcept;
+  friend bool operator==(ds::isize lhs, const Test& rhs) noexcept;
+  friend bool operator!=(ds::isize lhs, const Test& rhs) noexcept;
 
 private:
-  ds::i32 i = 0;
-  bool initialized = false;
+  ds::isize* pointer = nullptr;
+  ds::isize value = 0;
 };
 
 } // namespace ds_test

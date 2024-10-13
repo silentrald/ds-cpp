@@ -122,7 +122,7 @@ template <typename T, ds::usize N> void benchmark() {
   };
 }
 
-TEST_CASE("bptree_map benchmarks", "[bptree_map]") {
+TEST_CASE("bptree_map benchmarks", "[!benchmark][bptree_map]") {
   SECTION("i32 ; 100") {
     benchmark<ds::i32, 100>();
   }
