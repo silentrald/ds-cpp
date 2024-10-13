@@ -9,9 +9,9 @@
 #define DS_VECTOR_HPP
 
 #include "./vector_iterator.hpp"
+#include "ds/allocator.hpp"
 #include "types.hpp"
 #include <cassert>
-#include <cstdlib>
 #include <cstring>
 #include <type_traits>
 
@@ -26,7 +26,8 @@ inline const usize VECTOR_INITIAL_SIZE = 8U;
 /**
  * Array container with dynamic sizing.
  */
-template <typename Derived, typename T> class base_vector {
+template <typename Derived, typename T, typename Allocator = allocator<T>>
+class base_vector {
 public:
   friend Derived;
 
@@ -130,7 +131,7 @@ public:
       }
     }
 
-    std::free(this->array); // NOLINT
+    Allocator{}.deallocate(this->array);
     this->array = nullptr;
     this->size = this->capacity = 0U;
   }
@@ -490,8 +491,8 @@ protected:
   [[nodiscard]] error_code allocate(usize new_capacity) noexcept {
     assert(new_capacity > 0U);
 
-    // NOLINTNEXTLINE
-    this->array = (T*)std::malloc(new_capacity * sizeof(T));
+    this->array =
+        static_cast<T*>(Allocator{}.allocate(new_capacity * sizeof(T)));
     if (this->array == nullptr) {
       return error_code::BAD_ALLOCATION;
     }
@@ -515,8 +516,9 @@ protected:
   [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
     assert(new_capacity > 0U);
 
-    // NOLINTNEXTLINE
-    auto* new_array = (T*)std::realloc(this->array, new_capacity * sizeof(T));
+    auto* new_array = static_cast<T*>(
+        Allocator{}.reallocate(this->array, new_capacity * sizeof(T))
+    );
     if (new_array == nullptr) {
       return error_code::BAD_ALLOCATION;
     }
@@ -548,9 +550,13 @@ protected:
 
 } // namespace ds
 
-// * Vector declaration *
+// === Vector declaration === //
+
 namespace ds {
-template <typename T> class vector : public base_vector<vector<T>, T> {};
+
+template <typename T, typename Allocator = allocator<T>>
+class vector : public base_vector<vector<T, Allocator>, T, Allocator> {};
+
 } // namespace ds
 
 #ifndef DS_VECTOR_STRING_HPP

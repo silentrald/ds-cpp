@@ -13,7 +13,9 @@
 
 namespace ds {
 
-template <> class vector<string> : public base_vector<vector<string>, string> {
+template <typename Allocator>
+class vector<string, Allocator>
+    : public base_vector<vector<string, Allocator>, string, Allocator> {
 public:
   [[nodiscard]] error_code push(const string& element) noexcept {
     string str{};
