@@ -8,7 +8,9 @@
 #ifndef DS_BPTREE_MAP_HPP
 #define DS_BPTREE_MAP_HPP
 
+#include "./allocator.hpp"
 #include "./bptree_map_iterator.hpp"
+#include "./bptree_map_node.hpp"
 #include "./compare.hpp"
 #include "./types.hpp"
 #include "./vector.hpp"
@@ -16,7 +18,6 @@
 #include <type_traits>
 
 #ifdef DS_TEST
-#include "ds/vector.hpp"
 #include <cstdio>
 #endif
 
@@ -31,19 +32,8 @@ namespace ds {
  **/
 template <
     typename Derived, typename Key, typename Value,
-    typename KeyCompare = compare<Key>>
+    typename KeyCompare = compare<Key>, typename Allocator = allocator<void>>
 class base_bptree_map {
-public:
-  friend Derived;
-  class inner_node;
-
-  using key_type = Key;
-  using value_type = Value;
-  using iterator =
-      bptree_map_iterator<base_bptree_map<Derived, Key, Value, KeyCompare>>;
-  using const_iterator = bptree_map_iterator<
-      const base_bptree_map<Derived, Key, Value, KeyCompare>>;
-
 private:
   // === Definitions === //
 
@@ -67,222 +57,18 @@ private:
   }
 
 public:
-  class leaf_node {
-  public:
-    leaf_node() = default;
-    leaf_node(const leaf_node&) = delete;
-    leaf_node& operator=(const leaf_node&) = delete;
+  friend Derived;
 
-    // === Move === //
+  using key_type = Key;
+  using value_type = Value;
 
-    leaf_node(leaf_node&& other) noexcept;
-    leaf_node& operator=(leaf_node&& other) noexcept;
+  using leaf_node = _bptree_map::_leaf_node<
+      base_bptree_map::get_degree(), Key, Value, KeyCompare, Allocator>;
+  using inner_node = _bptree_map::_inner_node<
+      base_bptree_map::get_degree(), Key, Value, KeyCompare, Allocator>;
 
-    // === Destructor === //
-
-    ~leaf_node() noexcept;
-    void destroy() noexcept;
-
-    // === Setters === //
-
-    void set_parent(inner_node* parent) noexcept;
-    void set_next(leaf_node* next) noexcept;
-    void set_prev(leaf_node* prev) noexcept;
-
-    // === Getters === //
-
-    [[nodiscard]] Key* get_keys() noexcept {
-      return this->keys;
-    }
-
-    [[nodiscard]] Value* get_values() noexcept {
-      return this->values;
-    }
-
-    [[nodiscard]] i32 get_size() const noexcept {
-      return this->size;
-    }
-
-    [[nodiscard]] inner_node* get_parent() const noexcept {
-      return this->parent;
-    }
-
-    [[nodiscard]] leaf_node* get_next() const noexcept {
-      return this->next;
-    }
-
-    [[nodiscard]] leaf_node* get_prev() const noexcept {
-      return this->prev;
-    }
-
-    // === Element Access === //
-
-    [[nodiscard]] Key at_key(i32 index) const noexcept;
-    [[nodiscard]] Key front_key() const noexcept;
-    [[nodiscard]] Key back_key() const noexcept;
-    [[nodiscard]] Value& at_value(i32 index) const noexcept;
-
-    // === Modifiers === //
-
-    i32 insert(Key key, Value&& value) noexcept;
-    void push(Key key, Value&& value) noexcept;
-    void remove(i32 index) noexcept;
-    void clear() noexcept;
-
-    void redistribute(leaf_node* other, i32 mid) noexcept;
-    void borrow_right_sibling() noexcept;
-    void borrow_left_sibling() noexcept;
-    void merge_right_sibling() noexcept;
-
-    // === Lookup === //
-
-    [[nodiscard]] Value* get_value(Key key) noexcept;
-    [[nodiscard]] i32 find_index(Key key) const noexcept;
-    [[nodiscard]] i32 find_smaller_index(Key key) const noexcept;
-    [[nodiscard]] i32 find_larger_index(Key key) const noexcept;
-    [[nodiscard]] i32 find_not_smaller_index(Key key) const noexcept;
-    [[nodiscard]] i32 find_not_larger_index(Key key) const noexcept;
-
-#ifdef DS_TEST
-    void print() const noexcept {
-      printf(
-          "Leaf %p | parent %p ; %p %p ; %d[", this, this->parent, this->prev,
-          this->next, this->size
-      );
-      for (i32 i = 0; i < this->size; ++i) {
-        printf(" %x", this->values[i]);
-      }
-      printf(" ]\n");
-    }
-#endif
-
-  private:
-    Key keys[base_bptree_map::get_degree()]; // NOLINT
-    i32 size = 0;
-
-    inner_node* parent = nullptr;
-    leaf_node* next = nullptr;
-    leaf_node* prev = nullptr;
-
-    Value values[base_bptree_map::get_degree()]; // NOLINT
-
-    void insert_indexed(i32 index, Key key, Value&& value) noexcept;
-  };
-
-  class inner_node {
-  public:
-    inner_node() = default;
-    inner_node(const inner_node&) = delete;
-    inner_node& operator=(const inner_node&) = delete;
-
-    // === Move === //
-
-    inner_node(inner_node&&) = delete;
-    inner_node& operator=(inner_node&&) = delete;
-
-    // === Destructor === //
-
-    ~inner_node() noexcept;
-    void destroy() noexcept;
-    void destroy_last_child() noexcept;
-    void destroy_leaf_children() noexcept;
-
-    // === Setters === //
-
-    void set_parent(inner_node* parent) noexcept;
-
-    // === Getters === //
-
-    [[nodiscard]] Key* get_keys() noexcept {
-      return this->keys;
-    }
-
-    /**
-     * Can either be inner_node** or leaf_node**
-     **/
-    [[nodiscard]] void** get_children() noexcept {
-      return this->children;
-    }
-
-    [[nodiscard]] i32 get_size() const noexcept {
-      return this->size;
-    }
-
-    [[nodiscard]] inner_node* get_parent() const noexcept {
-      return this->parent;
-    }
-
-    // === Element Access === //
-
-    /**
-     * First child that is less than the key, if all keys are smaller than the
-     * key passed, this returns the last child
-     **/
-    [[nodiscard]] void* find_smaller_child(Key key) const noexcept;
-    [[nodiscard]] i32 find_smaller_index(Key key) const noexcept;
-
-    [[nodiscard]] Key at_key(i32 index) const noexcept;
-    [[nodiscard]] Key front_key() const noexcept;
-    [[nodiscard]] Key back_key() const noexcept;
-    [[nodiscard]] void* front_child() const noexcept;
-    [[nodiscard]] void* back_child() const noexcept;
-
-    // === Modifiers === //
-
-    void insert(Key key, void* child) noexcept;
-    void push_front(Key key, void* child) noexcept;
-    void pop_front() noexcept;
-    void push(Key key, void* child) noexcept;
-    void pop_back() noexcept;
-    void remove(i32 index) noexcept;
-    void set_key(i32 index, Key key) noexcept;
-
-    // === Reparenting === //
-
-    void reparent_children() noexcept;
-
-    // === Inserting === //
-
-    void redistribute(inner_node* other, i32 mid) noexcept;
-
-    // === Erasing === //
-
-    void
-    borrow_from_right_uncle(inner_node* right_uncle, i32 parent_index) noexcept;
-    void
-    borrow_from_left_uncle(inner_node* left_uncle, i32 parent_index) noexcept;
-
-    // Merges index and index + 1
-    void merge_children(i32 index) noexcept;
-
-#ifdef DS_TEST
-    void print() const noexcept {
-      printf(
-          "Inner %p | parent: %p ; children %d[", this, this->parent,
-          this->size + 1
-      );
-      for (i32 i = 0; i <= this->size; ++i) {
-        printf(
-            " (%x:%p)", i == this->size ? 0U : this->keys[i], this->children[i]
-        );
-      }
-      printf(" ]\n");
-    }
-#endif
-
-  private:
-    Key keys[base_bptree_map::get_degree()]; // NOLINT
-    i32 size = 0;
-
-    inner_node* parent = nullptr;
-
-    void* children[base_bptree_map::get_degree() + 1]{}; // NOLINT
-
-    void insert_indexed(i32 index, Key key, void* child) noexcept;
-  };
-
-  friend leaf_node;
-  friend inner_node;
+  using iterator = bptree_map_iterator<Key, Value, leaf_node>;
+  using const_iterator = bptree_map_iterator<const Key, const Value, leaf_node>;
 
   base_bptree_map() noexcept = default;
   base_bptree_map(const base_bptree_map&) = delete;
@@ -331,7 +117,7 @@ public:
 
     if (this->height == 1) {
       static_cast<leaf_node*>(this->root)->clear();
-      std::free(this->root); // NOLINT
+      Allocator{}.deallocate(this->root);
 
       this->root = nullptr;
       this->size = this->height = 0;
@@ -341,7 +127,7 @@ public:
     auto* node = static_cast<inner_node*>(this->root);
     if (this->height == 2) {
       node->destroy_leaf_children();
-      std::free(node); // NOLINT
+      Allocator{}.deallocate(node);
 
       this->root = nullptr;
       this->size = this->height = 0;
@@ -379,7 +165,7 @@ public:
       }
 
       // This is the root node
-      std::free(this->root); // NOLINT
+      Allocator{}.deallocate(this->root);
       break;
     }
 
@@ -939,9 +725,9 @@ public:
       return;
     }
 
-    ds::vector<inner_node*> stack{};
-    ds::vector<inner_node*> next{};
-    ds::error_code error = stack.push((inner_node*)this->root);
+    vector<inner_node*> stack{};
+    vector<inner_node*> next{};
+    error_code error = stack.push((inner_node*)this->root);
 
     for (usize i = this->height; i > 1; --i) {
       printf("=== Map Height " USIZE_FORMAT " ===\n", i);
@@ -1055,8 +841,8 @@ private:
    * @return inner_ptr
    **/
   [[nodiscard]] inner_node* create_inner_node(void* child) noexcept {
-    // NOLINTNEXTLINE
-    auto* node = (inner_node*)std::malloc(sizeof(inner_node));
+    auto* node =
+        static_cast<inner_node*>(Allocator{}.allocate(sizeof(inner_node)));
     if (node == nullptr) {
       return nullptr;
     }
@@ -1081,8 +867,8 @@ private:
    * @return leaf_node*
    **/
   [[nodiscard]] leaf_node* create_leaf_node() noexcept {
-    // NOLINTNEXTLINE
-    auto* node = (leaf_node*)std::malloc(sizeof(leaf_node));
+    auto* node =
+        static_cast<leaf_node*>(Allocator{}.allocate(sizeof(leaf_node)));
     if (node == nullptr) {
       return nullptr;
     }
@@ -1131,10 +917,10 @@ private:
       if (parent == nullptr) {
         parent = this->create_inner_node(left_node);
         if (parent == nullptr) {
-          std::free(right_node); // NOLINT
+          Allocator{}.deallocate(right_node);
           while (!stack.is_empty()) {
-            stack.pop();            // Left node
-            std::free(stack.pop()); // NOLINT
+            stack.pop();                         // Left node
+            Allocator{}.deallocate(stack.pop()); // Right node
           }
           return error_code::BAD_ALLOCATION;
         }
@@ -1197,7 +983,7 @@ private:
     if (parent == nullptr) {
       parent = this->create_inner_node(left_leaf);
       if (parent == nullptr) {
-        std::free(right_leaf); // NOLINT
+        Allocator{}.deallocate(right_leaf);
         return error_code::BAD_ALLOCATION;
       }
     }
@@ -1214,9 +1000,9 @@ private:
     parent->insert(key, right_leaf);
     if (parent->get_size() == this->get_degree()) {
       if (auto error = this->split_inner_node(parent)) {
-        std::free(right_leaf); // NOLINT
+        Allocator{}.deallocate(right_leaf);
         if (parent->get_size() == 1) {
-          std::free(parent); // NOLINT
+          Allocator{}.deallocate(parent);
           left_leaf->set_parent(nullptr);
         }
 
@@ -1424,7 +1210,7 @@ private:
           static_cast<inner_node*>(this->root)->set_parent(nullptr);
 
           --this->height;
-          std::free(grandparent); // NOLINT
+          Allocator{}.deallocate(grandparent);
         }
         break;
       }
@@ -1474,7 +1260,7 @@ private:
     if (parent == this->root) {
       if (parent->get_size() == 0) {
         this->root = parent->front_child();
-        std::free(parent); // NOLINT
+        Allocator{}.deallocate(parent);
 
         static_cast<leaf_node*>(this->root)->set_parent(nullptr);
         static_cast<leaf_node*>(this->root)->set_next(nullptr);
@@ -1504,7 +1290,7 @@ private:
         --this->size;
         if (this->size == 0) {
           this->height = 0;
-          std::free(this->root); // NOLINT
+          Allocator{}.deallocate(this->root);
         }
 
         return;
@@ -1518,10 +1304,6 @@ private:
 };
 
 } // namespace ds
-
-#ifndef DS_BPTREE_MAP_NODE_HPP
-#include "./bptree_map_node.hpp"
-#endif
 
 namespace ds {
 

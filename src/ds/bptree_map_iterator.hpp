@@ -12,11 +12,12 @@
 
 namespace ds {
 
-template <typename BPTreeMap> class bptree_map_iterator {
+template <typename Key, typename Value, typename Leaf>
+class bptree_map_iterator {
 public:
-  using key_type = typename BPTreeMap::key_type;
-  using value_type = typename BPTreeMap::value_type;
-  using leaf_node = typename BPTreeMap::leaf_node;
+  using key_type = Key;
+  using value_type = Value;
+  using leaf_node = Leaf;
 
 private:
   leaf_node* pointer = nullptr;
@@ -32,11 +33,19 @@ public:
       : pointer(pointer), index(index) {}
 
   // Element Access
-  [[nodiscard]] key_type key() const noexcept {
+  [[nodiscard]] key_type& key() noexcept {
     return this->pointer->at_key(this->index);
   }
 
-  [[nodiscard]] value_type& value() const noexcept {
+  [[nodiscard]] const key_type& key() const noexcept {
+    return this->pointer->at_key(this->index);
+  }
+
+  [[nodiscard]] value_type& value() noexcept {
+    return this->pointer->at_value(this->index);
+  }
+
+  [[nodiscard]] const value_type& value() const noexcept {
     return this->pointer->at_value(this->index);
   }
 
