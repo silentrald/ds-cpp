@@ -93,7 +93,7 @@ template <typename T, ds::usize N> void benchmark() {
     });
   };
 
-  BENCHMARK_ADVANCED("delete ds::bptree_map")
+  BENCHMARK_ADVANCED("remove ds::bptree_map")
   (Catch::Benchmark::Chronometer meter) {
     ds::bptree_map<ds::i32, ds::i32> map{};
     ds::error_code error_code{};
@@ -103,12 +103,12 @@ template <typename T, ds::usize N> void benchmark() {
 
     meter.measure([&map, &random]() {
       for (ds::i32 i = 0; i < N; ++i) {
-        map.erase(random[i]);
+        map.remove(random[i]);
       }
     });
   };
 
-  BENCHMARK_ADVANCED("delete std::map")(Catch::Benchmark::Chronometer meter) {
+  BENCHMARK_ADVANCED("erase std::map")(Catch::Benchmark::Chronometer meter) {
     std::map<ds::i32, ds::i32> map{};
     for (ds::i32 i = 0; i < N; ++i) {
       map[random[i]] = i;

@@ -43,7 +43,7 @@ template <typename T> inline void test_ascending(const ds::usize N) {
   }
 
   for (T i = 1; i <= N; ++i) {
-    map.erase(i);
+    map.remove(i);
     REQUIRE(i + map.get_size() == N);
 
     pointer = map[i];
@@ -90,7 +90,7 @@ template <typename T> inline void test_descending(const ds::usize N) {
   }
 
   for (T i = N; i > 0; --i) {
-    map.erase(i);
+    map.remove(i);
     REQUIRE(i == map.get_size() + 1);
 
     pointer = map[i];
@@ -159,7 +159,7 @@ template <typename T> inline void test_centered(const ds::usize N) {
 
   for (T i = 0; i < N / 2; ++i) {
     key = N / 2 - i - 1;
-    map.erase(key);
+    map.remove(key);
     REQUIRE(map.get_size() + (2 * i) + 1 == N);
 
     pointer = map[key];
@@ -171,7 +171,7 @@ template <typename T> inline void test_centered(const ds::usize N) {
     // --- //
 
     key = N / 2 + i;
-    map.erase(key);
+    map.remove(key);
     REQUIRE(map.get_size() + 2 * (i + 1) == N);
 
     pointer = map[key];

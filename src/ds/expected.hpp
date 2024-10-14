@@ -22,15 +22,17 @@ public:
   unexpected& operator=(const unexpected&) noexcept = delete;
 
   // === Move === //
+
   unexpected(unexpected&& rhs) noexcept = default;
   unexpected& operator=(unexpected&& rhs) noexcept = default;
 
   // === Destructor === //
+
   ~unexpected() noexcept = default;
 
   unexpected(E&& rhs) noexcept : err(std::move(rhs)) {} // NOLINT
 
-  template <typename = std::enable_if<!std::is_class_v<E>>>
+  template <typename = std::enable_if<!std::is_class<E>::value>>
   unexpected(const E& other) noexcept { // NOLINT
     this->err = other;
   }
@@ -57,41 +59,175 @@ public:
   expected& operator=(const expected&) noexcept = delete;
 
   // === Move === //
-  expected(expected&& rhs) noexcept;
-  expected(T&& rhs) noexcept;             // NOLINT
-  expected(const T& rhs) noexcept;        // NOLINT
-  expected(unexpected<E>&& rhs) noexcept; // NOLINT
-  expected& operator=(expected&& rhs) noexcept;
-  expected& operator=(T&& rhs) noexcept;
-  expected& operator=(unexpected<E>&& rhs) noexcept;
+
+  expected(expected&& other) noexcept
+      : has_value(other.has_value), has_error(other.has_error) {
+    if (this->has_value) {
+      this->init_value();
+      this->val = std::move(other.val);
+      other.has_value = false;
+    } else if (this->has_error) {
+      this->init_error();
+      this->err = std::move(other.err);
+      other.has_error = false;
+    }
+  }
+
+  expected(T&& other) noexcept : has_value(true) { // NOLINT
+    this->init_value();
+    this->val = std::move(other);
+  }
+
+  template <typename = std::enable_if<!std::is_class<T>::value>>
+  expected(const T& other) noexcept : has_value(true) { // NOLINT
+    this->init_value();
+    this->val = other;
+  }
+
+  expected(unexpected<E>&& other) noexcept : has_error(true) { // NOLINT
+    this->init_error();
+    this->err = std::move(other.error());
+  }
+
+  expected& operator=(expected&& rhs) noexcept {
+    if (this == &rhs) {
+      return *this;
+    }
+    this->destroy();
+
+    if (rhs.has_value) {
+      this->has_value = true;
+      rhs.has_value = false;
+
+      this->init_value();
+      this->val = std::move(rhs.val);
+    } else if (rhs.has_error) {
+      this->has_error = true;
+      rhs.has_error = false;
+
+      this->init_error();
+      this->err = std::move(rhs.err);
+    }
+
+    return *this;
+  }
+
+  expected& operator=(T&& rhs) noexcept {
+    if (this->has_value) {
+      this->val = std::move(rhs);
+      return *this;
+    }
+
+    if (this->has_error) {
+      this->destroy_error();
+    }
+
+    this->has_value = true;
+    this->init_value();
+    this->val = std::move(rhs.val);
+
+    return *this;
+  }
+
+  expected& operator=(unexpected<E>&& rhs) noexcept {
+    if (this->has_error) {
+      this->err = std::move(rhs.error());
+      return *this;
+    }
+
+    if (this->has_value) {
+      this->destroy_value();
+    }
+
+    this->has_error = true;
+    this->init_error();
+    this->err = std::move(rhs.error());
+
+    return *this;
+  }
 
   // === Destructor === //
-  ~expected() noexcept;
+
+  ~expected() noexcept {
+    this->destroy();
+  }
+
+  void destroy() noexcept {
+    if (this->has_value) {
+      this->destroy_value();
+    } else if (this->has_error) {
+      this->destroy_error();
+    }
+  }
 
   // === Observers === //
-  [[nodiscard]] T* operator->() noexcept;
-  [[nodiscard]] const T* operator->() const noexcept;
-  [[nodiscard]] T& operator*() & noexcept;
-  [[nodiscard]] const T& operator*() const& noexcept;
-  explicit operator bool() const noexcept;
 
-  [[nodiscard]] T& value() noexcept;
-  [[nodiscard]] const T& value() const noexcept;
-  [[nodiscard]] E& error() noexcept;
-  [[nodiscard]] const E& error() const noexcept;
+  [[nodiscard]] T* operator->() noexcept {
+    return &this->val;
+  }
 
-  [[nodiscard]] T& value_or(T&& default_value) const& noexcept;
+  [[nodiscard]] const T* operator->() const noexcept {
+    return &this->val;
+  }
 
-  // === Non-member function === //
-  template <typename T2, typename E2>
-  friend constexpr bool
-  operator==(const expected<T2, E2>& lhs, const expected<T2, E2>& rhs) noexcept;
-  template <typename T2, typename E2>
-  friend constexpr bool
-  operator==(const expected<T2, E2>& lhs, const T2& val) noexcept;
-  template <typename T2, typename E2>
-  friend constexpr bool
-  operator==(const expected<T2, E2>& lhs, const unexpected<E2>& rhs) noexcept;
+  [[nodiscard]] T& operator*() & noexcept {
+    return this->val;
+  }
+
+  [[nodiscard]] const T& operator*() const& noexcept {
+    return this->val;
+  }
+
+  explicit operator bool() const noexcept {
+    return this->has_value;
+  }
+
+  [[nodiscard]] T& value() noexcept {
+    return this->val;
+  }
+
+  [[nodiscard]] const T& value() const noexcept {
+    return this->val;
+  }
+
+  [[nodiscard]] E& error() noexcept {
+    return this->err;
+  }
+
+  [[nodiscard]] const E& error() const noexcept {
+    return this->err;
+  }
+
+  [[nodiscard]] T& value_or(T& default_value) noexcept {
+    return this->has_value ? this->val : default_value;
+  }
+
+  [[nodiscard]] const T& value_or(const T& default_value) const& noexcept {
+    return this->has_value ? this->val : default_value;
+  }
+
+  // === Comparators === //
+
+  [[nodiscard]] bool operator==(const expected<T, E>& rhs) const noexcept {
+    if (this->has_value && rhs.has_value) {
+      return this->val == rhs.val;
+    }
+
+    if (this->has_error && this->has_error) {
+      return this->err == this->err;
+    }
+
+    return !this->has_value && !this->has_error && !rhs.has_value &&
+           !rhs.has_error;
+  }
+
+  [[nodiscard]] bool operator==(const T& rhs) const noexcept {
+    return this->has_value && this->val == rhs;
+  }
+
+  [[nodiscard]] bool operator==(const unexpected<E>& rhs) const noexcept {
+    return this->has_error && this->err == rhs.error();
+  }
 
 private:
   union {
@@ -115,10 +251,6 @@ private:
     }
   }
 
-  // === Destructor === //
-
-  void destroy() noexcept;
-
   inline void destroy_value() noexcept {
     this->has_value = false;
     if constexpr (std::is_class<T>::value) {
@@ -135,9 +267,5 @@ private:
 };
 
 } // namespace ds
-
-#ifndef DS_EXPECTED_TPP
-#include "./expected.tpp"
-#endif
 
 #endif

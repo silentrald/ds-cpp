@@ -192,7 +192,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::push(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::erase(
+void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::remove(
     i32 index
 ) noexcept {
 
@@ -225,7 +225,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
     borrow_right_sibling() noexcept {
   Key key = this->next->front_key();
   this->push(key, std::move(this->next->values[0]));
-  this->next->erase(0);
+  this->next->remove(0);
 
   for (i32 i = 0;; ++i) {
     if (this->parent->get_children()[i] == this) {
@@ -242,7 +242,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
 
   Key key = this->prev->keys[sz];
   this->insert_indexed(0, key, std::move(this->prev->values[sz]));
-  this->prev->erase(sz);
+  this->prev->remove(sz);
 
   for (i32 i = 1;; ++i) {
     if (this->parent->get_children()[i] == this) {
@@ -270,7 +270,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::leaf_node::
   // Remove the sibling reference from the parent node
   for (i32 i = 1;; ++i) {
     if (sibling == this->parent->get_children()[i]) {
-      this->parent->erase(i - 1);
+      this->parent->remove(i - 1);
 
       // Change the parent pointer, but not to the very leftmost leaf node
       if (i >= 2) {
@@ -552,7 +552,7 @@ void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::pop_back(
 }
 
 template <typename Derived, typename Key, typename Value, typename KeyCompare>
-void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::erase(
+void base_bptree_map<Derived, Key, Value, KeyCompare>::inner_node::remove(
     i32 index
 ) noexcept {
   for (i32 i = index + 1; i < this->size; ++i) {
@@ -658,7 +658,7 @@ void base_bptree_map<
   }
 
   std::free(sibling); // NOLINT
-  this->erase(index);
+  this->remove(index);
 }
 
 } // namespace ds

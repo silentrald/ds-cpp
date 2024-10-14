@@ -48,7 +48,7 @@ template <typename T> bool test_ascending(const ds::i32 N) noexcept {
   }
 
   for (T i = 0; i < N; ++i) {
-    map.erase(i);
+    map.remove(i);
 
     if (i + map.get_size() != N - 1) {
       printf("Couldn't delete key\n");
@@ -91,7 +91,7 @@ template <typename T> bool test_descending(const ds::i32 N) noexcept {
   }
 
   for (T i = N - 1; i > -1; --i) {
-    map.erase(i);
+    map.remove(i);
 
     if (i != map.get_size()) {
       printf("Couldn't delete key\n");
@@ -136,8 +136,8 @@ template <typename T> bool test_centered(const ds::i32 N) noexcept {
   }
 
   for (T i = 0; i < N / 2; ++i) {
-    map.erase(N / 2 - i - 1);
-    map.erase(N / 2 + i);
+    map.remove(N / 2 - i - 1);
+    map.remove(N / 2 + i);
 
     if ((i * 2) + map.get_size() != N - 2) {
       printf("Couldn't delete key \n");
