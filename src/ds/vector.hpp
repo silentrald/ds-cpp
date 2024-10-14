@@ -8,8 +8,8 @@
 #ifndef DS_VECTOR_HPP
 #define DS_VECTOR_HPP
 
+#include "./allocator.hpp"
 #include "./vector_iterator.hpp"
-#include "ds/allocator.hpp"
 #include "types.hpp"
 #include <cassert>
 #include <cstring>
@@ -47,29 +47,29 @@ public:
   /**
    * Initializes the vector and moves the passed vector
    **/
-  base_vector(base_vector&& rhs) noexcept
-      : array(rhs.array), size(rhs.size), capacity(rhs.capacity) {
-    rhs.array = nullptr;
-    rhs.size = rhs.capacity = 0U;
+  base_vector(base_vector&& other) noexcept
+      : array(other.array), size(other.size), capacity(other.capacity) {
+    other.array = nullptr;
+    other.size = other.capacity = 0U;
   }
 
   /**
    * Moves the passed vector
    * This frees the currect vector
    **/
-  base_vector& operator=(base_vector&& other) noexcept {
-    if (this == &other) {
+  base_vector& operator=(base_vector&& rhs) noexcept {
+    if (this == &rhs) {
       return *this;
     }
 
     this->destroy();
 
-    this->array = other.array;
-    this->size = other.size;
-    this->capacity = other.capacity;
+    this->array = rhs.array;
+    this->size = rhs.size;
+    this->capacity = rhs.capacity;
 
-    other.array = nullptr;
-    other.size = other.capacity = 0U;
+    rhs.array = nullptr;
+    rhs.size = rhs.capacity = 0U;
 
     return *this;
   }

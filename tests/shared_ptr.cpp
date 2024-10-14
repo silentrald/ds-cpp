@@ -44,7 +44,7 @@ TEST_CASE("shared_ptr primitive types", "[shared_ptr]") {
   REQUIRE(sp1.get_count() == 2);
   REQUIRE(*sp1 == 200);
 
-  sp2.reset();
+  sp2.destroy();
   REQUIRE_FALSE(sp2);
 
   REQUIRE(sp1.get_count() == 1);
@@ -55,7 +55,7 @@ TEST_CASE("shared_ptr primitive types", "[shared_ptr]") {
   REQUIRE(sp2.get_count() == 2);
   REQUIRE(*sp2 == 200);
 
-  sp2.reset();
+  sp2.destroy();
   REQUIRE_FALSE(sp2);
 
   REQUIRE(handle_error(sp1.copy(sp2)));
@@ -100,7 +100,7 @@ TEST_CASE("shared_ptr custom class", "[shared_ptr]") {
   REQUIRE(sp1.get_count() == 2);
   REQUIRE(*sp1 == 200);
 
-  sp2.reset();
+  sp2.destroy();
   REQUIRE_FALSE(sp2);
 
   REQUIRE(sp1.get_count() == 1);
@@ -111,7 +111,7 @@ TEST_CASE("shared_ptr custom class", "[shared_ptr]") {
   REQUIRE(sp2.get_count() == 2);
   REQUIRE(*sp2 == 200);
 
-  sp2.reset();
+  sp2.destroy();
   REQUIRE_FALSE(sp2);
 
   REQUIRE(handle_error(sp1.copy(sp2)));
@@ -119,6 +119,6 @@ TEST_CASE("shared_ptr custom class", "[shared_ptr]") {
   void* ptr = &*sp1;
   REQUIRE_FALSE(sp1);
 
-  sp1.reset();
+  sp1.destroy();
   REQUIRE(counter == 0);
 };

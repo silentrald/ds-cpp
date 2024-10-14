@@ -24,7 +24,7 @@ TEST_CASE("primitive test", "[unique_ptr]") {
     REQUIRE(*smart == tmp);
 
     if (i & 1) {
-      smart.reset();
+      smart.destroy();
     } else {
       REQUIRE(smart.release() == tmp);
     }
@@ -48,7 +48,7 @@ TEST_CASE("class test", "[unique_ptr]") {
     REQUIRE(*smart == tmp);
 
     if (i & 1) {
-      smart.reset();
+      smart.destroy();
     } else {
       REQUIRE(smart.release() == tmp);
     }
