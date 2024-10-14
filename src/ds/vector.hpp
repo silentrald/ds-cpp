@@ -35,8 +35,6 @@ public:
 
   using iterator = vector_iterator<T>;
   using const_iterator = vector_iterator<const T>;
-  using reverse_iterator = vector_reverse_iterator<T>;
-  using const_reverse_iterator = vector_reverse_iterator<const T>;
 
   base_vector() noexcept = default;
   base_vector(const base_vector&) = delete;
@@ -269,29 +267,29 @@ public:
   /**
    * Points at the top-1 index of the vector
    **/
-  [[nodiscard]] reverse_iterator rbegin() noexcept {
-    return reverse_iterator{this->array + this->size - 1U};
+  [[nodiscard]] iterator rbegin() noexcept {
+    return iterator{this->array + this->size - 1U};
   }
 
   /**
    * Points at the top-1 index of the vector
    **/
-  [[nodiscard]] const_reverse_iterator crbegin() const noexcept {
-    return const_reverse_iterator{this->array + this->size - 1U};
+  [[nodiscard]] const_iterator crbegin() const noexcept {
+    return const_iterator{this->array + this->size - 1U};
   }
 
   /**
    * Points at the -1th index of the vector
    **/
-  [[nodiscard]] reverse_iterator rend() noexcept {
-    return reverse_iterator{this->array - 1U};
+  [[nodiscard]] iterator rend() noexcept {
+    return iterator{this->array - 1U};
   }
 
   /**
    * Points at the -1th index of the vector
    **/
-  [[nodiscard]] const_reverse_iterator crend() const noexcept {
-    return const_reverse_iterator{this->array - 1U};
+  [[nodiscard]] const_iterator crend() const noexcept {
+    return const_iterator{this->array - 1U};
   }
 
   // === Sizes === //

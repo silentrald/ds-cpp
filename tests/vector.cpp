@@ -180,13 +180,13 @@ TEST_CASE("vector<i32> reverse iterators", "[vector]") {
   });
 
   ds::usize expected = (N - 1) * MULTIPLIER;
-  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+  for (auto it = vector.rbegin(); it != vector.rend(); --it) {
     REQUIRE(*it == expected);
     expected -= MULTIPLIER;
   }
 
   expected = (N - 1) * MULTIPLIER;
-  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+  for (auto it = vector.crbegin(); it != vector.crend(); --it) {
     REQUIRE(*it == expected);
     expected -= MULTIPLIER;
   }
@@ -368,13 +368,13 @@ TEST_CASE("vector<Test> reverse iterators", "[vector]") {
   });
 
   ds::isize expected = (N - 1) * MULTIPLIER;
-  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+  for (auto it = vector.rbegin(); it != vector.rend(); --it) {
     REQUIRE(*it == expected);
     expected -= MULTIPLIER;
   }
 
   expected = (N - 1) * MULTIPLIER;
-  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+  for (auto it = vector.crbegin(); it != vector.crend(); --it) {
     REQUIRE(*it == expected);
     expected -= MULTIPLIER;
   }
@@ -568,12 +568,12 @@ TEST_CASE("vector<string> reverse iterators", "[vector]") {
   });
 
   ds::usize index = WORDS_SIZE;
-  for (auto it = vector.rbegin(); it != vector.rend(); ++it) {
+  for (auto it = vector.rbegin(); it != vector.rend(); --it) {
     REQUIRE(*it == WORDS[--index]);
   }
 
   index = WORDS_SIZE;
-  for (auto it = vector.crbegin(); it != vector.crend(); ++it) {
+  for (auto it = vector.crbegin(); it != vector.crend(); --it) {
     REQUIRE(*it == WORDS[--index]);
   }
 }
