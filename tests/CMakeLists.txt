@@ -13,6 +13,7 @@ add_executable(tests main.cpp
   # DS Container Tests
   bptree_map.cpp
   hash_map.cpp
+  hash_set.cpp
   string.cpp
   vector.cpp
 

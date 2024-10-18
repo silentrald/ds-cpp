@@ -14,6 +14,8 @@
 #include <cstdlib>
 #include <cstring>
 
+// TODO: Break the test cases even further to get correct errors cases
+
 template <typename Key, typename Value>
 inline void test_hash_map(const ds::usize N) {
   ds::hash_map<Key, Value> map{};
@@ -40,6 +42,8 @@ inline void test_hash_map(const ds::usize N) {
           pointer = map[i];
           REQUIRE(pointer != nullptr);
           REQUIRE(*pointer == i * 2);
+
+          REQUIRE(map.contains(i));
         }
       }
 
@@ -51,6 +55,8 @@ inline void test_hash_map(const ds::usize N) {
 
           pointer = map[i];
           REQUIRE(pointer == nullptr);
+
+          REQUIRE_FALSE(map.contains(i));
         }
       }
     }
@@ -61,6 +67,8 @@ inline void test_hash_map(const ds::usize N) {
           for (ds::usize j = i; j < N; j += 10) {
             map.remove(j);
             REQUIRE(map.get_size() == --counter);
+
+            REQUIRE_FALSE(map.contains(j));
           }
         }
       }
@@ -83,6 +91,8 @@ inline void test_hash_map(const ds::usize N) {
           pointer = map[j];
           REQUIRE(pointer != nullptr);
           REQUIRE(*pointer == j * 3);
+
+          REQUIRE(map.contains(j));
         }
       }
     }
@@ -126,6 +136,8 @@ inline void test_hash_map_bad_collision() {
           pointer = map[i * PRIME + OFFSET];
           REQUIRE(pointer != nullptr);
           REQUIRE(*pointer == i);
+
+          REQUIRE(map.contains(i * PRIME + OFFSET));
         }
       }
 
@@ -137,6 +149,8 @@ inline void test_hash_map_bad_collision() {
 
           pointer = map[i * PRIME + OFFSET + 1];
           REQUIRE(pointer == nullptr);
+
+          REQUIRE_FALSE(map.contains(i * PRIME + OFFSET + 1));
         }
       }
     }
@@ -146,6 +160,8 @@ inline void test_hash_map_bad_collision() {
         for (ds::usize i = START, counter = SIZE; i < END; ++i) {
           map.remove(i * PRIME + OFFSET);
           REQUIRE(map.get_size() == --counter);
+
+          REQUIRE_FALSE(map.contains(i * PRIME + OFFSET));
         }
       }
     }
@@ -235,10 +251,10 @@ TEST_CASE("hash_map<string, i64>", "[hash_map]") {
         REQUIRE(pointer != nullptr);
         REQUIRE(*pointer == 3);
 
+        REQUIRE(map.contains("Jeff"));
+
         REQUIRE(ds_test::handle_error(string.copy("Jeff")));
-        pointer = map[string];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == 4);
+        REQUIRE(map.contains(string));
       }
 
       SECTION("Non-existing keys") {
@@ -257,6 +273,11 @@ TEST_CASE("hash_map<string, i64>", "[hash_map]") {
         REQUIRE(ds_test::handle_error(string.copy("World")));
         pointer = map[string];
         REQUIRE(pointer == nullptr);
+
+        REQUIRE_FALSE(map.contains("asdf"));
+
+        REQUIRE(ds_test::handle_error(string.copy("blahhh")));
+        REQUIRE_FALSE(map.contains(string));
       }
     }
 
@@ -364,6 +385,8 @@ TEST_CASE("hash_map<i64, string>", "[hash_map]") {
         pointer = map[INDEX4];
         REQUIRE(pointer != nullptr);
         REQUIRE(*pointer == "Jeff");
+
+        REQUIRE(map.contains(INDEX1));
       }
 
       SECTION("Non-existing keys") {
@@ -389,15 +412,20 @@ TEST_CASE("hash_map<i64, string>", "[hash_map]") {
       SECTION("Existing keys") {
         map.remove(INDEX1);
         REQUIRE(map.get_size() == 3);
+        REQUIRE_FALSE(map.contains(INDEX1));
 
         map.remove(INDEX2);
         REQUIRE(map.get_size() == 2);
+        REQUIRE_FALSE(map.contains(INDEX2));
 
         map.remove(INDEX3);
         REQUIRE(map.get_size() == 1);
+        REQUIRE_FALSE(map.contains(INDEX3));
 
         map.remove(INDEX4);
         REQUIRE(map.get_size() == 0);
+        REQUIRE_FALSE(map.contains(INDEX4));
+
         REQUIRE(map.is_empty());
       }
 
@@ -512,6 +540,10 @@ TEST_CASE("hash_map<string, string>", "[hash_map]") {
         pointer = map[string1];
         REQUIRE(pointer != nullptr);
         REQUIRE(*pointer == WORDS[7]);
+
+        REQUIRE(map.contains(WORDS[8]));
+        REQUIRE(ds_test::handle_error(string1.copy(WORDS[10])));
+        REQUIRE(map.contains(string1));
       }
 
       SECTION("Non-existing keys") {
@@ -530,6 +562,10 @@ TEST_CASE("hash_map<string, string>", "[hash_map]") {
         REQUIRE(ds_test::handle_error(string1.copy(WORDS[7])));
         pointer = map[string1];
         REQUIRE(pointer == nullptr);
+
+        REQUIRE_FALSE(map.contains(WORDS[9]));
+        REQUIRE(ds_test::handle_error(string1.copy(WORDS[11])));
+        REQUIRE_FALSE(map.contains(string1));
       }
     }
 
@@ -543,6 +579,7 @@ TEST_CASE("hash_map<string, string>", "[hash_map]") {
             map.remove(string1);
           }
           REQUIRE(map.get_size() == 8 - i);
+          REQUIRE_FALSE(map.contains(WORDS[i * 2]));
         }
 
         REQUIRE(map.is_empty());

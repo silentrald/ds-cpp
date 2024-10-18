@@ -9,7 +9,7 @@
 #define DS_HASH_MAP_STRING_HPP
 
 #include "./hash_map.hpp"
-#include "ds/string.hpp"
+#include "./string.hpp"
 #include "types.hpp"
 #include <type_traits>
 
@@ -86,6 +86,13 @@ public:
    **/
   [[nodiscard]] const string* operator[](const c8* key) const noexcept {
     return this->find_with_c8<string*>(key);
+  }
+
+  /**
+   * Checks if the value exists in the hash map
+   **/
+  [[nodiscard]] bool contains(const string& key) const noexcept {
+    return this->template find<bool>(key);
   }
 
   /**
@@ -379,6 +386,13 @@ public:
    **/
   [[nodiscard]] const Value* operator[](const c8* key) const noexcept {
     return this->find_with_c8<Value*>(key);
+  }
+
+  /**
+   * Checks if the value exists in the hash map
+   **/
+  [[nodiscard]] bool contains(const string& key) const noexcept {
+    return this->template find<bool>(key);
   }
 
   /**

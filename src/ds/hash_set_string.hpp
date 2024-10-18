@@ -2,153 +2,139 @@
  * Author/s:
  *  - silentrald
  * Version: 1.0
- * Created: 2022-12-29
+ * Created: 2024-10-09
  *===============================*/
 
 #ifndef DS_HASH_SET_STRING_HPP
 #define DS_HASH_SET_STRING_HPP
 
 #include "./hash_set.hpp"
-#include "ds/string.hpp"
+#include "./string.hpp"
+#include "types.hpp"
 
 namespace ds {
 
-template <typename Hash = hash<string, i32>, typename KeyEqual = equal<string>>
-class string_hash_set
-    : public base_hash_set<
-          string_hash_set<Hash, KeyEqual>, string, Hash, KeyEqual> {
+// === hash_set with string key === //
+
+template <
+    typename Derived, typename Hash = hash<string>,
+    typename KeyEqual = equal<string>>
+class string_hash_set : public base_hash_set<Derived, string, Hash, KeyEqual> {
 public:
   using key_type = string;
-  using key_ptr = string*;
-  using key_ref = string&;
-  using key_cref = const string&;
-  using key_rref = string&&;
+  using node_type =
+      typename base_hash_set<Derived, string, Hash, KeyEqual>::node_type;
 
-  using node_type = typename base_hash_set<
-      string_hash_set<Hash, KeyEqual>, string, Hash, KeyEqual>::node_type;
-  using node_ptr = node_type*;
-
-  using iterator =
-      hash_set_iterator<base_hash_set<string_hash_set<Hash>, string, Hash>>;
-  using citerator = const iterator;
-
-  using hash_type = i32;
-
-  // === Modifiers ===
+  // === Accessors === //
 
   /**
-   * Inserts a key in the hash set
+   * Checks if the value exists in the hash map
+   **/
+  [[nodiscard]] bool contains(const string& key) const noexcept {
+    return this->find(key);
+  }
+
+  /**
+   * Checks if the value exists in the hash map
+   **/
+  [[nodiscard]] bool contains(const c8* key) const noexcept {
+    // NOTE: No infinite loop since 1 node will always be empty in any case
+    for (usize index = this->template calculate_hash_index<const c8*>(key);;) {
+      if (this->bucket[index].is_node_empty()) {
+        return false;
+      }
+
+      if (KeyEqual()(key, this->bucket[index].key)) {
+        return true;
+      }
+
+      if (++index >= this->capacity) {
+        index = 0U;
+      }
+    }
+  }
+
+  // === Mutations === //
+
+  /**
+   * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
+   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error_code from copy for key
    **/
-  [[nodiscard]] opt_err insert(key_cref key) noexcept {
-    return this->template insert_impl<key_cref>(key);
+  [[nodiscard]] error_code insert(const string& key) noexcept {
+    return this->insert_impl(key);
   }
 
   /**
-   * Inserts a key in the hash set
+   * Inserts a value in the hash map
    *
    * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
+   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_code::CONTAINER_FULL - max limit of hash_map
    **/
-  [[nodiscard]] opt_err insert(key_rref key) noexcept {
-    return this->template insert_impl<key_rref>(std::move(key));
+  [[nodiscard]] error_code insert(string&& key) noexcept {
+    return this->insert_impl(std::move(key));
+  }
+
+  [[nodiscard]] error_code insert(const c8* key) noexcept {
+    TRY(this->check_allocation());
+
+    node_type node{.distance = 0U};
+    TRY(node.key.copy(key));
+    this->insert_node(std::move(node));
+
+    return error_code::OK;
   }
 
   /**
-   * Inserts a key in the hash set
-   *
-   * @errors
-   *  - bad allocation in resizing the buckets
-   *  - bad allocation in creating the node
+   * Removes a key/value pair in the hash map
+   * If no key was found, nothing will happen to the hash map
    **/
-  [[nodiscard]] opt_err insert(const char* key) noexcept {
-    return this->template insert_impl<const char*>(key);
+  void remove(const string& key) noexcept {
+    this->template erase_impl<const string&>(key);
   }
 
   /**
-   * Deletes a key in the hash set
+   * Removes a key/value pair in the hash map
+   * If no key was found, nothing will happen to the hash map
    **/
-  void erase(key_cref key) noexcept {
-    this->template erase_impl<key_cref>(key);
+  void remove(const c8* key) noexcept {
+    this->template erase_impl<const c8*>(key);
   }
 
-  /**
-   * Deletes a key in the hash set
-   **/
-  void erase(const char* key) noexcept {
-    this->template erase_impl<const char*>(key);
+#ifdef DS_TEST
+  void print() const noexcept {
+    printf("=== hash_set ===\n");
+    if (this->bucket == nullptr) {
+      printf("No elements\n");
+    }
+    for (usize i = 0; i < this->capacity; ++i) {
+      printf(
+          USIZE_FORMAT ": (%s) distance: %16llx\n", i,
+          this->bucket[i].key.c_str(), this->bucket[i].distance
+      );
+    }
   }
-
-  /**
-   * Finds and returns the iterator pointing the element
-   *
-   * @return iterator
-   **/
-  [[nodiscard]] iterator find(key_cref key) noexcept {
-    return this->template find_impl<key_cref>(key);
-  }
-
-  /**
-   * Finds and returns the iterator pointing the element
-   *
-   * @return iterator
-   **/
-  [[nodiscard]] iterator find(const char* key) noexcept {
-    return this->template find_impl<const char*>(key);
-  }
-
-  /**
-   * Finds and returns the iterator pointing the element
-   *
-   * @return citerator
-   **/
-  [[nodiscard]] citerator find(key_cref key) const noexcept {
-    return this->template find_impl<key_cref>(key);
-  }
-
-  /**
-   * Finds and returns the iterator pointing the element
-   *
-   * @return citerator
-   **/
-  [[nodiscard]] citerator find(const char* key) const noexcept {
-    return this->template find_impl<const char*>(key);
-  }
-
-  /**
-   * Checks if the key exists in the hash set
-   *
-   * @return bool
-   **/
-  [[nodiscard]] bool contains(key_cref key) noexcept {
-    return this->template contains_impl<key_cref>(key);
-  }
-
-  /**
-   * Checks if the key exists in the hash set
-   *
-   * @return bool
-   **/
-  [[nodiscard]] bool contains(const char* key) noexcept {
-    return this->template contains_impl<const char*>(key);
-  }
+#endif
 };
 
-// === Specialization === //
+// === hash_map string specializations === //
+
 template <typename Hash, typename KeyEqual>
 class hash_set<string, Hash, KeyEqual>
-    : public string_hash_set<Hash, KeyEqual> {};
+    : public string_hash_set<hash_set<string, Hash, KeyEqual>, Hash, KeyEqual> {
+};
 
 template <typename Hash>
-class hash_set<string, Hash> : public string_hash_set<Hash> {};
+class hash_set<string, Hash>
+    : public string_hash_set<hash_set<string, Hash>, Hash> {};
 
-template <> class hash_set<string> : public string_hash_set<> {};
+template <>
+class hash_set<string> : public string_hash_set<hash_set<string>> {};
 
 } // namespace ds
 
 #endif
-
