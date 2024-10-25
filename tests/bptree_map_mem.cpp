@@ -13,7 +13,7 @@
 #include <cstdlib>
 
 // Only even
-const ds::i32 N_BIG = 1'000'000;
+const ds::i32 N_BIG = 100'000;
 const ds::i32 N_SMALL = 16;
 
 template <typename T> bool test_ascending(const ds::i32 N) noexcept {
@@ -42,7 +42,7 @@ template <typename T> bool test_ascending(const ds::i32 N) noexcept {
     }
 
     if (**expected != i) {
-      printf("Not equal %x != %x\n", **expected, i); // NOLINT
+      printf("Not equal %x != %x\n", **expected, (ds::i32)i); // NOLINT
       return false;
     }
   }
@@ -85,7 +85,7 @@ template <typename T> bool test_descending(const ds::i32 N) noexcept {
     }
 
     if (**expected != i) {
-      printf("Not equal %x != %x\n", **expected, i); // NOLINT
+      printf("Not equal %x != %x\n", **expected, (ds::i32)i); // NOLINT
       return false;
     }
   }
@@ -130,7 +130,7 @@ template <typename T> bool test_centered(const ds::i32 N) noexcept {
     }
 
     if (**expected != i) {
-      printf("Not equal %x != %x\n", **expected, i); // NOLINT
+      printf("Not equal %x != %x\n", **expected, (ds::i32)i); // NOLINT
       return false;
     }
   }

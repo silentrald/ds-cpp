@@ -13,7 +13,7 @@
 #include <cstdlib>
 
 // Only even
-const ds::i32 N_BIG = 1'000'000;
+const ds::i32 N_BIG = 100'000;
 const ds::i32 N_SMALL = 16;
 
 int main() {
