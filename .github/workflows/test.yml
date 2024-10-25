@@ -13,6 +13,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install packages 📦
+        run: sudo apt-get install -y valgrind
+
       - name: Building with cmake 🔨
         run: |
           cd ${{ github.workspace }}
@@ -22,7 +25,8 @@ jobs:
           make
 
       - name: Running tests 📋
-        run: |
-          cd build
-          ./tests/tests
+        run: ./build/tests/tests
+
+      - name: Run valgrind tests 📋
+        run: bash ./valgrind.sh
 
