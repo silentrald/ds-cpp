@@ -188,6 +188,10 @@ public:
     return this->size;
   }
 
+  [[nodiscard]] usize get_capacity() const noexcept {
+    return this->capacity;
+  }
+
   // === Modifiers ===
 
   /**
