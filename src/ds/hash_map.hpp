@@ -110,13 +110,13 @@ public:
   // === Destructor === //
 
   ~base_hash_map() noexcept {
-    this->clear();
+    this->destroy();
   }
 
   /**
-   * Removes all the nodes from the hash map
+   * Removes all elements
    **/
-  void clear() noexcept {
+  void destroy() noexcept {
     if (this->bucket == nullptr) {
       return;
     }
@@ -130,6 +130,20 @@ public:
     std::free(this->bucket); // NOLINT
     this->bucket = nullptr;
     this->size = this->max_size = this->capacity = 0U;
+  }
+
+  /**
+   * Removes all elements without destroying each nodes.
+   **/
+  void clear() noexcept {
+    if (this->bucket == nullptr) {
+      return;
+    }
+
+    for (usize i = 0; i < this->capacity; ++i) {
+      this->bucket[i].to_empty();
+    }
+    this->size = 0U;
   }
 
   // === Iterator === //
@@ -176,6 +190,10 @@ public:
    **/
   [[nodiscard]] usize get_size() const noexcept {
     return this->size;
+  }
+
+  [[nodiscard]] usize get_capacity() const noexcept {
+    return this->capacity;
   }
 
   // === Modifiers ===

@@ -6,223 +6,421 @@
  *===============================*/
 
 #include "ds/hash_map.hpp"
+#include "catch2/catch_template_test_macros.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ds/expected.hpp"
 #include "ds/prime.hpp"
 #include "ds/string.hpp"
 #include "ds/types.hpp"
 #include "main.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <tuple>
 
-// TODO: Break the test cases even further to get correct errors cases
+// For average collision
+const ds::usize SIZE = 32;
 
-template <typename Key, typename Value>
-inline void test_hash_map(const ds::usize N) {
+// For bad collision
+const ds::usize PRIME = ds::get_first_prime();
+const ds::usize START = 1;
+const ds::usize END = 10;
+const ds::usize OFFSET = 5;
+
+// === Inserting === //
+
+template <
+    typename Key, typename Value, bool AverageCollision, bool Check = false>
+ds::expected<ds::hash_map<Key, Value>, ds::error_code> create_hash_map() {
   ds::hash_map<Key, Value> map{};
-  Value* pointer = nullptr;
   ds::error_code error_code{};
-  ds::expected<Value*, ds::error_code> expected{};
 
-  SECTION("Insertions") {
-    for (ds::usize i = 0, counter = 0; i < 10; ++i) {
-      for (ds::usize j = i; j < N; j += 10) {
-        error_code = map.insert(j, j * 2);
-        REQUIRE(ds_test::handle_error(error_code));
-        REQUIRE(map.get_size() == ++counter);
-      }
-    }
-
-    SECTION("Accessing") {
-      SECTION("Existing keys") {
-        for (ds::usize i = 0; i < N; ++i) {
-          expected = map.at(i);
-          REQUIRE(ds_test::handle_error(expected));
-          REQUIRE(**expected == i * 2);
-
-          pointer = map[i];
-          REQUIRE(pointer != nullptr);
-          REQUIRE(*pointer == i * 2);
-
-          REQUIRE(map.contains(i));
-        }
-      }
-
-      SECTION("Non-existing keys") {
-        for (ds::usize i = N + 50; i > N; --i) {
-          expected = map.at(i);
-          REQUIRE_FALSE(expected);
-          REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-          pointer = map[i];
-          REQUIRE(pointer == nullptr);
-
-          REQUIRE_FALSE(map.contains(i));
-        }
-      }
-    }
-
-    SECTION("Removing") {
-      SECTION("Existing keys") {
-        for (ds::usize i = 0, counter = N; i < 10; ++i) {
-          for (ds::usize j = i; j < N; j += 10) {
-            map.remove(j);
-            REQUIRE(map.get_size() == --counter);
-
-            REQUIRE_FALSE(map.contains(j));
-          }
-        }
-      }
-
-      SECTION("Non-existing keys") {
-        for (ds::usize i = N + 50; i > N; --i) {
-          map.remove(i);
-          REQUIRE(N == map.get_size());
-        }
-      }
-    }
-
-    SECTION("Reinserting keys") {
-      for (ds::usize i = 0; i < 10; ++i) {
-        for (ds::usize j = i; j < N; j += 10) {
-          error_code = map.insert(j, j * 3);
+  if constexpr (AverageCollision) {
+    for (Key i = 0, counter = 0; i < 10; ++i) {
+      for (Key j = i; j < SIZE; j += 10) {
+        if constexpr (Check) {
+          error_code = map.insert(j, j * 2);
           REQUIRE(ds_test::handle_error(error_code));
-          REQUIRE(map.get_size() == N);
-
-          pointer = map[j];
-          REQUIRE(pointer != nullptr);
-          REQUIRE(*pointer == j * 3);
-
-          REQUIRE(map.contains(j));
+          REQUIRE(map.get_size() == ++counter);
+          REQUIRE(map.get_capacity() >= counter);
+        } else {
+          TRY(map.insert(j, j * 2), ds::to_unexpected);
         }
       }
     }
-
-    SECTION("Clearing") {
-      map.clear();
-      REQUIRE(map.get_size() == 0);
-      REQUIRE(map.is_empty());
-    }
-  }
-}
-
-// Check if every key is the same hash
-template <typename Key, typename Value>
-inline void test_hash_map_bad_collision() {
-  ds::hash_map<Key, Value> map{};
-  Value* pointer = nullptr;
-  ds::error_code error_code{};
-  ds::expected<Value*, ds::error_code> expected{};
-
-  const ds::usize PRIME = ds::get_first_prime();
-  const ds::usize START = 1;
-  const ds::usize END = 10;
-  const ds::usize OFFSET = 5;
-  const ds::usize SIZE = END - START;
-
-  SECTION("Insertions (bad collision)") {
-    for (ds::usize i = START, counter = 0; i < END; ++i) {
-      error_code = map.insert(i * PRIME + OFFSET, i);
+  } else {
+    for (Key i = START, counter = 0; i < END; ++i) {
+      error_code = map.insert(i * PRIME + OFFSET, (i - START) * 2);
       REQUIRE(ds_test::handle_error(error_code));
       REQUIRE(map.get_size() == ++counter);
     }
+  }
 
-    SECTION("Accessing") {
-      SECTION("Existing keys") {
-        for (ds::usize i = START; i < END; ++i) {
-          expected = map.at(i * PRIME + OFFSET);
-          REQUIRE(ds_test::handle_error(expected));
-          REQUIRE(**expected == i);
+  return std::move(map);
+}
 
-          pointer = map[i * PRIME + OFFSET];
-          REQUIRE(pointer != nullptr);
-          REQUIRE(*pointer == i);
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> insert average collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  create_hash_map<key_type, value_type, true, true>();
+}
 
-          REQUIRE(map.contains(i * PRIME + OFFSET));
-        }
-      }
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> insert bad collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  create_hash_map<key_type, value_type, false, true>();
+}
 
-      SECTION("Non-existing keys") {
-        for (ds::usize i = START; i < END; ++i) {
-          expected = map.at(i * PRIME + OFFSET + 1);
-          REQUIRE_FALSE(expected);
-          REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+// === Accessing Existing === //
 
-          pointer = map[i * PRIME + OFFSET + 1];
-          REQUIRE(pointer == nullptr);
+template <typename Key, typename Value, bool AverageCollision>
+void test_access_existing() {
+  ds::expected<Value*, ds::error_code> expected{};
+  Value* pointer = nullptr;
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
 
-          REQUIRE_FALSE(map.contains(i * PRIME + OFFSET + 1));
-        }
-      }
+  Key key = 0;
+  for (Key i = 0; i < INIT_SIZE; ++i) {
+    if constexpr (AverageCollision) {
+      key = i;
+    } else {
+      key = (i + START) * PRIME + OFFSET;
     }
 
-    SECTION("Removing") {
-      SECTION("Existing keys") {
-        for (ds::usize i = START, counter = SIZE; i < END; ++i) {
-          map.remove(i * PRIME + OFFSET);
-          REQUIRE(map.get_size() == --counter);
+    expected = map.at(key);
+    REQUIRE(ds_test::handle_error(expected));
+    REQUIRE(**expected == i * 2);
 
-          REQUIRE_FALSE(map.contains(i * PRIME + OFFSET));
-        }
-      }
+    pointer = map[key];
+    REQUIRE(pointer != nullptr);
+    REQUIRE(*pointer == i * 2);
+
+    REQUIRE(map.contains(key));
+  }
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> access existing keys average collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_access_existing<key_type, value_type, true>();
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> existing keys bad collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_access_existing<key_type, value_type, false>();
+}
+
+// === Accessing Non-Existing === //
+
+template <typename Key, typename Value, bool AverageCollision>
+void test_access_non_existing() {
+  ds::expected<Value*, ds::error_code> expected{};
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
+
+  Key key = 0;
+  for (Key i = 0; i < INIT_SIZE; ++i) {
+    if constexpr (AverageCollision) {
+      key = i + 100;
+    } else {
+      key = (i + START) * PRIME + OFFSET + 1;
     }
 
-    SECTION("Non-existing keys") {
-      for (ds::usize i = START; i < END; ++i) {
-        map.remove(i * PRIME + OFFSET + 1);
-        REQUIRE(map.get_size() == SIZE);
+    expected = map.at(key);
+    REQUIRE_FALSE(expected);
+    REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+    REQUIRE(map[key] == nullptr);
+
+    REQUIRE_FALSE(map.contains(key));
+  }
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> access non-existing keys average collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_access_non_existing<key_type, value_type, true>();
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> non-existing keys bad collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_access_non_existing<key_type, value_type, false>();
+}
+
+// === Removing Existing === //
+
+template <typename Key, typename Value, bool AverageCollision>
+void test_remove_existing() {
+  ds::expected<Value*, ds::error_code> expected{};
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
+
+  Key key = 0;
+  for (ds::usize i = 0, counter = INIT_SIZE; i < 10; ++i) {
+    for (ds::usize j = i; j < INIT_SIZE; j += 10) {
+      if constexpr (AverageCollision) {
+        key = j;
+      } else {
+        key = (j + START) * PRIME + OFFSET;
       }
-    }
+      map.remove(key);
+      REQUIRE(map.get_size() == --counter);
 
-    SECTION("Reinserting keys") {
-      for (ds::usize i = START; i < END; ++i) {
-        error_code = map.insert(i * PRIME + OFFSET, i * 2);
-        REQUIRE(ds_test::handle_error(error_code));
-        REQUIRE(map.get_size() == SIZE);
-
-        pointer = map[i * PRIME + OFFSET];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == i * 2);
-      }
-    }
-
-    SECTION("Clearing") {
-      map.clear();
-      REQUIRE(map.get_size() == 0);
-      REQUIRE(map.is_empty());
+      REQUIRE_FALSE(map.contains(key));
     }
   }
 }
 
-const ds::usize SIZE = 32;
-
-TEST_CASE("hash_map<i32, i32>", "[hash_map]") {
-  test_hash_map<ds::i32, ds::i32>(SIZE);
-  test_hash_map_bad_collision<ds::i32, ds::i32>();
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> remove existing keys average collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_remove_existing<key_type, value_type, true>();
 }
 
-TEST_CASE("hash_map<u32, u32>", "[hash_map]") {
-  test_hash_map<ds::u32, ds::u32>(SIZE);
-  test_hash_map_bad_collision<ds::u32, ds::u32>();
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> remove existing keys bad collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_remove_existing<key_type, value_type, false>();
 }
 
-TEST_CASE("hash_map<i64, i64>", "[hash_map]") {
-  test_hash_map<ds::i64, ds::i64>(SIZE);
-  test_hash_map_bad_collision<ds::i64, ds::i64>();
+// === Remove Non Existing === //
+
+template <typename Key, typename Value, bool AverageCollision>
+void test_remove_non_existing() {
+  ds::expected<Value*, ds::error_code> expected{};
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
+
+  Key key = 0;
+  for (ds::usize i = 0, counter = INIT_SIZE; i < 10; ++i) {
+    for (ds::usize j = i; j < INIT_SIZE; j += 10) {
+      if constexpr (AverageCollision) {
+        key = j + 100;
+      } else {
+        key = (j + START) * PRIME + OFFSET + 1;
+      }
+      map.remove(key);
+      REQUIRE(map.get_size() == counter);
+    }
+  }
 }
 
-TEST_CASE("hash_map<u64, u64>", "[hash_map]") {
-  test_hash_map<ds::u64, ds::u64>(SIZE);
-  test_hash_map_bad_collision<ds::u64, ds::u64>();
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> remove non-existing keys average collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_remove_non_existing<key_type, value_type, true>();
 }
 
-TEST_CASE("hash_map<string, i64>", "[hash_map]") {
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> remove non-existing keys bad collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_remove_non_existing<key_type, value_type, false>();
+}
+
+// === Reinserting === //
+
+template <typename Key, typename Value, bool AverageCollision>
+void test_reinsert() {
+  ds::error_code error_code{};
+  ds::expected<Value*, ds::error_code> expected{};
+  Value* pointer = nullptr;
+
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
+
+  Key key = 0;
+  for (ds::usize i = 0; i < 10; ++i) {
+    for (ds::usize j = i; j < INIT_SIZE; j += 10) {
+      if constexpr (AverageCollision) {
+        key = j;
+      } else {
+        key = (j + START) * PRIME + OFFSET;
+      }
+      error_code = map.insert(key, j * 3);
+      REQUIRE(ds_test::handle_error(error_code));
+      REQUIRE(map.get_size() == INIT_SIZE);
+
+      pointer = map[key];
+      REQUIRE(pointer != nullptr);
+      REQUIRE(*pointer == j * 3);
+
+      REQUIRE(map.contains(key));
+    }
+  }
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> reinserting keys average collision",
+    "[hash_map]", (std::tuple<ds::i32, ds::i32>),
+    (std::tuple<ds::i64, ds::i64>), (std::tuple<ds::u32, ds::u32>),
+    (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_reinsert<key_type, value_type, true>();
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> reinserting keys bad collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_reinsert<key_type, value_type, false>();
+}
+
+// === Clearing === //
+
+template <typename Key, typename Value, bool AverageCollision>
+void test_clear() {
+  ds::error_code error_code{};
+  ds::expected<Value*, ds::error_code> expected{};
+  Value* pointer = nullptr;
+
+  ds::hash_map<Key, Value> map = ({
+    auto expected_map = create_hash_map<Key, Value, AverageCollision>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+  const ds::usize INIT_SIZE = map.get_size();
+
+  map.clear();
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.is_empty());
+
+  REQUIRE(map.get_capacity() > 0);
+
+  // Check for the old keys
+  Key key = 0;
+  for (Key i = 0; i < INIT_SIZE; ++i) {
+    if constexpr (AverageCollision) {
+      key = i;
+    } else {
+      key = (i + START) * PRIME + OFFSET;
+    }
+
+    REQUIRE_FALSE(map.contains(key));
+  }
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> clear average collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_clear<key_type, value_type, true>();
+}
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> clear bad collision", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+  test_clear<key_type, value_type, false>();
+}
+
+// TODO: Class Types Test
+
+// === Key String Types === //
+
+template <bool Check = false>
+ds::expected<ds::hash_map<ds::string, ds::i64>, ds::error_code>
+create_key_string_hash_map() {
   ds::hash_map<ds::string, ds::i64> map{};
   ds::i64* pointer = nullptr;
   ds::expected<ds::i64*, ds::error_code> expected{};
   ds::string string{};
   ds::c8 characters[32]; // NOLINT
 
-  SECTION("Insertions") {
+  if constexpr (Check) {
     REQUIRE(ds_test::handle_error(map.insert("Hello", 1)));
 
     REQUIRE(ds_test::handle_error(string.copy("My")));
@@ -235,422 +433,648 @@ TEST_CASE("hash_map<string, i64>", "[hash_map]") {
     REQUIRE(ds_test::handle_error(map.insert(characters, 4)));
 
     REQUIRE(map.get_size() == 4);
-
-    SECTION("Accessing") {
-      SECTION("Existing keys") {
-        expected = map.at("Hello");
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == 1);
-
-        REQUIRE(ds_test::handle_error(string.copy("My")));
-        expected = map.at(string);
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == 2);
-
-        pointer = map["Name"];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == 3);
-
-        REQUIRE(map.contains("Jeff"));
-
-        REQUIRE(ds_test::handle_error(string.copy("Jeff")));
-        REQUIRE(map.contains(string));
-      }
-
-      SECTION("Non-existing keys") {
-        expected = map.at("Hi");
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        pointer = map["There"];
-        REQUIRE(pointer == nullptr);
-
-        REQUIRE(ds_test::handle_error(string.copy("Some")));
-        expected = map.at(string);
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        REQUIRE(ds_test::handle_error(string.copy("World")));
-        pointer = map[string];
-        REQUIRE(pointer == nullptr);
-
-        REQUIRE_FALSE(map.contains("asdf"));
-
-        REQUIRE(ds_test::handle_error(string.copy("blahhh")));
-        REQUIRE_FALSE(map.contains(string));
-      }
-    }
-
-    SECTION("Remove") {
-      SECTION("Existing keys") {
-        map.remove("Hello");
-        REQUIRE(map.get_size() == 3);
-
-        REQUIRE(ds_test::handle_error(string.copy("My")));
-        map.remove(string);
-        REQUIRE(map.get_size() == 2);
-
-        std::strcpy(characters, "Name");
-        map.remove(characters);
-        REQUIRE(map.get_size() == 1);
-
-        REQUIRE(ds_test::handle_error(string.copy("Jeff")));
-        map.remove(string);
-        REQUIRE(map.get_size() == 0);
-        REQUIRE(map.is_empty());
-      }
-
-      SECTION("Non-existing keys") {
-        map.remove("asdf");
-        REQUIRE(map.get_size() == 4);
-
-        map.remove("something");
-        REQUIRE(map.get_size() == 4);
-
-        map.remove("else");
-        REQUIRE(map.get_size() == 4);
-
-        map.remove("asdfasdf");
-        REQUIRE(map.get_size() == 4);
-      }
-    }
-
-    SECTION("Reinserting keys") {
-      REQUIRE(ds_test::handle_error(map.insert("Hello", 1)));
-      REQUIRE(map.get_size() == 4);
-
-      REQUIRE(ds_test::handle_error(string.copy("My")));
-      REQUIRE(ds_test::handle_error(map.insert(string, 2)));
-      REQUIRE(map.get_size() == 4);
-
-      REQUIRE(ds_test::handle_error(string.copy("Name")));
-      REQUIRE(ds_test::handle_error(map.insert(std::move(string), 3)));
-      REQUIRE(map.get_size() == 4);
-
-      std::strcpy(characters, "Jeff");
-      REQUIRE(ds_test::handle_error(map.insert(characters, 4)));
-      REQUIRE(map.get_size() == 4);
-    }
-
-    SECTION("Clearing") {
-      map.clear();
-      REQUIRE(map.get_size() == 0);
-      REQUIRE(map.is_empty());
+  } else {
+    // NOLINTNEXTLINE
+    const ds::c8* words[] = {"Hello", "My", "Name", "Jeff"};
+    for (ds::i64 i = 0; i < 4; ++i) {
+      TRY(map.insert(words[i], i + 1), ds::to_unexpected);
     }
   }
+
+  return std::move(map);
 }
 
-TEST_CASE("hash_map<i64, string>", "[hash_map]") {
+TEST_CASE("hash_map<string, i64> insert", "[hash_map]") {
+  create_key_string_hash_map<true>();
+}
+
+TEST_CASE("hash_map<string, i64> access existing", "[hash_map]") {
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::i64* pointer = nullptr;
+  ds::string string{};
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at("Hello");
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == 1);
+
+  REQUIRE(ds_test::handle_error(string.copy("My")));
+  expected = map.at(string);
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == 2);
+
+  pointer = map["Name"];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == 3);
+
+  REQUIRE(map.contains("Jeff"));
+
+  REQUIRE(ds_test::handle_error(string.copy("Jeff")));
+  REQUIRE(map.contains(string));
+}
+
+TEST_CASE("hash_map<string, i64> access non-existing", "[hash_map]") {
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::i64* pointer = nullptr;
+  ds::string string{};
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at("Hi");
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  pointer = map["There"];
+  REQUIRE(pointer == nullptr);
+
+  REQUIRE(ds_test::handle_error(string.copy("Some")));
+  expected = map.at(string);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  REQUIRE(ds_test::handle_error(string.copy("World")));
+  pointer = map[string];
+  REQUIRE(pointer == nullptr);
+
+  REQUIRE_FALSE(map.contains("asdf"));
+
+  REQUIRE(ds_test::handle_error(string.copy("blahhh")));
+  REQUIRE_FALSE(map.contains(string));
+}
+
+TEST_CASE("hash_map<string, i64> remove existing", "[hash_map]") {
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::i64* pointer = nullptr;
+  ds::string string{};
+  ds::c8 characters[32]; // NOLINT
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.remove("Hello");
+  REQUIRE(map.get_size() == 3);
+
+  REQUIRE(ds_test::handle_error(string.copy("My")));
+  map.remove(string);
+  REQUIRE(map.get_size() == 2);
+
+  std::strcpy(characters, "Name");
+  map.remove(characters);
+  REQUIRE(map.get_size() == 1);
+
+  REQUIRE(ds_test::handle_error(string.copy("Jeff")));
+  map.remove(string);
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.is_empty());
+}
+
+TEST_CASE("hash_map<string, i64> remove non-existing", "[hash_map]") {
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.remove("asdf");
+  REQUIRE(map.get_size() == 4);
+
+  map.remove("something");
+  REQUIRE(map.get_size() == 4);
+
+  map.remove("else");
+  REQUIRE(map.get_size() == 4);
+
+  map.remove("asdfasdf");
+  REQUIRE(map.get_size() == 4);
+}
+
+TEST_CASE("hash_map<string, i64> reinserting", "[hash_map]") {
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::i64* pointer = nullptr;
+  ds::string string{};
+  ds::c8 characters[32]; // NOLINT
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  REQUIRE(ds_test::handle_error(map.insert("Hello", 100)));
+  REQUIRE(map.get_size() == 4);
+  pointer = map["Hello"];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == 100);
+
+  REQUIRE(ds_test::handle_error(string.copy("My")));
+  REQUIRE(ds_test::handle_error(map.insert(string, 200)));
+  REQUIRE(map.get_size() == 4);
+  pointer = map[string];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == 200);
+
+  REQUIRE(ds_test::handle_error(string.copy("Name")));
+  REQUIRE(ds_test::handle_error(map.insert(std::move(string), 300)));
+  REQUIRE(map.get_size() == 4);
+  pointer = map["Name"];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == 300);
+
+  std::strcpy(characters, "Jeff");
+  REQUIRE(ds_test::handle_error(map.insert(characters, 400)));
+  REQUIRE(map.get_size() == 4);
+  pointer = map[characters];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == 400);
+}
+
+TEST_CASE("hash_map<string, i64> clearing", "[hash_map]") {
+  ds::hash_map<ds::string, ds::i64> map = ({
+    auto expected_map = create_key_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.clear();
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.is_empty());
+
+  REQUIRE(map.get_capacity() > 0);
+}
+
+// === Value String Map === //
+
+// NOLINTNEXTLINE
+const ds::i64 VS_INDICES[] = {
+    OFFSET, (ds::i64)(OFFSET + PRIME), (ds::i64)(OFFSET + PRIME * 2),
+    (ds::i64)(OFFSET + PRIME * 3)
+};
+
+template <bool Check = false>
+ds::expected<ds::hash_map<ds::i64, ds::string>, ds::error_code>
+create_value_string_hash_map() {
   ds::hash_map<ds::i64, ds::string> map{};
   ds::string* pointer = nullptr;
   ds::expected<ds::string*, ds::error_code> expected{};
   ds::string string{};
   ds::c8 characters[32]; // NOLINT
 
-  const ds::usize PRIME = ds::get_first_prime();
-  const ds::usize OFFSET = 6;
-  const ds::i64 INDEX1 = OFFSET;
-  const ds::i64 INDEX2 = OFFSET + PRIME;
-  const ds::i64 INDEX3 = OFFSET + PRIME * 2;
-  const ds::i64 INDEX4 = OFFSET + PRIME * 3;
-
-  SECTION("Insertion") {
-    REQUIRE(ds_test::handle_error(map.insert(INDEX1, "Hello")));
+  if constexpr (Check) {
+    REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[0], "Hello")));
 
     REQUIRE(ds_test::handle_error(string.copy("My")));
-    REQUIRE(ds_test::handle_error(map.insert(INDEX2, string)));
+    REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[1], string)));
 
     REQUIRE(ds_test::handle_error(string.copy("Name")));
-    REQUIRE(ds_test::handle_error(map.insert(INDEX3, std::move(string))));
+    REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[2], std::move(string)))
+    );
 
     std::strcpy(characters, "Jeff");
-    REQUIRE(ds_test::handle_error(map.insert(INDEX4, characters)));
+    REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[3], characters)));
 
     REQUIRE(map.get_size() == 4);
-
-    SECTION("Accessing") {
-      SECTION("Existing keys") {
-        expected = map.at(INDEX1);
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == "Hello");
-
-        expected = map.at(INDEX2);
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == "My");
-
-        pointer = map[INDEX3];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == "Name");
-
-        pointer = map[INDEX4];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == "Jeff");
-
-        REQUIRE(map.contains(INDEX1));
-      }
-
-      SECTION("Non-existing keys") {
-        expected = map.at(-1);
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        pointer = map[-100];
-        REQUIRE(pointer == nullptr);
-
-        REQUIRE(ds_test::handle_error(string.copy("Some")));
-        expected = map.at(-200);
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        REQUIRE(ds_test::handle_error(string.copy("World")));
-        pointer = map[0];
-        REQUIRE(pointer == nullptr);
-      }
-    }
-
-    SECTION("Remove") {
-      SECTION("Existing keys") {
-        map.remove(INDEX1);
-        REQUIRE(map.get_size() == 3);
-        REQUIRE_FALSE(map.contains(INDEX1));
-
-        map.remove(INDEX2);
-        REQUIRE(map.get_size() == 2);
-        REQUIRE_FALSE(map.contains(INDEX2));
-
-        map.remove(INDEX3);
-        REQUIRE(map.get_size() == 1);
-        REQUIRE_FALSE(map.contains(INDEX3));
-
-        map.remove(INDEX4);
-        REQUIRE(map.get_size() == 0);
-        REQUIRE_FALSE(map.contains(INDEX4));
-
-        REQUIRE(map.is_empty());
-      }
-
-      SECTION("Non-existing keys") {
-        map.remove(-1);
-        REQUIRE(map.get_size() == 4);
-
-        map.remove(-100);
-        REQUIRE(map.get_size() == 4);
-
-        map.remove(-200);
-        REQUIRE(map.get_size() == 4);
-
-        map.remove(0);
-        REQUIRE(map.get_size() == 4);
-      }
-    }
-
-    SECTION("Reinserting keys") {
-      REQUIRE(ds_test::handle_error(map.insert(INDEX1, "Hello")));
-      REQUIRE(map.get_size() == 4);
-
-      REQUIRE(ds_test::handle_error(string.copy("My")));
-      REQUIRE(ds_test::handle_error(map.insert(INDEX2, string)));
-      REQUIRE(map.get_size() == 4);
-
-      REQUIRE(ds_test::handle_error(string.copy("Name")));
-      REQUIRE(ds_test::handle_error(map.insert(INDEX3, std::move(string))));
-      REQUIRE(map.get_size() == 4);
-
-      std::strcpy(characters, "Jeff");
-      REQUIRE(ds_test::handle_error(map.insert(INDEX4, characters)));
-      REQUIRE(map.get_size() == 4);
-    }
-
-    SECTION("Clearing") {
-      map.clear();
-      REQUIRE(map.get_size() == 0);
-      REQUIRE(map.is_empty());
-    }
+  } else {
+    TRY(map.insert(VS_INDICES[0], "Hello"), ds::to_unexpected);
+    TRY(map.insert(VS_INDICES[1], "My"), ds::to_unexpected);
+    TRY(map.insert(VS_INDICES[2], "Name"), ds::to_unexpected);
+    TRY(map.insert(VS_INDICES[3], "Jeff"), ds::to_unexpected);
   }
+
+  return std::move(map);
 }
 
-TEST_CASE("hash_map<string, string>", "[hash_map]") {
-  ds::hash_map<ds::string, ds::string> map{};
+TEST_CASE("hash_map<i64, string> inserting", "[hash_map]") {
+  create_value_string_hash_map<true>();
+}
+
+TEST_CASE("hash_map<i64, string> access existing", "[hash_map]") {
   ds::string* pointer = nullptr;
   ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at(VS_INDICES[0]);
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == "Hello");
+
+  expected = map.at(VS_INDICES[1]);
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == "My");
+
+  pointer = map[VS_INDICES[2]];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == "Name");
+
+  pointer = map[VS_INDICES[3]];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == "Jeff");
+
+  REQUIRE(map.contains(VS_INDICES[0]));
+  REQUIRE(map.contains(VS_INDICES[1]));
+  REQUIRE(map.contains(VS_INDICES[2]));
+  REQUIRE(map.contains(VS_INDICES[3]));
+}
+
+TEST_CASE("hash_map<i64, string> access non-existing", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::string string{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at(-1);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  pointer = map[-100];
+  REQUIRE(pointer == nullptr);
+
+  REQUIRE(ds_test::handle_error(string.copy("Some")));
+  expected = map.at(-200);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  REQUIRE(ds_test::handle_error(string.copy("World")));
+  pointer = map[0];
+  REQUIRE(pointer == nullptr);
+}
+
+TEST_CASE("hash_map<i64, string> remove existing", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.remove(VS_INDICES[0]);
+  REQUIRE(map.get_size() == 3);
+  REQUIRE_FALSE(map.contains(VS_INDICES[0]));
+
+  map.remove(VS_INDICES[1]);
+  REQUIRE(map.get_size() == 2);
+  REQUIRE_FALSE(map.contains(VS_INDICES[1]));
+
+  map.remove(VS_INDICES[2]);
+  REQUIRE(map.get_size() == 1);
+  REQUIRE_FALSE(map.contains(VS_INDICES[2]));
+
+  map.remove(VS_INDICES[3]);
+  REQUIRE(map.get_size() == 0);
+  REQUIRE_FALSE(map.contains(VS_INDICES[3]));
+
+  REQUIRE(map.is_empty());
+}
+
+TEST_CASE("hash_map<i64, string> remove non-existing", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.remove(-1);
+  REQUIRE(map.get_size() == 4);
+
+  map.remove(-100);
+  REQUIRE(map.get_size() == 4);
+
+  map.remove(-200);
+  REQUIRE(map.get_size() == 4);
+
+  map.remove(0);
+  REQUIRE(map.get_size() == 4);
+}
+
+TEST_CASE("hash_map<i64, string> reinserting", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::string string{};
+  ds::c8 characters[32]; // NOLINT
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[0], "Hello")));
+  REQUIRE(map.get_size() == 4);
+
+  REQUIRE(ds_test::handle_error(string.copy("My")));
+  REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[1], string)));
+  REQUIRE(map.get_size() == 4);
+
+  REQUIRE(ds_test::handle_error(string.copy("Name")));
+  REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[2], std::move(string))));
+  REQUIRE(map.get_size() == 4);
+
+  std::strcpy(characters, "Jeff");
+  REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[3], characters)));
+  REQUIRE(map.get_size() == 4);
+}
+
+TEST_CASE("hash_map<i64, string> clearing", "[hash_map]") {
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::i64, ds::string> map = ({
+    auto expected_map = create_value_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.clear();
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.is_empty());
+  REQUIRE(map.get_capacity() > 0);
+}
+
+// === String Map === //
+
+// NOLINTNEXTLINE
+inline const ds::c8* STRING_HASH_MAP_WORDS[] = {
+    "glass",   "history", "legacy", "lark",    "stand", "cocoa",
+    "parsnip", "oat",     "ear",    "airship", "merit", "decade",
+    "truth",   "bond",    "scow",   "fishing", "tunic", "founder",
+};
+
+template <bool Check = false>
+ds::expected<ds::hash_map<ds::string, ds::string>, ds::error_code>
+create_string_hash_map() {
+  ds::hash_map<ds::string, ds::string> map{};
   ds::string string1{};
   ds::string string2{};
 
-  // NOLINTNEXTLINE
-  const ds::c8* WORDS[] = {
-      "glass",   "history", "legacy", "lark",    "stand", "cocoa",
-      "parsnip", "oat",     "ear",    "airship", "merit", "decade",
-      "truth",   "bond",    "scow",   "fishing", "tunic", "founder",
-  };
-
-  SECTION("Insertions") {
+  if constexpr (Check) {
     // const c8* key
-    REQUIRE(ds_test::handle_error(map.insert(WORDS[0], WORDS[1])));
+    REQUIRE(ds_test::handle_error(
+        map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[1])
+    ));
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[3])));
-    REQUIRE(ds_test::handle_error(map.insert(WORDS[2], string1)));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[3])));
+    REQUIRE(ds_test::handle_error(map.insert(STRING_HASH_MAP_WORDS[2], string1))
+    );
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[5])));
-    REQUIRE(ds_test::handle_error(map.insert(WORDS[4], std::move(string1))));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[5])));
+    REQUIRE(ds_test::handle_error(
+        map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
+    ));
 
     // const ds::string& key
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[6])));
-    REQUIRE(ds_test::handle_error(map.insert(string1, WORDS[7])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[6])));
+    REQUIRE(ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[7]))
+    );
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[8])));
-    REQUIRE(ds_test::handle_error(string2.copy(WORDS[9])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[8])));
+    REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[9])));
     REQUIRE(ds_test::handle_error(map.insert(string1, string2)));
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[10])));
-    REQUIRE(ds_test::handle_error(string2.copy(WORDS[11])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[10])));
+    REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[11])));
     REQUIRE(ds_test::handle_error(map.insert(string1, std::move(string2))));
 
     // ds::string&& key
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[12])));
-    REQUIRE(ds_test::handle_error(map.insert(std::move(string1), WORDS[13])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[12])));
+    REQUIRE(ds_test::handle_error(
+        map.insert(std::move(string1), STRING_HASH_MAP_WORDS[13])
+    ));
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[14])));
-    REQUIRE(ds_test::handle_error(string2.copy(WORDS[15])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[14])));
+    REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[15])));
     REQUIRE(ds_test::handle_error(map.insert(std::move(string1), string2)));
 
-    REQUIRE(ds_test::handle_error(string1.copy(WORDS[16])));
-    REQUIRE(ds_test::handle_error(string2.copy(WORDS[17])));
+    REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[16])));
+    REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[17])));
     REQUIRE(ds_test::handle_error(
         map.insert(std::move(string1), std::move(string2))
     ));
 
     REQUIRE(map.get_size() == 9);
-
-    SECTION("Accessing") {
-      SECTION("Existing keys") {
-        expected = map.at(WORDS[0]);
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == WORDS[1]);
-
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[2])));
-        expected = map.at(string1);
-        REQUIRE(ds_test::handle_error(expected));
-        REQUIRE(**expected == WORDS[3]);
-
-        pointer = map[WORDS[4]];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == WORDS[5]);
-
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[6])));
-        pointer = map[string1];
-        REQUIRE(pointer != nullptr);
-        REQUIRE(*pointer == WORDS[7]);
-
-        REQUIRE(map.contains(WORDS[8]));
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[10])));
-        REQUIRE(map.contains(string1));
-      }
-
-      SECTION("Non-existing keys") {
-        expected = map.at(WORDS[1]);
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[3])));
-        expected = map.at(string1);
-        REQUIRE_FALSE(expected);
-        REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
-
-        pointer = map[WORDS[5]];
-        REQUIRE(pointer == nullptr);
-
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[7])));
-        pointer = map[string1];
-        REQUIRE(pointer == nullptr);
-
-        REQUIRE_FALSE(map.contains(WORDS[9]));
-        REQUIRE(ds_test::handle_error(string1.copy(WORDS[11])));
-        REQUIRE_FALSE(map.contains(string1));
-      }
-    }
-
-    SECTION("Remove") {
-      SECTION("Existing keys") {
-        for (ds::usize i = 0; i < 9; ++i) {
-          if (i & 1) {
-            map.remove(WORDS[i * 2]);
-          } else {
-            REQUIRE(ds_test::handle_error(string1.copy(WORDS[i * 2])));
-            map.remove(string1);
-          }
-          REQUIRE(map.get_size() == 8 - i);
-          REQUIRE_FALSE(map.contains(WORDS[i * 2]));
-        }
-
-        REQUIRE(map.is_empty());
-      }
-
-      SECTION("Non-existing keys") {
-        map.remove("asdf");
-        REQUIRE(map.get_size() == 9);
-
-        map.remove("something");
-        REQUIRE(map.get_size() == 9);
-
-        REQUIRE(ds_test::handle_error(string1.copy("else")));
-        map.remove(string1);
-        REQUIRE(map.get_size() == 9);
-
-        REQUIRE(ds_test::handle_error(string1.copy("asdfasdf")));
-        REQUIRE(map.get_size() == 9);
-      }
-    }
-
-    SECTION("Reinserting keys") {
-      // const c8* key
-      REQUIRE(ds_test::handle_error(map.insert(WORDS[0], WORDS[1])));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[3])));
-      REQUIRE(ds_test::handle_error(map.insert(WORDS[2], string1)));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[5])));
-      REQUIRE(ds_test::handle_error(map.insert(WORDS[4], std::move(string1))));
-      REQUIRE(map.get_size() == 9);
-
-      // const ds::string& key
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[6])));
-      REQUIRE(ds_test::handle_error(map.insert(string1, WORDS[7])));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[8])));
-      REQUIRE(ds_test::handle_error(string2.copy(WORDS[9])));
-      REQUIRE(ds_test::handle_error(map.insert(string1, string2)));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[10])));
-      REQUIRE(ds_test::handle_error(string2.copy(WORDS[11])));
-      REQUIRE(ds_test::handle_error(map.insert(string1, std::move(string2))));
-      REQUIRE(map.get_size() == 9);
-
-      // ds::string&& key
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[12])));
-      REQUIRE(ds_test::handle_error(map.insert(std::move(string1), WORDS[13])));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[14])));
-      REQUIRE(ds_test::handle_error(string2.copy(WORDS[15])));
-      REQUIRE(ds_test::handle_error(map.insert(std::move(string1), string2)));
-      REQUIRE(map.get_size() == 9);
-
-      REQUIRE(ds_test::handle_error(string1.copy(WORDS[16])));
-      REQUIRE(ds_test::handle_error(string2.copy(WORDS[17])));
-      REQUIRE(ds_test::handle_error(
-          map.insert(std::move(string1), std::move(string2))
-      ));
-      REQUIRE(map.get_size() == 9);
-    }
-
-    SECTION("Clearing") {
-      map.clear();
-      REQUIRE(map.get_size() == 0);
-      REQUIRE(map.is_empty());
+  } else {
+    for (ds::i32 i = 0; i < 9; ++i) {
+      TRY(map.insert(
+              STRING_HASH_MAP_WORDS[i * 2], STRING_HASH_MAP_WORDS[i * 2 + 1]
+          ),
+          ds::to_unexpected);
     }
   }
+
+  return std::move(map);
+}
+
+TEST_CASE("hash_map<string, string> inserting", "[hash_map]") {
+  create_string_hash_map<true>();
+}
+
+TEST_CASE("hash_map<string, string> access existing", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::string string1{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at(STRING_HASH_MAP_WORDS[0]);
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == STRING_HASH_MAP_WORDS[1]);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[2])));
+  expected = map.at(string1);
+  REQUIRE(ds_test::handle_error(expected));
+  REQUIRE(**expected == STRING_HASH_MAP_WORDS[3]);
+
+  pointer = map[STRING_HASH_MAP_WORDS[4]];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == STRING_HASH_MAP_WORDS[5]);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[6])));
+  pointer = map[string1];
+  REQUIRE(pointer != nullptr);
+  REQUIRE(*pointer == STRING_HASH_MAP_WORDS[7]);
+
+  REQUIRE(map.contains(STRING_HASH_MAP_WORDS[8]));
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[10])));
+  REQUIRE(map.contains(string1));
+}
+
+TEST_CASE("hash_map<string, string> access non-existing", "[hash_map]") {
+  ds::string* pointer = nullptr;
+  ds::string string1{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  expected = map.at(STRING_HASH_MAP_WORDS[1]);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[3])));
+  expected = map.at(string1);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+
+  pointer = map[STRING_HASH_MAP_WORDS[5]];
+  REQUIRE(pointer == nullptr);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[7])));
+  pointer = map[string1];
+  REQUIRE(pointer == nullptr);
+
+  REQUIRE_FALSE(map.contains(STRING_HASH_MAP_WORDS[9]));
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[11])));
+  REQUIRE_FALSE(map.contains(string1));
+}
+
+TEST_CASE("hash_map<string, string> remove existing", "[hash_map]") {
+  ds::string string1{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  for (ds::usize i = 0; i < 9; ++i) {
+    if (i & 1) {
+      map.remove(STRING_HASH_MAP_WORDS[i * 2]);
+    } else {
+      REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[i * 2]))
+      );
+      map.remove(string1);
+    }
+    REQUIRE(map.get_size() == 8 - i);
+    REQUIRE_FALSE(map.contains(STRING_HASH_MAP_WORDS[i * 2]));
+  }
+
+  REQUIRE(map.is_empty());
+}
+
+TEST_CASE("hash_map<string, string> remove non-existing", "[hash_map]") {
+  ds::string string1{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.remove("asdf");
+  REQUIRE(map.get_size() == 9);
+
+  map.remove("something");
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy("else")));
+  map.remove(string1);
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy("asdfasdf")));
+  REQUIRE(map.get_size() == 9);
+}
+
+TEST_CASE("hash_map<string, string> reinserting", "[hash_map]") {
+  ds::string string1{};
+  ds::string string2{};
+  ds::string* pointer = nullptr;
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  // const c8* key
+  REQUIRE(ds_test::handle_error(
+      map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[17])
+  ));
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[15])));
+  REQUIRE(ds_test::handle_error(map.insert(STRING_HASH_MAP_WORDS[2], string1)));
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[13])));
+  REQUIRE(ds_test::handle_error(
+      map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
+  ));
+  REQUIRE(map.get_size() == 9);
+
+  // const ds::string& key
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[6])));
+  REQUIRE(ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[11]))
+  );
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[8])));
+  REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[9])));
+  REQUIRE(ds_test::handle_error(map.insert(string1, string2)));
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[10])));
+  REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[7])));
+  REQUIRE(ds_test::handle_error(map.insert(string1, std::move(string2))));
+  REQUIRE(map.get_size() == 9);
+
+  // ds::string&& key
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[12])));
+  REQUIRE(ds_test::handle_error(
+      map.insert(std::move(string1), STRING_HASH_MAP_WORDS[5])
+  ));
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[14])));
+  REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[3])));
+  REQUIRE(ds_test::handle_error(map.insert(std::move(string1), string2)));
+  REQUIRE(map.get_size() == 9);
+
+  REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[16])));
+  REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[1])));
+  REQUIRE(
+      ds_test::handle_error(map.insert(std::move(string1), std::move(string2)))
+  );
+  REQUIRE(map.get_size() == 9);
+
+  for (ds::i32 i = 0; i < 9; ++i) {
+    pointer = map[STRING_HASH_MAP_WORDS[i * 2]]; // NOLINT
+    REQUIRE(pointer != nullptr);
+    REQUIRE(*pointer == STRING_HASH_MAP_WORDS[(8 - i) * 2 + 1]);
+  }
+}
+
+TEST_CASE("hash_map<string, string> clearing", "[hash_map]") {
+  ds::string string1{};
+  ds::string string2{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::hash_map<ds::string, ds::string> map = ({
+    auto expected_map = create_string_hash_map<>();
+    REQUIRE(ds_test::handle_error(expected_map));
+    std::move(*expected_map);
+  });
+
+  map.clear();
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.is_empty());
+
+  REQUIRE(map.get_capacity() > 0);
 }
