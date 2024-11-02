@@ -66,7 +66,9 @@ const isize ISIZE_MAX = INT32_MAX;
 
 using c8 = char;
 
-enum error_code : u32 {
+using error_code = u32;
+
+enum error : u32 {
   OK = 0,
   BAD_ALLOCATION = 1,
   NULL_VALUE = 2, // Accessing null pointer
@@ -79,8 +81,8 @@ enum error_code : u32 {
   THREAD_ERROR = 9,
 };
 
-inline bool is_error(error_code error) noexcept {
-  return error != error_code::OK;
+inline bool is_error(error_code err) noexcept {
+  return err != error::OK;
 }
 
 template <typename T>
@@ -88,8 +90,8 @@ inline bool is_error(const expected<T, error_code>& expected) noexcept {
   return !expected;
 }
 
-inline unexpected<error_code> to_unexpected(error_code error) noexcept {
-  return unexpected{error};
+inline unexpected<error_code> to_unexpected(error_code err) noexcept {
+  return unexpected{err};
 }
 
 } // namespace ds

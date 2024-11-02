@@ -51,9 +51,9 @@ template <typename T> inline void test_ascending(const ds::usize N) {
 
     expected = map.at(i);
     if (i == N) {
-      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+      REQUIRE(expected.error() == ds::error::CONTAINER_EMPTY);
     } else {
-      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+      REQUIRE(expected.error() == ds::error::NOT_FOUND);
     }
   }
 
@@ -98,9 +98,9 @@ template <typename T> inline void test_descending(const ds::usize N) {
 
     expected = map.at(i);
     if (i == 1) {
-      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+      REQUIRE(expected.error() == ds::error::CONTAINER_EMPTY);
     } else {
-      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+      REQUIRE(expected.error() == ds::error::NOT_FOUND);
     }
   }
 
@@ -166,7 +166,7 @@ template <typename T> inline void test_centered(const ds::usize N) {
     REQUIRE(pointer == nullptr);
 
     expected = map.at(key);
-    REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+    REQUIRE(expected.error() == ds::error::NOT_FOUND);
 
     // --- //
 
@@ -179,9 +179,9 @@ template <typename T> inline void test_centered(const ds::usize N) {
 
     expected = map.at(key);
     if (i == N / 2 - 1) {
-      REQUIRE(expected.error() == ds::error_code::CONTAINER_EMPTY);
+      REQUIRE(expected.error() == ds::error::CONTAINER_EMPTY);
     } else {
-      REQUIRE(expected.error() == ds::error_code::NOT_FOUND);
+      REQUIRE(expected.error() == ds::error::NOT_FOUND);
     }
   }
 

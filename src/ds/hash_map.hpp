@@ -77,10 +77,10 @@ public:
    * Copies the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize
+   *  - error::BAD_ALLOCATION - bucket resize
    **/
   [[nodiscard]] error_code copy(const base_hash_map& other) noexcept {
-    return error_code::NOT_IMPLEMENTED;
+    return error::NOT_IMPLEMENTED;
   }
 
   // === Move ===
@@ -202,8 +202,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or key/value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or key/value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const Key& key, const Value& value) noexcept {
@@ -214,8 +214,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or key copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or key copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const Key& key, Value&& value) noexcept {
@@ -226,8 +226,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(Key&& key, const Value& value) noexcept {
@@ -238,8 +238,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(Key&& key, Value&& value) noexcept {
     return this->insert_impl(std::move(key), std::move(value));
@@ -260,12 +260,12 @@ public:
    *error
    *
    * @errors
-   *   - error_code::NOT_FOUND
+   *   - error::NOT_FOUND
    **/
   [[nodiscard]] expected<Value*, error_code> at(const Key& key) noexcept {
     auto* value = this->find<Value*>(key);
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -357,8 +357,8 @@ protected:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or key/value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or key/value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] inline error_code
@@ -379,15 +379,15 @@ protected:
     }
     this->insert_node(std::move(node));
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or key copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or key copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] inline error_code
@@ -402,15 +402,15 @@ protected:
     }
     this->insert_node(std::move(node));
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] inline error_code
@@ -425,15 +425,15 @@ protected:
     }
     this->insert_node(std::move(node));
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] inline error_code
   insert_impl(Key&& key, Value&& value) noexcept {
@@ -443,7 +443,7 @@ protected:
         .key = std::move(key), .value = std::move(value), .distance = 0U
     });
 
-    return error_code::OK;
+    return error::OK;
   }
 
   template <typename Key_> inline void erase_impl(Key_ key) noexcept {
@@ -531,7 +531,7 @@ protected:
    * Check if the allocation can handle any mutation done to the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code check_allocation() noexcept {
     if (this->bucket == nullptr) {
@@ -539,14 +539,14 @@ protected:
     }
 
     if (this->size >= HASHMAP_MAX_SIZE) {
-      return error_code::CONTAINER_FULL;
+      return error::CONTAINER_FULL;
     }
 
     if (this->size >= this->max_size) {
       return this->reallocate(this->capacity * 2U + 1U);
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -556,7 +556,7 @@ protected:
     // NOLINTNEXTLINE
     this->bucket = (node_type*)std::malloc(new_capacity * sizeof(node_type));
     if (this->bucket == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
 
     new (this->bucket) node_type[new_capacity];
@@ -564,7 +564,7 @@ protected:
     this->capacity = new_capacity;
     this->max_size = new_capacity * HASHMAP_LOAD_FACTOR;
 
-    return error_code::OK;
+    return error::OK;
   }
 
   [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
@@ -573,7 +573,7 @@ protected:
         // NOLINTNEXTLINE
         (node_type*)std::malloc(new_capacity * sizeof(node_type));
     if (new_bucket == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
 
     new (new_bucket) node_type[new_capacity];
@@ -595,7 +595,7 @@ protected:
     }
 
     std::free(new_bucket); // NOLINT
-    return error_code::OK;
+    return error::OK;
   }
 };
 

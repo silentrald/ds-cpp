@@ -179,12 +179,12 @@ public:
    * Safe Element Access
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY - tree is empty
-   *  - error_code::NOT_FOUND - key is not found in the tree
+   *  - error::CONTAINER_EMPTY - tree is empty
+   *  - error::NOT_FOUND - key is not found in the tree
    **/
   [[nodiscard]] expected<value_type*, error_code> at(Key key) const noexcept {
     if (this->height == 0) {
-      return unexpected{error_code::CONTAINER_EMPTY};
+      return unexpected<error_code>{error::CONTAINER_EMPTY};
     }
 
     leaf_node* leaf = this->height == 1 ? static_cast<leaf_node*>(this->root)
@@ -192,7 +192,7 @@ public:
     Value* value = leaf->get_value(key);
 
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -201,32 +201,32 @@ public:
    * Get the first element less than the key
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY - tree is empty
-   *  - error_code::NOT_FOUND - key is smaller than the smallest element
+   *  - error::CONTAINER_EMPTY - tree is empty
+   *  - error::NOT_FOUND - key is smaller than the smallest element
    **/
   [[nodiscard]] expected<value_type*, error_code> at_smaller(Key key
   ) const noexcept {
     if (this->height == 0) {
-      return error_code::CONTAINER_EMPTY;
+      return error::CONTAINER_EMPTY;
     }
 
     leaf_node* leaf = this->height == 1 ? static_cast<leaf_node*>(this->root)
                                         : this->find_leaf_node_containing(key);
     i32 index = leaf->find_smaller_index(key);
-    return index > -1 ? &leaf->at_value(index) : error_code::NOT_FOUND;
+    return index > -1 ? &leaf->at_value(index) : error::NOT_FOUND;
   }
 
   /**
    * Get the first element greater than the key
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY - tree is empty
-   *  - error_code::NOT_FOUND - key is larger than the largest element
+   *  - error::CONTAINER_EMPTY - tree is empty
+   *  - error::NOT_FOUND - key is larger than the largest element
    **/
   [[nodiscard]] expected<value_type*, error_code> at_larger(Key key
   ) const noexcept {
     if (this->height == 0) {
-      return error_code::CONTAINER_EMPTY;
+      return error::CONTAINER_EMPTY;
     }
 
     leaf_node* leaf = this->height == 1 ? static_cast<leaf_node*>(this->root)
@@ -238,7 +238,7 @@ public:
 
     leaf = leaf->get_next();
     if (leaf == nullptr) {
-      return error_code::NOT_FOUND;
+      return error::NOT_FOUND;
     }
 
     return &leaf->at_value(0);
@@ -248,13 +248,13 @@ public:
    * Get the first element not less than (greater than or equal) the key
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY - tree is empty
-   *  - error_code::NOT_FOUND - key is larger than the greater element
+   *  - error::CONTAINER_EMPTY - tree is empty
+   *  - error::NOT_FOUND - key is larger than the greater element
    **/
   [[nodiscard]] expected<value_type*, error_code> at_not_smaller(Key key
   ) const noexcept {
     if (this->height == 0) {
-      return error_code::CONTAINER_EMPTY;
+      return error::CONTAINER_EMPTY;
     }
 
     leaf_node* leaf = this->height == 1 ? static_cast<leaf_node*>(this->root)
@@ -266,7 +266,7 @@ public:
 
     leaf = leaf->get_next();
     if (leaf == nullptr) {
-      return error_code::NOT_FOUND;
+      return error::NOT_FOUND;
     }
 
     return &leaf->at_value(0);
@@ -276,20 +276,20 @@ public:
    * Get the first element not greater than (less than or equal) the key
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY - tree is empty
-   *  - error_code::NOT_FOUND - key is smaller than the smallest element
+   *  - error::CONTAINER_EMPTY - tree is empty
+   *  - error::NOT_FOUND - key is smaller than the smallest element
    **/
   [[nodiscard]] expected<value_type*, error_code> at_not_larger(Key key
   ) const noexcept {
     if (this->height == 0) {
-      return error_code::CONTAINER_EMPTY;
+      return error::CONTAINER_EMPTY;
     }
 
     leaf_node* leaf = this->height == 1 ? static_cast<leaf_node*>(this->root)
                                         : this->find_leaf_node_containing(key);
     i32 index = leaf->find_not_larger_index(key);
     if (index == -1) {
-      return error_code::CONTAINER_EMPTY;
+      return error::CONTAINER_EMPTY;
     }
 
     return &leaf->at_value(index);
@@ -891,7 +891,7 @@ private:
    * Splits the internal node
    *
    * @errors
-   *  error_code::BAD_ALLOCATION
+   *  error::BAD_ALLOCATION
    *    - bad allocation in creating the new containers
    *    - bad allocation in copying the key
    **/
@@ -910,7 +910,7 @@ private:
       // Create the right and parent internal node
       right_node = this->create_inner_node(left_node->get_children()[mid + 1]);
       if (right_node == nullptr) {
-        return error_code::BAD_ALLOCATION;
+        return error::BAD_ALLOCATION;
       }
 
       parent = left_node->get_parent();
@@ -922,7 +922,7 @@ private:
             stack.pop();                         // Left node
             Allocator{}.deallocate(stack.pop()); // Right node
           }
-          return error_code::BAD_ALLOCATION;
+          return error::BAD_ALLOCATION;
         }
       }
 
@@ -962,7 +962,7 @@ private:
       right_node->reparent_children();
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -976,7 +976,7 @@ private:
     // Create the left leaf and the parent node
     leaf_node* right_leaf = this->create_leaf_node();
     if (right_leaf == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
 
     inner_node* parent = left_leaf->get_parent();
@@ -984,7 +984,7 @@ private:
       parent = this->create_inner_node(left_leaf);
       if (parent == nullptr) {
         Allocator{}.deallocate(right_leaf);
-        return error_code::BAD_ALLOCATION;
+        return error::BAD_ALLOCATION;
       }
     }
 
@@ -1021,7 +1021,7 @@ private:
 
     // Move the half the data from the left leaf to the right leaf
     left_leaf->redistribute(right_leaf, mid);
-    return error_code::OK;
+    return error::OK;
   }
 
   template <typename Value_>
@@ -1040,7 +1040,7 @@ private:
       auto* leaf = this->root ? static_cast<leaf_node*>(this->root)
                               : this->create_leaf_node();
       if (leaf == nullptr) {
-        return error_code::BAD_ALLOCATION;
+        return error::BAD_ALLOCATION;
       }
 
       leaf->push(key, std::move(value_copy));
@@ -1048,7 +1048,7 @@ private:
       ++this->size;
       this->height = 1;
 
-      return error_code::OK;
+      return error::OK;
     }
 
     // Separate this to a function call
@@ -1056,13 +1056,13 @@ private:
       auto* leaf = static_cast<leaf_node*>(this->root);
       i32 index = leaf->insert(key, std::move(value_copy));
       if (index == -1) {
-        return error_code::OK;
+        return error::OK;
       }
 
       // Check if the leaf node exceeds the max degree rule
       ++this->size;
       if (this->size < this->get_degree()) {
-        return error_code::OK;
+        return error::OK;
       }
 
       // Split here
@@ -1073,18 +1073,18 @@ private:
 
       this->root = leaf->get_parent();
       this->height = 2;
-      return error_code::OK;
+      return error::OK;
     }
 
     leaf_node* leaf = this->find_leaf_node_containing(key);
     i32 index = leaf->insert(key, std::move(value_copy));
     if (index == -1) {
-      return error_code::OK;
+      return error::OK;
     }
 
     ++this->size;
     if (leaf->get_size() < this->get_degree()) {
-      return error_code::OK;
+      return error::OK;
     }
 
     // Split the leaf node
@@ -1093,7 +1093,7 @@ private:
       return error;
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Erase Helpers === //

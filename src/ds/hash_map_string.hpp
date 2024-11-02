@@ -35,12 +35,12 @@ public:
    *   else return an error
    *
    * @errors
-   *   - error_code::NOT_FOUND
+   *   - error::NOT_FOUND
    **/
   [[nodiscard]] expected<string*, error_code> at(const string& key) noexcept {
     auto* value = this->template find<string*>(key);
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -50,12 +50,12 @@ public:
    *   else return an error
    *
    * @errors
-   *   - error_code::NOT_FOUND
+   *   - error::NOT_FOUND
    **/
   [[nodiscard]] expected<string*, error_code> at(const c8* key) noexcept {
     auto* value = this->find_with_c8<string*>(key);
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -108,8 +108,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code
@@ -121,8 +121,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const string& key, string&& value) noexcept {
@@ -133,8 +133,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(string&& key, const string& value) noexcept {
@@ -145,8 +145,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(string&& key, string&& value) noexcept {
     return this->insert_impl(std::move(key), std::move(value));
@@ -156,8 +156,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const c8* key, const string& value) noexcept {
@@ -168,8 +168,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const c8* key, string&& value) noexcept {
@@ -180,8 +180,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const string& key, const c8* value) noexcept {
@@ -192,8 +192,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(string&& key, const c8* value) noexcept {
@@ -204,8 +204,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const c8* key, const c8* value) noexcept {
@@ -216,7 +216,7 @@ public:
     TRY(node.value.copy(value));
     this->insert_node(std::move(node));
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -268,7 +268,7 @@ protected:
       this->insert_node(std::move(node));
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   template <typename Key_>
@@ -287,7 +287,7 @@ protected:
       this->insert_node(std::move(node));
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   template <typename Return>
@@ -335,12 +335,12 @@ public:
    *   else return an error
    *
    * @errors
-   *   - error_code::NOT_FOUND
+   *   - error::NOT_FOUND
    **/
   [[nodiscard]] expected<Value*, error_code> at(const string& key) noexcept {
     auto* value = this->template find<Value*>(key);
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -350,12 +350,12 @@ public:
    *   else return an error
    *
    * @errors
-   *   - error_code::NOT_FOUND
+   *   - error::NOT_FOUND
    **/
   [[nodiscard]] expected<Value*, error_code> at(const c8* key) noexcept {
     auto* value = this->find_with_c8<Value*>(key);
     if (value == nullptr) {
-      return unexpected{error_code::NOT_FOUND};
+      return unexpected<error_code>{error::NOT_FOUND};
     }
     return value;
   }
@@ -408,8 +408,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code
@@ -421,8 +421,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const string& key, Value&& value) noexcept {
@@ -433,8 +433,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(string&& key, const Value& value) noexcept {
@@ -445,8 +445,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(string&& key, Value&& value) noexcept {
     return this->insert_impl(std::move(key), std::move(value));
@@ -513,7 +513,7 @@ protected:
       this->insert_node(std::move(node));
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 
   template <typename Return>
@@ -561,8 +561,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code
@@ -574,8 +574,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const Key& key, string&& value) noexcept {
@@ -586,8 +586,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(Key&& key, const string& value) noexcept {
@@ -598,8 +598,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(Key&& key, string&& value) noexcept {
     return this->insert_impl(std::move(key), std::move(value));
@@ -609,8 +609,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const Key& key, const c8* value) noexcept {
@@ -621,8 +621,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(Key&& key, const c8* value) noexcept {
@@ -650,7 +650,7 @@ protected:
       this->insert_node(std::move(node));
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 };
 

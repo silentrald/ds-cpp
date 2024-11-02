@@ -57,22 +57,22 @@ public:
    * Copies another shared_ptr to this one and incrementing the counter by one
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const shared_ptr& other) noexcept {
     if (&other == this || this->data == other.data) {
-      return error_code::OK;
+      return error::OK;
     }
 
     this->destroy();
     if (other.data == nullptr) {
-      return error_code::OK;
+      return error::OK;
     }
 
     this->data = other.data;
     ++(this->data->count);
 
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Destructor === //
@@ -101,7 +101,7 @@ public:
    * Set the value of the shared_ptr
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(const T& data) noexcept {
     return this->set_impl<const T&>(data);
@@ -111,7 +111,7 @@ public:
    * Set the value of the shared_ptr
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(T&& data) noexcept {
     return this->set_impl<T&&>(std::move(data));
@@ -162,7 +162,7 @@ private:
     this->data =
         static_cast<data_type*>(Allocator{}.allocate(sizeof(data_type)));
     if (this->data == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
 
     if constexpr (std::is_class<T>::value) {
@@ -170,14 +170,14 @@ private:
     }
 
     this->data->count = 1U;
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Initializers === //
 
   /**
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   template <typename Data_>
   [[nodiscard]] error_code set_impl(Data_ data) noexcept {
@@ -197,11 +197,11 @@ private:
         Allocator{}.deallocate(this->data);
         this->data = nullptr;
 
-        return error_code::BAD_ALLOCATION;
+        return error::BAD_ALLOCATION;
       }
     }
 
-    return error_code::OK;
+    return error::OK;
   }
 };
 

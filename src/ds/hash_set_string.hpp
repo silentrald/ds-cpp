@@ -60,8 +60,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const string& key) noexcept {
@@ -72,8 +72,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION - bucket resize or value copy
-   *  - error_code::CONTAINER_FULL - max limit of hash_map
+   *  - error::BAD_ALLOCATION - bucket resize or value copy
+   *  - error::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(string&& key) noexcept {
     return this->insert_impl(std::move(key));
@@ -86,7 +86,7 @@ public:
     TRY(node.key.copy(key));
     this->insert_node(std::move(node));
 
-    return error_code::OK;
+    return error::OK;
   }
 
   /**

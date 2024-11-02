@@ -29,7 +29,7 @@ public:
    * Copies the `other` to this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const string& other) noexcept;
 
@@ -37,7 +37,7 @@ public:
    * Copies the `str` to this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const c8* str) noexcept;
 
@@ -45,7 +45,7 @@ public:
    * Copies the `str` with length `size` to this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const c8* str, usize size) noexcept;
 
@@ -63,15 +63,15 @@ public:
   /**
    * @returns pointer to the index
    * @errors
-   *  - error_code::NULL - if the string has not been initialized yet
-   *  - error_code::INDEX_OUT_OF_BOUNDS - out of bounds access
+   *  - error::NULL - if the string has not been initialized yet
+   *  - error::INDEX_OUT_OF_BOUNDS - out of bounds access
    **/
   [[nodiscard]] expected<c8*, error_code> at_ptr(usize index) noexcept;
 
   /**
    * @returns character value on the index
    * @errors
-   *  - error_code::INDEX_OUT_OF_BOUNDS - out of bounds access
+   *  - error::INDEX_OUT_OF_BOUNDS - out of bounds access
    **/
   [[nodiscard]] expected<c8, error_code> at(usize index) noexcept;
 
@@ -124,7 +124,7 @@ public:
 
   /**
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code reserve(usize size) noexcept;
 
@@ -139,7 +139,7 @@ public:
    * Adds the character to the end/back of the string.
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code push(c8 c) noexcept;
 
@@ -148,7 +148,7 @@ public:
    *
    * @returns character at the end/back of the string.
    * @errors
-   *  - error_code::CONTAINER_EMPTY -
+   *  - error::CONTAINER_EMPTY -
    *      if the current string is empty, manually check
    *      the string by calling #is_empty() function
    **/
@@ -158,7 +158,7 @@ public:
    * Concatenates the `str` to the end of this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code append(const c8* str) noexcept;
 
@@ -166,7 +166,7 @@ public:
    * Concatenates the `str` with `size` characters to the end of this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code append(const c8* str, usize size) noexcept;
 
@@ -174,7 +174,7 @@ public:
    * Concatenates the `str` to the end of this string
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code append(const string& str) noexcept;
 
@@ -184,8 +184,8 @@ public:
    * Creates a new substring from `start` (inclusive) to the end of the string.
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
-   *  - error_code::INDEX_OUT_OF_BOUNDS
+   *  - error::BAD_ALLOCATION
+   *  - error::INDEX_OUT_OF_BOUNDS
    **/
   [[nodiscard]] expected<string, error_code> substring(usize start
   ) const noexcept;
@@ -195,8 +195,8 @@ public:
    *the string.
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
-   *  - error_code::INDEX_OUT_OF_BOUNDS
+   *  - error::BAD_ALLOCATION
+   *  - error::INDEX_OUT_OF_BOUNDS
    **/
   [[nodiscard]] expected<string, error_code>
   substring(usize start, usize end) const noexcept;
@@ -247,7 +247,7 @@ private:
    *
    * @param size - in bytes
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code allocate(usize size) noexcept;
 
@@ -256,7 +256,7 @@ private:
    *
    * @param size - in bytes
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code reallocate(usize size) noexcept;
 
@@ -264,7 +264,7 @@ private:
    * Initializes the string and copies the value of `str`
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code init(const c8* str) noexcept;
 };

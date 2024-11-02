@@ -79,16 +79,16 @@ public:
    * This will resize if the passed vector is bigger
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const base_vector& other) noexcept {
     if (this == &other) {
-      return error_code::OK;
+      return error::OK;
     }
 
     if (other.is_empty()) {
       this->destroy();
-      return error_code::OK;
+      return error::OK;
     }
 
     if (this->array == nullptr) {
@@ -106,7 +106,7 @@ public:
     }
 
     this->size = other.size;
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Destructor === //
@@ -147,11 +147,11 @@ public:
    * Safe index accessing
    *
    * @errors
-   *  - error_code::INDEX_OUT_OF_BOUNDS
+   *  - error::INDEX_OUT_OF_BOUNDS
    **/
   [[nodiscard]] expected<T*, error_code> at(usize index) const noexcept {
     if (index > this->size) {
-      return unexpected{error_code::INDEX_OUT_OF_BOUNDS};
+      return unexpected<error_code>{error::INDEX_OUT_OF_BOUNDS};
     }
     return this->array + index;
   }
@@ -208,11 +208,11 @@ public:
    * [Safe] accessing to return the first element of the array.
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY
+   *  - error::CONTAINER_EMPTY
    **/
   [[nodiscard]] expected<T*, error_code> front_safe() const noexcept {
     if (this->size == 0U) {
-      return unexpected{error_code::CONTAINER_EMPTY};
+      return unexpected<error_code>{error::CONTAINER_EMPTY};
     }
     return this->array;
   }
@@ -222,7 +222,7 @@ public:
    **/
   [[nodiscard]] expected<T*, error_code> back_safe() const noexcept {
     if (this->size == 0U) {
-      return unexpected{error_code::CONTAINER_EMPTY};
+      return unexpected<error_code>{error::CONTAINER_EMPTY};
     }
     return this->array + this->size - 1U;
   }
@@ -321,7 +321,7 @@ public:
    * Reserves size for the vector
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code reserve(usize new_capacity) noexcept {
     if (this->array == nullptr) {
@@ -329,7 +329,7 @@ public:
     } else if (new_capacity > this->capacity) {
       TRY(this->reallocate(new_capacity));
     }
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Mutations === //
@@ -366,7 +366,7 @@ public:
    * Resizes the vector
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code resize(usize size) noexcept {
     if (this->array == nullptr) {
@@ -382,7 +382,7 @@ public:
       }
     }
     this->size = size;
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -401,18 +401,18 @@ public:
    * [Safe] removes the element at the index
    *
    * @errors
-   *  - error_code::INDEX_OUT_OF_BOUNDS
+   *  - error::INDEX_OUT_OF_BOUNDS
    **/
   [[nodiscard]] error_code remove_safe(usize index) noexcept {
     if (index >= this->size) {
-      return error_code::INDEX_OUT_OF_BOUNDS;
+      return error::INDEX_OUT_OF_BOUNDS;
     }
 
     --this->size;
     for (; index < this->size; ++index) {
       this->array[index] = std::move(this->array[index + 1]);
     }
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -427,11 +427,11 @@ public:
    * [Safe] pops an element from the back and returns the element
    *
    * @errors
-   *  - error_code::CONTAINER_EMPTY
+   *  - error::CONTAINER_EMPTY
    **/
   [[nodiscard]] expected<T, error_code> pop_safe() noexcept {
     if (this->size == 0U) {
-      return unexpected{error_code::CONTAINER_EMPTY};
+      return unexpected<error_code>{error::CONTAINER_EMPTY};
     }
     return std::move(this->array[--this->size]);
   }
@@ -458,12 +458,12 @@ protected:
     this->array[this->size] = std::move(element);
     ++this->size;
 
-    return error_code::OK;
+    return error::OK;
   }
 
   [[nodiscard]] inline error_code insert_impl(usize index, T element) noexcept {
     if (index > this->size) {
-      return error_code::INDEX_OUT_OF_BOUNDS;
+      return error::INDEX_OUT_OF_BOUNDS;
     }
 
     TRY(this->check_allocation());
@@ -475,7 +475,7 @@ protected:
     this->array[index] = std::move(element);
     ++this->size;
 
-    return error_code::OK;
+    return error::OK;
   }
 
   // === Memory === //
@@ -484,7 +484,7 @@ protected:
    * Allocates a new memory block for the container
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code allocate(usize new_capacity) noexcept {
     assert(new_capacity > 0U);
@@ -492,7 +492,7 @@ protected:
     this->array =
         static_cast<T*>(Allocator{}.allocate(new_capacity * sizeof(T)));
     if (this->array == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
 
     // Data initialization
@@ -501,7 +501,7 @@ protected:
     }
 
     this->capacity = new_capacity;
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
@@ -509,7 +509,7 @@ protected:
    *   new_capacity > this->capacity
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
     assert(new_capacity > 0U);
@@ -518,7 +518,7 @@ protected:
         Allocator{}.reallocate(this->array, new_capacity * sizeof(T))
     );
     if (new_array == nullptr) {
-      return error_code::BAD_ALLOCATION;
+      return error::BAD_ALLOCATION;
     }
     this->array = new_array;
 
@@ -527,14 +527,14 @@ protected:
     }
 
     this->capacity = new_capacity;
-    return error_code::OK;
+    return error::OK;
   }
 
   /**
    * Calculates the new size before allocation/reallocation
    *
    * @errors
-   *  - error_code::BAD_ALLOCATION
+   *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code check_allocation() noexcept {
     if (this->array == nullptr) {
@@ -542,7 +542,7 @@ protected:
     } else if (this->size == this->capacity) {
       TRY(this->reallocate(this->capacity * 2U));
     }
-    return error_code::OK;
+    return error::OK;
   }
 };
 
