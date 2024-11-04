@@ -98,6 +98,20 @@ public:
   // === Modifiers === //
 
   /**
+   * Initializes an object with an empty constructor
+   *
+   * @errors
+   *  - error::BAD_ALLOCATION
+   **/
+  [[nodiscard]] error_code init() noexcept {
+    if (this->data == nullptr) {
+      TRY(this->allocate());
+    }
+
+    return error::OK;
+  }
+
+  /**
    * Set the value of the shared_ptr
    *
    * @errors
