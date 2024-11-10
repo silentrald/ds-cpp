@@ -17,7 +17,7 @@ namespace ds {
 namespace _shared_ptr {
 
 template <typename T> struct data {
-  T value = nullptr;
+  T value{};
   usize count = 0U;
 };
 
