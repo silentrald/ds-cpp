@@ -407,6 +407,33 @@ TEMPLATE_TEST_CASE(
   test_clear<key_type, value_type, false>();
 }
 
+// === Edge Case: empty hash_maps === //
+
+// NOLINTNEXTLINE
+TEMPLATE_TEST_CASE(
+    "hash_map<int_type, int_type> is empty", "[hash_map]",
+    (std::tuple<ds::i32, ds::i32>), (std::tuple<ds::i64, ds::i64>),
+    (std::tuple<ds::u32, ds::u32>), (std::tuple<ds::u64, ds::u64>)
+) {
+  using key_type = typename std::tuple_element<0, TestType>::type;
+  using value_type = typename std::tuple_element<1, TestType>::type;
+
+  ds::hash_map<key_type, value_type> map{};
+
+  REQUIRE(map.is_empty());
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.get_capacity() == 0);
+
+  REQUIRE_FALSE(map.contains(0));
+
+  ds::expected<value_type*, ds::error_code> expected = map.at(0);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  value_type* pointer = map[0];
+  REQUIRE(pointer == nullptr);
+}
+
 // TODO: Class Types Test
 
 // === Key String Types === //
@@ -611,6 +638,35 @@ TEST_CASE("hash_map<string, i64> clearing", "[hash_map]") {
   REQUIRE(map.get_capacity() > 0);
 }
 
+TEST_CASE("hash_map<string, i64> is empty", "[hash_map]") {
+  ds::hash_map<ds::string, ds::i64> map{};
+  ds::string string{};
+  ds::expected<ds::i64*, ds::error_code> expected{};
+  ds::i64* pointer = nullptr;
+
+  REQUIRE(ds_test::handle_error(string.copy("test")));
+
+  REQUIRE(map.is_empty());
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.get_capacity() == 0);
+
+  REQUIRE_FALSE(map.contains("test"));
+
+  expected = map.at("test");
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  expected = map.at(string);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  pointer = map["test"];
+  REQUIRE(pointer == nullptr);
+
+  pointer = map[string];
+  REQUIRE(pointer == nullptr);
+}
+
 // === Value String Map === //
 
 // NOLINTNEXTLINE
@@ -803,6 +859,24 @@ TEST_CASE("hash_map<i64, string> clearing", "[hash_map]") {
   REQUIRE(map.get_size() == 0);
   REQUIRE(map.is_empty());
   REQUIRE(map.get_capacity() > 0);
+}
+
+TEST_CASE("hash_map<i64, string> is empty", "[hash_map]") {
+  ds::hash_map<ds::i64, ds::string> map{};
+  ds::string string{};
+
+  REQUIRE(map.is_empty());
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.get_capacity() == 0);
+
+  REQUIRE_FALSE(map.contains(0));
+
+  ds::expected<ds::string*, ds::error_code> expected = map.at(0);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  ds::string* pointer = map[0];
+  REQUIRE(pointer == nullptr);
 }
 
 // === String Map === //
@@ -1077,4 +1151,33 @@ TEST_CASE("hash_map<string, string> clearing", "[hash_map]") {
   REQUIRE(map.is_empty());
 
   REQUIRE(map.get_capacity() > 0);
+}
+
+TEST_CASE("hash_map<string, string> is empty", "[hash_map]") {
+  ds::hash_map<ds::string, ds::string> map{};
+  ds::string string{};
+  ds::expected<ds::string*, ds::error_code> expected{};
+  ds::string* pointer = nullptr;
+
+  REQUIRE(ds_test::handle_error(string.copy("test")));
+
+  REQUIRE(map.get_size() == 0);
+  REQUIRE(map.get_capacity() == 0);
+  REQUIRE(map.is_empty());
+
+  REQUIRE_FALSE(map.contains("test"));
+
+  expected = map.at("test");
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  expected = map.at(string);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+
+  pointer = map["test"];
+  REQUIRE(pointer == nullptr);
+
+  pointer = map[string];
+  REQUIRE(pointer == nullptr);
 }

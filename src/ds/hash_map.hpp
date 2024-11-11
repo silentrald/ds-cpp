@@ -501,6 +501,14 @@ protected:
 
   template <typename Return>
   [[nodiscard]] Return find(const Key& key) const noexcept {
+    if (this->is_empty()) {
+      if constexpr (std::is_same<Return, Value*>::value) {
+        return nullptr;
+      } else if constexpr (std::is_same<Return, bool>::value) {
+        return false;
+      }
+    }
+
     // NOTE: No infinite loop since 1 node will always be empty in any case
     for (usize index = this->calculate_hash_index<const Key&>(key);;) {
       if (this->bucket[index].is_node_empty()) {
