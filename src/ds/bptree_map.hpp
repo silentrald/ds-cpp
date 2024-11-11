@@ -850,7 +850,7 @@ private:
     new (node) inner_node{};
     if constexpr (std::is_class<Key>::value) {
       new (node->get_keys())
-          Key{base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()};
+          Key[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
     node->get_children()[0] = child;
 
@@ -876,12 +876,12 @@ private:
     new (node) leaf_node{};
     if constexpr (std::is_class<Key>::value) {
       new (node->get_keys())
-          Key{base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()};
+          Key[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
 
     if constexpr (std::is_class<Value>::value) {
       new (node->get_values())
-          Value{base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()};
+          Value[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
 
     return node;
