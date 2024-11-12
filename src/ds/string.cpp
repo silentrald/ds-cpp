@@ -241,6 +241,13 @@ error_code string::reserve(usize size) noexcept {
   return error::OK;
 }
 
+error_code string::resize(usize size) noexcept {
+  TRY(this->reserve(size));
+  this->size = size;
+
+  return error::OK;
+}
+
 // === Modifiers === //
 
 void string::clear() noexcept {
