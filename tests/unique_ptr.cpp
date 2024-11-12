@@ -9,6 +9,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "ds/types.hpp"
 #include "main.hpp"
+#include "test.hpp"
 #include <cstdlib>
 
 TEST_CASE("primitive test", "[unique_ptr]") {

@@ -1,5 +1,5 @@
 # Bptree Map
-add_executable(tests main.cpp
+add_executable(tests main.cpp test.cpp
   # String
   ../src/ds/string.cpp
 
@@ -25,25 +25,17 @@ target_link_libraries(tests PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
-add_executable(bptree_map_mem bptree_map_mem.cpp main.cpp)
+# Valgrind Checks
+add_executable(bptree_map_mem bptree_map_mem.cpp)
 target_compile_definitions(bptree_map_mem PRIVATE DS_TEST)
-target_link_libraries(bptree_map_mem PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
 
-add_executable(hash_map_mem hash_map_mem.cpp main.cpp
+add_executable(hash_map_mem hash_map_mem.cpp test.cpp
   ../src/hash/murmur3.cpp
   ../src/ds/string.cpp
 )
 target_compile_definitions(hash_map_mem PRIVATE DS_TEST)
-target_link_libraries(hash_map_mem PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)
 
-add_executable(string_mem string_mem.cpp main.cpp
+add_executable(string_mem string_mem.cpp test.cpp
   ../src/ds/string.cpp
 )
 target_compile_definitions(string_mem PRIVATE DS_TEST)
-target_link_libraries(string_mem PRIVATE
-  Catch2::Catch2 Catch2::Catch2WithMain
-)

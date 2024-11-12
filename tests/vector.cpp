@@ -10,6 +10,7 @@
 #include "ds/string.hpp"
 #include "ds/types.hpp"
 #include "main.hpp"
+#include "test.hpp"
 
 // === vector<i32> === //
 
