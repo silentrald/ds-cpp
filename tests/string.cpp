@@ -14,15 +14,19 @@
 
 using namespace ds_test;
 
-TEST_CASE("string normal use case", "[string]") {
+TEST_CASE("string copy", "[string]") {
+  const ds::c8* const WORD = "Hello World!";
   ds::string str{};
   ds::error_code error_code{};
   ds::expected<ds::c8, ds::error_code> expected{};
 
-  error_code = str.copy("Hello World!");
+  error_code = str.copy(WORD);
   REQUIRE(handle_error(error_code));
 
-  REQUIRE(str.get_size() == std::strlen("Hello World!"));
+  REQUIRE(str.get_size() == std::strlen(WORD));
+  REQUIRE(str.get_capacity() > str.get_size());
+
+  REQUIRE(str == WORD);
 
   REQUIRE(str[0] == 'H');
   REQUIRE(str[2] == 'l');
@@ -40,101 +44,134 @@ TEST_CASE("string normal use case", "[string]") {
   REQUIRE(handle_error(expected));
   REQUIRE(*expected == 'd');
 
+  expected = str.at(12);
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::INDEX_OUT_OF_BOUNDS);
+
+  str[0] = 'h';
+  str[6] = 'w';
+  REQUIRE(str == "hello world!");
+
   str.clear();
   REQUIRE(str.get_size() == 0);
   REQUIRE(str.is_empty());
 }
 
-TEST_CASE("string empty handling", "[string]") {
+TEST_CASE("string push and pop", "[string]") {
+  const ds::c8* const WORD = "Hello World!";
+  ds::string str{};
+
+  for (ds::i32 i = 0; i < std::strlen(WORD); ++i) {
+    REQUIRE(ds_test::handle_error(str.push(WORD[i])));
+  }
+
+  REQUIRE(str == WORD);
+
+  for (ds::i32 i = std::strlen(WORD) - 1; i > -1; --i) {
+    REQUIRE(str.pop() == WORD[i]);
+  }
+
+  auto expected = str.pop_safe();
+  REQUIRE_FALSE(expected);
+  REQUIRE(expected.error() == ds::error::CONTAINER_EMPTY);
+}
+
+// === Empty String === //
+
+TEST_CASE("empty string definition", "[string]") {
+  ds::string str{};
+
+  REQUIRE(str.is_empty());
+  REQUIRE(str.get_size() == 0);
+  REQUIRE(str.get_capacity() == 0);
+}
+
+TEST_CASE("empty string comparison to const c8*", "[string]") {
+  ds::string str{};
+
+  REQUIRE(str == "");       // NOLINT
+  REQUIRE("" == str);       // NOLINT
+  REQUIRE_FALSE(str != ""); // NOLINT
+  REQUIRE_FALSE("" != str); // NOLINT
+  REQUIRE(str != "Hello World");
+  REQUIRE("Hello World" != str);
+
+  REQUIRE_FALSE(str == nullptr);
+  REQUIRE_FALSE(nullptr == str);
+}
+
+TEST_CASE("empty string comparison to another string", "[string]") {
+  ds::string str{};
+  ds::string str2{};
+  CHECK(handle_error(str2.copy("Hello World")));
+  REQUIRE(str != str2);
+}
+
+TEST_CASE("init moving an empty string to another string", "[string]") {
+  ds::string str{};
+  ds::string str2 = std::move(str);
+
+  REQUIRE(str2.is_empty());
+  REQUIRE(str2.get_capacity() == 0);
+}
+
+TEST_CASE("copying an empty string to another string", "[string]") {
+  ds::string str{};
+  ds::string str2{};
+  CHECK(handle_error(str2.copy("S")));
+  CHECK(handle_error(str2.copy(str)));
+
+  REQUIRE(str2 == str);
+  REQUIRE(str2.get_capacity() > 0);
+}
+
+TEST_CASE("moving an empty string to another string", "[string]") {
+  ds::string str{};
+  ds::string str2{};
+  CHECK(handle_error(str2.copy("S")));
+
+  char* ptr = str2.data();
+  str2 = std::move(str);
+
+  REQUIRE(str2.is_empty());
+  REQUIRE(str2.get_capacity() == 0);
+}
+
+TEST_CASE("empty string element accessing", "[string]") {
   ds::expected<ds::c8*, ds::error_code> exp_ptr{};
   ds::expected<ds::c8, ds::error_code> exp{};
   ds::string str{};
 
-  SECTION("Definition") {
-    REQUIRE(str.is_empty());
-    REQUIRE(str.get_size() == 0);
-    REQUIRE(str.get_capacity() == 0);
+  SECTION("At") {
+    exp = str.at(0);
+    REQUIRE_FALSE(exp);
+
+    exp_ptr = str.at_ptr(0);
+    REQUIRE_FALSE(exp_ptr);
   }
 
-  SECTION("Comparison to const char*") {
-    REQUIRE(str == "");       // NOLINT
-    REQUIRE("" == str);       // NOLINT
-    REQUIRE_FALSE(str != ""); // NOLINT
-    REQUIRE_FALSE("" != str); // NOLINT
-    REQUIRE(str != "Hello World");
-    REQUIRE("Hello World" != str);
+  SECTION("Front") {
+    ds::c8 c = str.front();
+    REQUIRE(c == '\0');
 
-    REQUIRE_FALSE(str == nullptr);
-    REQUIRE_FALSE(nullptr == str);
+    ds::c8* c_ptr = str.front_ptr();
+    REQUIRE(c_ptr == nullptr);
   }
 
-  SECTION("Comparison to another string") {
-    ds::string str2;
-    CHECK(handle_error(str2.copy("Hello World")));
-    REQUIRE(str != str2);
+  SECTION("Back") {
+    ds::c8 c = str.back();
+    REQUIRE(c == '\0');
+
+    ds::c8* c_ptr = str.front_ptr();
+    REQUIRE(c_ptr == nullptr);
   }
 
-  SECTION("Passing") {
-    SECTION("Init Move") {
-      ds::string str2 = std::move(str);
+  SECTION("Pointers") {
+    char* data = str.data();
+    REQUIRE(data == nullptr);
 
-      REQUIRE(str2.is_empty());
-      REQUIRE(str2.get_capacity() == 0);
-    }
-
-    SECTION("Copy") {
-      ds::string str2;
-      CHECK(handle_error(str2.copy("S")));
-      CHECK(handle_error(str2.copy(str)));
-
-      REQUIRE(str2 == str);
-      REQUIRE(str2.get_capacity() > 0);
-    }
-
-    SECTION("Move") {
-      ds::string str2;
-      CHECK(handle_error(str2.copy("S")));
-
-      char* ptr = str2.data();
-      str2 = std::move(str);
-
-      REQUIRE(str2.is_empty());
-      REQUIRE(str2.get_capacity() == 0);
-    }
-  }
-
-  SECTION("Element accessing") {
-    SECTION("At") {
-      exp = str.at(0);
-      REQUIRE_FALSE(exp);
-
-      exp_ptr = str.at_ptr(0);
-      REQUIRE_FALSE(exp_ptr);
-    }
-
-    SECTION("Front") {
-      ds::c8 c = str.front();
-      REQUIRE(c == '\0');
-
-      ds::c8* c_ptr = str.front_ptr();
-      REQUIRE(c_ptr == nullptr);
-    }
-
-    SECTION("Back") {
-      ds::c8 c = str.back();
-      REQUIRE(c == '\0');
-
-      ds::c8* c_ptr = str.front_ptr();
-      REQUIRE(c_ptr == nullptr);
-    }
-
-    SECTION("Pointers") {
-      char* data = str.data();
-      REQUIRE(data == nullptr);
-
-      const char* cdata = str.c_str();
-      REQUIRE(strcmp(cdata, "") == 0);
-    }
+    const char* cdata = str.c_str();
+    REQUIRE(strcmp(cdata, "") == 0);
   }
 }
 

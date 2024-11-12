@@ -40,21 +40,10 @@ target_link_libraries(hash_map_mem PRIVATE
   Catch2::Catch2 Catch2::Catch2WithMain
 )
 
-# Hash Set
-# add_executable(hash_set hash_set.cpp main.cpp
-#   ../src/hash/number.cpp
-#   ../src/hash/murmur3.cpp
-#   
-#   ../src/ds/string.cpp
-#   ../src/ds-error/error.cpp
-#
-#   ../src/prime.cpp
-# )
-# target_link_libraries(hash_set PRIVATE
-#   Catch2::Catch2 Catch2::Catch2WithMain
-# )
-
-# Geometry
-# add_executable(geom geom.cpp
-#   ../src/ds-error/error.cpp)
-
+add_executable(string_mem string_mem.cpp main.cpp
+  ../src/ds/string.cpp
+)
+target_compile_definitions(string_mem PRIVATE DS_TEST)
+target_link_libraries(string_mem PRIVATE
+  Catch2::Catch2 Catch2::Catch2WithMain
+)

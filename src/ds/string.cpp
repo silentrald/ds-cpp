@@ -15,13 +15,16 @@ namespace ds {
 
 // === Initializers === //
 
+inline const u32 STRING_ALLOWANCE = 16;
+
 error_code string::init(const char* str) noexcept {
   if (str == nullptr || str[0] == '\0') { // Empty string check
     return error::OK;
   }
 
-  TRY(this->allocate(strlen(str)));
-  this->size = this->capacity;
+  usize new_size = strlen(str);
+  TRY(this->allocate(new_size + 1));
+  this->size = new_size;
   strncpy(this->str, str, this->size);
   this->str[this->size] = '\0';
 
@@ -40,11 +43,9 @@ error_code string::copy(const string& other) noexcept {
   }
 
   if (this->str == nullptr) {
-    TRY(this->allocate(other.size));
+    TRY(this->allocate(other.capacity));
     this->size = other.size;
-
-    strncpy(this->str, other.str, this->size);
-    this->str[this->size] = '\0';
+    strncpy(this->str, other.str, this->capacity);
     return error::OK;
   }
 
@@ -54,8 +55,7 @@ error_code string::copy(const string& other) noexcept {
   }
 
   this->size = other.size;
-  strncpy(this->str, other.str, this->size);
-  this->str[this->size] = '\0';
+  strncpy(this->str, other.str, this->capacity);
 
   return error::OK;
 }
@@ -66,8 +66,8 @@ error_code string::copy(const char* str) noexcept {
   }
 
   this->size = strlen(str);
-  if (this->capacity < this->size) {
-    TRY(this->reallocate(this->size));
+  if (this->capacity < this->size + 1) {
+    TRY(this->reallocate(this->size + 1));
   }
   strncpy(this->str, str, this->size);
   this->str[this->size] = '\0';
@@ -84,17 +84,17 @@ error_code string::copy(const char* str, usize size) noexcept {
 
   this->size = size;
   strncpy(this->str, str, size);
-  this->str[size] = '\0';
 
   return error::OK;
 }
 
+// Round to the next 4 bytes
 // === Move === //
 
-string::string(string&& rhs) noexcept
-    : str(rhs.str), size(rhs.size), capacity(rhs.capacity) {
-  rhs.str = nullptr;
-  rhs.size = rhs.capacity = 0;
+string::string(string&& other) noexcept
+    : str(other.str), size(other.size), capacity(other.capacity) {
+  other.str = nullptr;
+  other.size = other.capacity = 0;
 }
 
 string& string::operator=(string&& rhs) noexcept {
@@ -128,33 +128,39 @@ string::~string() noexcept {
 
 // === Memory === //
 
-error_code string::allocate(usize size) noexcept {
-  assert(size > 0U);
+error_code string::allocate(usize new_capacity) noexcept {
+  assert(new_capacity > 0U);
+
+  // Round to the next 4 bytes
+  new_capacity = (new_capacity | 0b11) + 1;
 
   // Allocate the \0
   // NOLINTNEXTLINE
   this->str =
       // NOLINTNEXTLINE
-      static_cast<char*>(std::malloc((size + 1) * sizeof(char)));
+      static_cast<char*>(std::malloc(new_capacity * sizeof(char)));
   if (this->str == nullptr) {
     return error::BAD_ALLOCATION;
   }
-  this->capacity = size;
+  this->capacity = new_capacity;
 
   return error::OK;
 }
 
-error_code string::reallocate(usize size) noexcept {
-  assert(size >= this->size);
+error_code string::reallocate(usize new_capacity) noexcept {
+  assert(new_capacity > this->capacity);
+
+  // Round to the next 4 bytes
+  new_capacity = (new_capacity | 0b11) + 1;
 
   // Allocate the \0
   // NOLINTNEXTLINE
-  void* ptr = std::realloc(this->str, (size + 1) * sizeof(char));
+  void* ptr = std::realloc(this->str, new_capacity * sizeof(char));
   if (ptr == nullptr) {
     return error::BAD_ALLOCATION;
   }
   this->str = static_cast<char*>(ptr);
-  this->capacity = size;
+  this->capacity = new_capacity;
   return error::OK;
 }
 
@@ -247,8 +253,8 @@ void string::clear() noexcept {
 }
 
 error_code string::push(char c) noexcept {
-  if (this->size == this->capacity) {
-    TRY(this->reallocate(this->capacity + 10));
+  if (this->size - 1 >= this->capacity) {
+    TRY(this->reallocate(this->capacity + STRING_ALLOWANCE));
   }
 
   this->str[this->size++] = c;
@@ -257,12 +263,18 @@ error_code string::push(char c) noexcept {
   return error::OK;
 }
 
-expected<c8, error_code> string::pop_back() noexcept {
+c8 string::pop() noexcept {
+  c8 c = this->str[--this->size];
+  this->str[this->size] = '\0';
+  return c;
+}
+
+expected<c8, error_code> string::pop_safe() noexcept {
   if (this->size == 0) {
     return unexpected<error_code>{error::CONTAINER_EMPTY};
   }
 
-  char c = this->str[--this->size];
+  c8 c = this->str[--this->size];
   this->str[this->size] = '\0';
   return c;
 }
@@ -273,8 +285,8 @@ error_code string::append(const char* str) noexcept {
   }
 
   i32 length = strlen(str);
-  if (this->size + length > this->capacity) {
-    TRY(this->reallocate(this->size + length));
+  if (this->size + length + 1 > this->capacity) {
+    TRY(this->reallocate(this->size + length + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str, length);
@@ -286,7 +298,7 @@ error_code string::append(const char* str) noexcept {
 
 error_code string::append(const char* str, usize size) noexcept {
   if (this->str == nullptr) {
-    TRY(this->allocate(size));
+    TRY(this->allocate(size + 1));
     strncpy(this->str, str, size);
     this->str[size] = '\0';
     this->size = size;
@@ -295,11 +307,10 @@ error_code string::append(const char* str, usize size) noexcept {
 
   usize new_size = this->size + size;
   if (new_size > this->capacity) {
-    TRY(this->reallocate(new_size));
+    TRY(this->reallocate(new_size + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str, size);
-  this->str[new_size] = '\0';
   this->size = new_size;
 
   return error::OK;
@@ -312,7 +323,7 @@ error_code string::append(const string& str) noexcept {
 
   i32 new_size = this->size + str.size;
   if (new_size > this->capacity) {
-    TRY(this->reallocate(new_size + 10));
+    TRY(this->reallocate(new_size + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str.c_str(), str.size);
@@ -360,7 +371,7 @@ bool string::operator==(const string& rhs) const noexcept {
   if (this->size == 0 && rhs.size == 0)
     return true;
 
-  return std::strcmp(this->str, rhs.str) == 0;
+  return std::strncmp(this->str, rhs.str, this->size) == 0;
 }
 
 bool string::operator==(const char* rhs) const noexcept {
@@ -369,7 +380,7 @@ bool string::operator==(const char* rhs) const noexcept {
   if (this->size == 0)
     return rhs[0] == '\0';
 
-  return std::strcmp(this->str, rhs) == 0;
+  return std::strncmp(this->str, rhs, this->size) == 0;
 }
 
 bool string::operator!=(const string& rhs) const noexcept {
@@ -388,7 +399,7 @@ bool operator==(const char* lhs, const string& rhs) noexcept {
   if (rhs.size == 0)
     return lhs[0] == '\0';
 
-  return std::strcmp(lhs, rhs.str) == 0;
+  return std::strncmp(lhs, rhs.str, rhs.size) == 0;
 }
 
 bool operator!=(const char* lhs, const string& rhs) noexcept {

@@ -3,6 +3,7 @@
 tests=(
   "bptree_map_mem"
   "hash_map_mem"
+  "string_mem"
 )
 
 for test in ${tests[@]}; do

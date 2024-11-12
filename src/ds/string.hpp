@@ -20,7 +20,7 @@ namespace ds {
 class string {
 public:
   string() noexcept = default;
-  string(const string& rhs) = delete;
+  string(const string& other) = delete;
   string& operator=(const string& rhs) = delete;
 
   // === Copy === //
@@ -34,7 +34,9 @@ public:
   [[nodiscard]] error_code copy(const string& other) noexcept;
 
   /**
-   * Copies the `str` to this string
+   * Copies the `str` to this string.
+   *
+   * NOTE: Can crash the system if string does not have a null terminator '\0'.
    *
    * @errors
    *  - error::BAD_ALLOCATION
@@ -42,7 +44,9 @@ public:
   [[nodiscard]] error_code copy(const c8* str) noexcept;
 
   /**
-   * Copies the `str` with length `size` to this string
+   * Copies the `str` with length `size` to this string.
+   *
+   * NOTE: This does not set the '\0' at the end of the string.
    *
    * @errors
    *  - error::BAD_ALLOCATION
@@ -51,7 +55,7 @@ public:
 
   // === Move === //
 
-  string(string&& rhs) noexcept;
+  string(string&& other) noexcept;
   string& operator=(string&& rhs) noexcept;
 
   // === Destructor === //
@@ -123,10 +127,20 @@ public:
   [[nodiscard]] usize get_capacity() const noexcept;
 
   /**
+   * Reserves memory space.
+   *
    * @errors
    *  - error::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code reserve(usize size) noexcept;
+
+  /**
+   * Reserves memory space and set the size. String memory will not be set
+   *
+   * @errors
+   *   - error::BAD_ALLOCATION
+   **/
+  [[nodiscard]] error_code resize(usize size) noexcept;
 
   // === Modifiers === //
 
@@ -145,6 +159,14 @@ public:
 
   /**
    * Removes a character from the end/back of the string.
+   * Does not check if the string is empty.
+   *
+   * @returns character at the end/back of the string.
+   **/
+  [[nodiscard]] c8 pop() noexcept;
+
+  /**
+   * Removes a character from the end/back of the string.
    *
    * @returns character at the end/back of the string.
    * @errors
@@ -152,10 +174,12 @@ public:
    *      if the current string is empty, manually check
    *      the string by calling #is_empty() function
    **/
-  [[nodiscard]] expected<c8, error_code> pop_back() noexcept;
+  [[nodiscard]] expected<c8, error_code> pop_safe() noexcept;
 
   /**
    * Concatenates the `str` to the end of this string
+   *
+   * NOTE: Can crash the system if string does not have a null terminator '\0'.
    *
    * @errors
    *  - error::BAD_ALLOCATION
@@ -164,6 +188,8 @@ public:
 
   /**
    * Concatenates the `str` with `size` characters to the end of this string
+   *
+   * NOTE: This does not set the '\0' at the end of the string.
    *
    * @errors
    *  - error::BAD_ALLOCATION
@@ -245,20 +271,20 @@ private:
   /**
    * Allocates the memory space of the string
    *
-   * @param size - in bytes
+   * @param new_capacity - in bytes
    * @errors
    *  - error::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code allocate(usize size) noexcept;
+  [[nodiscard]] error_code allocate(usize new_capacity) noexcept;
 
   /**
    * Reallocates the memory space of the string.
    *
-   * @param size - in bytes
+   * @param new_capacity - in bytes
    * @errors
    *  - error::BAD_ALLOCATION
    **/
-  [[nodiscard]] error_code reallocate(usize size) noexcept;
+  [[nodiscard]] error_code reallocate(usize new_capacity) noexcept;
 
   /**
    * Initializes the string and copies the value of `str`
