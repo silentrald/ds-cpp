@@ -16,7 +16,7 @@
 
 namespace ds {
 
-template <typename T, typename Compare>
+template <typename T, typename Compare = compare<T>>
 void bubble_sort(T* array, usize size) noexcept;
 
 namespace { // NOLINT
@@ -123,7 +123,7 @@ template <typename T, typename Compare = compare<T>>
   return true;
 }
 
-template <typename T, typename Compare = compare<T>>
+template <typename T, typename Compare>
 void bubble_sort(T* array, const usize size) noexcept {
   bool swapped = false;
 
