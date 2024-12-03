@@ -372,13 +372,13 @@ public:
     if (this->array == nullptr) {
       TRY(this->allocate(size));
       if constexpr (!std::is_class<T>::value) {
-        std::memset(this->array, sizeof(T), size);
+        std::memset(this->array, 0, sizeof(T) * size);
       }
     } else if (this->array) {
       TRY(this->reallocate(size));
       if constexpr (!std::is_class<T>::value) {
         // Reinitialize the popped values
-        std::memset(this->array, sizeof(T), size - this->size);
+        std::memset(this->array, 0, sizeof(T) * (size - this->size));
       }
     }
     this->size = size;

@@ -17,6 +17,9 @@ add_executable(tests main.cpp test.cpp
   string.cpp
   vector.cpp
 
+  # Sorting Tests
+  sort.cpp
+
   # Benchmarks
   ../benchmarks/bptree_map.cpp
 )
@@ -39,3 +42,4 @@ add_executable(string_mem string_mem.cpp test.cpp
   ../src/ds/string.cpp
 )
 target_compile_definitions(string_mem PRIVATE DS_TEST)
+
