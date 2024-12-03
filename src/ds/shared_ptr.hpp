@@ -14,21 +14,21 @@
 
 namespace ds {
 
-namespace _shared_ptr {
+namespace { // NOLINT
 
-template <typename T> struct data {
+template <typename T> struct _data {
   T value{};
   usize count = 0U;
 };
 
-} // namespace _shared_ptr
+} // namespace
 
 // NOTE: Not thread safe
-template <typename T, typename Allocator = allocator<_shared_ptr::data<T>>>
+template <typename T, typename Allocator = allocator<_data<T>>>
 class shared_ptr {
 public:
   using value_type = T;
-  using data_type = _shared_ptr::data<T>;
+  using data_type = _data<T>;
 
   shared_ptr() noexcept = default;
   shared_ptr(const shared_ptr&) = delete;
