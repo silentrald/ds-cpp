@@ -44,6 +44,8 @@ public:
 
     this->set = true;
     this->val = std::move(rhs.val);
+
+    return *this;
   }
 
   explicit optional(T&& other) noexcept : val(std::move(other)), set(true) {}
