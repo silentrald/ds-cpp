@@ -14,7 +14,6 @@
 #include "./compare.hpp"
 #include "./types.hpp"
 #include "./vector.hpp"
-#include <cstring>
 #include <type_traits>
 
 #ifdef DS_TEST
@@ -43,17 +42,17 @@ private:
   }
 
   [[nodiscard]] constexpr i32 middle() const noexcept {
-    return this->get_degree() / 2;
+    return get_degree() / 2;
   }
 
   [[nodiscard]] constexpr i32 min_inner_children() const noexcept {
     // Ceiling function = adding the odd bit
-    return this->get_degree() / 2 + (this->get_degree() & 1) - 1;
+    return get_degree() / 2 + (get_degree() & 1) - 1;
   }
 
   [[nodiscard]] constexpr i32 min_leaf_children() const noexcept {
     // Ceiling function = adding the odd bit
-    return this->get_degree() / 2 + (this->get_degree() & 1);
+    return get_degree() / 2 + (get_degree() & 1);
   }
 
 public:
@@ -204,8 +203,8 @@ public:
    *  - error_codes::CONTAINER_EMPTY - tree is empty
    *  - error_codes::NOT_FOUND - key is smaller than the smallest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_smaller(Key key
-  ) const noexcept {
+  [[nodiscard]] expected<value_type*, error_code>
+  at_smaller(Key key) const noexcept {
     if (this->height == 0) {
       return error_codes::CONTAINER_EMPTY;
     }
@@ -223,8 +222,8 @@ public:
    *  - error_codes::CONTAINER_EMPTY - tree is empty
    *  - error_codes::NOT_FOUND - key is larger than the largest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_larger(Key key
-  ) const noexcept {
+  [[nodiscard]] expected<value_type*, error_code>
+  at_larger(Key key) const noexcept {
     if (this->height == 0) {
       return error_codes::CONTAINER_EMPTY;
     }
@@ -251,8 +250,8 @@ public:
    *  - error_codes::CONTAINER_EMPTY - tree is empty
    *  - error_codes::NOT_FOUND - key is larger than the greater element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_not_smaller(Key key
-  ) const noexcept {
+  [[nodiscard]] expected<value_type*, error_code>
+  at_not_smaller(Key key) const noexcept {
     if (this->height == 0) {
       return error_codes::CONTAINER_EMPTY;
     }
@@ -279,8 +278,8 @@ public:
    *  - error_codes::CONTAINER_EMPTY - tree is empty
    *  - error_codes::NOT_FOUND - key is smaller than the smallest element
    **/
-  [[nodiscard]] expected<value_type*, error_code> at_not_larger(Key key
-  ) const noexcept {
+  [[nodiscard]] expected<value_type*, error_code>
+  at_not_larger(Key key) const noexcept {
     if (this->height == 0) {
       return error_codes::CONTAINER_EMPTY;
     }
@@ -491,7 +490,7 @@ public:
     this->remove_traversal(key, ancestor, ancestor_index, leaf, index);
 
     if (ancestor != nullptr) {
-      if constexpr (this->get_degree() > 3) {
+      if constexpr (get_degree() > 3) {
         ancestor->get_keys()[ancestor_index] = leaf->get_keys()[1];
       }
 
@@ -775,40 +774,6 @@ private:
   usize size = 0U;
   usize height = 0U;
 
-  constexpr void move(leaf_node&& other) noexcept {
-    if constexpr (std::is_class_v<Key> || std::is_class_v<Value>) {
-      if constexpr (std::is_class_v<Key>) {
-        for (u32 i = 0; i < this->size; ++i) {
-          this->get_keys()[i] = std::move(other.get_keys()[i]);
-        }
-      } else {
-        std::memcpy(
-            this->get_keys(), other.get_keys(),
-            sizeof(Key) *
-                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-        );
-      }
-
-      if constexpr (std::is_class_v<Value>) {
-        for (u32 i = 0; i < this->size; ++i) {
-          this->get_values()[i] = std::move(other.get_values()[i]);
-        }
-      } else {
-        std::memcpy(
-            this->get_values(), other.get_values(),
-            sizeof(Value) *
-                base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-        );
-      }
-    } else {
-      std::memcpy(
-          this->get_keys(), other.get_keys(),
-          (sizeof(Key) + sizeof(Value)) *
-              base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()
-      );
-    }
-  }
-
   // === Lookup === //
 
   /**
@@ -934,7 +899,7 @@ private:
       right_node->set_parent(parent);
 
       parent->insert(key, right_node);
-      if (parent->get_size() == this->get_degree()) { // parent will split
+      if (parent->get_size() == get_degree()) { // parent will split
         static_cast<void>(stack.push(right_node));
         static_cast<void>(stack.push(left_node));
         left_node = parent;
@@ -998,7 +963,7 @@ private:
 
     // Try to insert the middle node to the parent
     parent->insert(key, right_leaf);
-    if (parent->get_size() == this->get_degree()) {
+    if (parent->get_size() == get_degree()) {
       if (auto error = this->split_inner_node(parent)) {
         Allocator{}.deallocate(right_leaf);
         if (parent->get_size() == 1) {
@@ -1061,7 +1026,7 @@ private:
 
       // Check if the leaf node exceeds the max degree rule
       ++this->size;
-      if (this->size < this->get_degree()) {
+      if (this->size < get_degree()) {
         return error_codes::OK;
       }
 
@@ -1083,7 +1048,7 @@ private:
     }
 
     ++this->size;
-    if (leaf->get_size() < this->get_degree()) {
+    if (leaf->get_size() < get_degree()) {
       return error_codes::OK;
     }
 
@@ -1199,7 +1164,7 @@ private:
 
       // Check if the sz suffices the rule, else merge again from the parent's
       // parent
-      if (sz >= this->get_degree() / 2) {
+      if (sz >= get_degree() / 2) {
         return;
       }
 

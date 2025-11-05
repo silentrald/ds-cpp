@@ -29,8 +29,8 @@ target_link_libraries(tests PRIVATE
 )
 
 # Valgrind Checks
-# add_executable(bptree_map_mem bptree_map_mem.cpp)
-# target_compile_definitions(bptree_map_mem PRIVATE DS_TEST)
+add_executable(bptree_map_mem bptree_map_mem.cpp)
+target_compile_definitions(bptree_map_mem PRIVATE DS_TEST)
 
 add_executable(hash_map_mem hash_map_mem.cpp test.cpp
   ../src/hash/murmur3.cpp

@@ -9,12 +9,19 @@
 #define DS_BPTREE_MAP_NODE_HPP
 
 #include "./types.hpp"
-#include <cstdio>
-#include <cstdlib>
+#include <cstring>
 #include <type_traits>
+
+#ifdef DS_TEST
+#include <cstdio>
+#endif
 
 namespace ds::_bptree_map {
 
+template <
+    typename Derived, typename Key, typename Value, typename KeyCompare,
+    typename Allocator>
+class base_bptree_map;
 template <
     usize Degree, typename Key, typename Value, typename KeyCompare,
     typename Allocator>
@@ -24,6 +31,13 @@ template <
     usize Degree, typename Key, typename Value, typename KeyCompare,
     typename Allocator>
 class _leaf_node {
+private:
+  // === Definitions === //
+  [[nodiscard]] static constexpr i32 get_degree() noexcept {
+    // Minimum degree is 3
+    return 64U / sizeof(Key) > 3U ? 64U / sizeof(Key) : 3U;
+  }
+
 public:
   using inner_node = _inner_node<Degree, Key, Value, KeyCompare, Allocator>;
 
@@ -40,6 +54,35 @@ public:
         size(other.size) {
     this->move(std::move(other));
     other.size = 0;
+  }
+
+  constexpr void move(_leaf_node&& other) noexcept {
+    if constexpr (std::is_class_v<Key> || std::is_class_v<Value>) {
+      if constexpr (std::is_class_v<Key>) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_keys()[i] = std::move(other.get_keys()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_keys(), other.get_keys(), sizeof(Key) * get_degree()
+        );
+      }
+
+      if constexpr (std::is_class_v<Value>) {
+        for (u32 i = 0; i < this->size; ++i) {
+          this->get_values()[i] = std::move(other.get_values()[i]);
+        }
+      } else {
+        std::memcpy(
+            this->get_values(), other.get_values(), sizeof(Value) * get_degree()
+        );
+      }
+    } else {
+      std::memcpy(
+          this->get_keys(), other.get_keys(),
+          (sizeof(Key) + sizeof(Value)) * get_degree()
+      );
+    }
   }
 
   _leaf_node& operator=(_leaf_node&& rhs) noexcept {
