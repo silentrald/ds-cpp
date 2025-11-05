@@ -257,7 +257,7 @@ protected:
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
     DS_TRY(this->check_allocation());
 
-    if constexpr (std::is_rvalue_reference<Value_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Value_>) {
       node_type node{.value = std::move(value), .distance = 0U};
       DS_TRY(node.key.copy(key));
       this->insert_node(std::move(node));
@@ -276,7 +276,7 @@ protected:
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
     DS_TRY(this->check_allocation());
 
-    if constexpr (std::is_rvalue_reference<Key_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Key_>) {
       node_type node{.key = std::move(key), .distance = 0U};
       DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
@@ -293,9 +293,9 @@ protected:
   template <typename Return>
   [[nodiscard]] Return find_with_c8(const c8* key) const noexcept {
     if (this->is_empty()) {
-      if constexpr (std::is_same<Return, string*>::value) {
+      if constexpr (std::is_same_v<Return, string*>) {
         return nullptr;
-      } else if constexpr (std::is_same<Return, bool>::value) {
+      } else if constexpr (std::is_same_v<Return, bool>) {
         return false;
       }
     }
@@ -303,17 +303,17 @@ protected:
     // NOTE: No infinite loop since 1 node will always be empty in any case
     for (usize index = this->calculate_hash_index(key);;) {
       if (this->bucket[index].is_node_empty()) {
-        if constexpr (std::is_same<Return, string*>::value) {
+        if constexpr (std::is_same_v<Return, string*>) {
           return nullptr;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return false;
         }
       }
 
       if (KeyEqual()(key, this->bucket[index].key)) {
-        if constexpr (std::is_same<Return, string*>::value) {
+        if constexpr (std::is_same_v<Return, string*>) {
           return &this->bucket[index].value;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return true;
         }
       }
@@ -506,14 +506,14 @@ protected:
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
     DS_TRY(this->check_allocation());
 
-    if constexpr (std::is_rvalue_reference<Value_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Value_>) {
       node_type node{.value = std::move(value), .distance = 0U};
       DS_TRY(node.key.copy(key));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
       DS_TRY(node.key.copy(key));
-      if constexpr (!std::is_class<value_type>::value) {
+      if constexpr (!std::is_class_v<value_type>) {
         node.value = value;
       } else {
         DS_TRY(node.value.copy(value));
@@ -527,9 +527,9 @@ protected:
   template <typename Return>
   [[nodiscard]] Return find_with_c8(const c8* key) const noexcept {
     if (this->is_empty()) {
-      if constexpr (std::is_same<Return, Value*>::value) {
+      if constexpr (std::is_same_v<Return, Value*>) {
         return nullptr;
-      } else if constexpr (std::is_same<Return, bool>::value) {
+      } else if constexpr (std::is_same_v<Return, bool>) {
         return false;
       }
     }
@@ -537,17 +537,17 @@ protected:
     // NOTE: No infinite loop since 1 node will always be empty in any case
     for (usize index = this->calculate_hash_index(key);;) {
       if (this->bucket[index].is_node_empty()) {
-        if constexpr (std::is_same<Return, Value*>::value) {
+        if constexpr (std::is_same_v<Return, Value*>) {
           return nullptr;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return false;
         }
       }
 
       if (KeyEqual()(key, this->bucket[index].key)) {
-        if constexpr (std::is_same<Return, Value*>::value) {
+        if constexpr (std::is_same_v<Return, Value*>) {
           return &this->bucket[index].value;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return true;
         }
       }
@@ -651,13 +651,13 @@ protected:
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
     DS_TRY(this->check_allocation());
 
-    if constexpr (std::is_rvalue_reference<Key_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Key_>) {
       node_type node{.key = std::move(key), .distance = 0U};
       DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
-      if constexpr (!std::is_class<key_type>::value) {
+      if constexpr (!std::is_class_v<key_type>) {
         node.key = key;
       } else {
         DS_TRY(node.key.copy(key));

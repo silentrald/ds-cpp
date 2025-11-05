@@ -32,7 +32,7 @@ public:
 
   unexpected(E&& rhs) noexcept : err(std::move(rhs)) {} // NOLINT
 
-  template <typename = std::enable_if<!std::is_class<E>::value>>
+  template <typename = std::enable_if<!std::is_class_v<E>>>
   unexpected(const E& other) noexcept { // NOLINT
     this->err = other;
   }
@@ -78,7 +78,7 @@ public:
     this->val = std::move(other);
   }
 
-  template <typename = std::enable_if<!std::is_class<T>::value>>
+  template <typename = std::enable_if<!std::is_class_v<T>>>
   expected(const T& other) noexcept : has_value(true) { // NOLINT
     this->init_value();
     this->val = other;
@@ -240,27 +240,27 @@ private:
   // === Initializers === //
 
   inline void init_value() noexcept {
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       new (&this->val) T;
     }
   }
 
   inline void init_error() noexcept {
-    if constexpr (std::is_class<E>::value) {
+    if constexpr (std::is_class_v<E>) {
       new (&this->err) E;
     }
   }
 
   inline void destroy_value() noexcept {
     this->has_value = false;
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       this->val.~T();
     }
   }
 
   inline void destroy_error() noexcept {
     this->has_error = false;
-    if constexpr (std::is_class<E>::value) {
+    if constexpr (std::is_class_v<E>) {
       this->err.~T();
     }
   }

@@ -50,7 +50,7 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       this->data->~T();
     }
     Allocator{}.deallocate(this->data);
@@ -71,7 +71,7 @@ public:
    **/
   [[nodiscard]] error_code set(const T& data) noexcept {
     if (this->data) {
-      if constexpr (std::is_class<T>::value) {
+      if constexpr (std::is_class_v<T>) {
         DS_TRY(this->data->copy(data));
       } else {
         *this->data = data;
@@ -85,7 +85,7 @@ public:
       return error_codes::BAD_ALLOCATION;
     }
 
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       new (this->data) T();
 
       error_code error = this->data->copy(data);
@@ -113,7 +113,7 @@ public:
         return error_codes::BAD_ALLOCATION;
       }
 
-      if constexpr (std::is_class<T>::value) {
+      if constexpr (std::is_class_v<T>) {
         new (this->data) T();
       }
     }

@@ -69,13 +69,13 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key>) {
       for (u32 i = 0U; i < Degree; ++i) {
         this->keys[i].~Key();
       }
     }
 
-    if constexpr (std::is_class<Value>::value) {
+    if constexpr (std::is_class_v<Value>) {
       for (u32 i = 0U; i < Degree; ++i) {
         this->values[i].~Value();
       }
@@ -399,7 +399,7 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key>) {
       for (i32 i = 0; i < Degree; ++i) {
         this->keys[i].~Key();
       }

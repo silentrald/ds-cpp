@@ -121,7 +121,7 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
+    if constexpr (std::is_class_v<Key> || std::is_class_v<Value>) {
       for (usize i = 0; i < this->capacity; ++i) {
         this->bucket[i].~node_type();
       }
@@ -374,13 +374,13 @@ protected:
     DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
-    if constexpr (!std::is_class<Key>::value) {
+    if constexpr (!std::is_class_v<Key>) {
       node.key = key;
     } else {
       DS_TRY(node.key.copy(key));
     }
 
-    if constexpr (!std::is_class<Value>::value) {
+    if constexpr (!std::is_class_v<Value>) {
       node.value = value;
     } else {
       DS_TRY(node.value.copy(value));
@@ -403,7 +403,7 @@ protected:
     DS_TRY(this->check_allocation());
 
     node_type node{.value = std::move(value), .distance = 0U};
-    if constexpr (!std::is_class<Key>::value) {
+    if constexpr (!std::is_class_v<Key>) {
       node.key = key;
     } else {
       DS_TRY(node.key.copy(key));
@@ -426,7 +426,7 @@ protected:
     DS_TRY(this->check_allocation());
 
     node_type node{.key = std::move(key), .distance = 0U};
-    if constexpr (!std::is_class<Value>::value) {
+    if constexpr (!std::is_class_v<Value>) {
       node.value = value;
     } else {
       DS_TRY(node.value.copy(value));
@@ -512,9 +512,9 @@ protected:
   template <typename Return>
   [[nodiscard]] Return find(const Key& key) const noexcept {
     if (this->is_empty()) {
-      if constexpr (std::is_same<Return, Value*>::value) {
+      if constexpr (std::is_same_v<Return, Value*>) {
         return nullptr;
-      } else if constexpr (std::is_same<Return, bool>::value) {
+      } else if constexpr (std::is_same_v<Return, bool>) {
         return false;
       }
     }
@@ -522,17 +522,17 @@ protected:
     // NOTE: No infinite loop since 1 node will always be empty in any case
     for (usize index = this->calculate_hash_index<const Key&>(key);;) {
       if (this->bucket[index].is_node_empty()) {
-        if constexpr (std::is_same<Return, Value*>::value) {
+        if constexpr (std::is_same_v<Return, Value*>) {
           return nullptr;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return false;
         }
       }
 
       if (KeyEqual()(key, this->bucket[index].key)) {
-        if constexpr (std::is_same<Return, Value*>::value) {
+        if constexpr (std::is_same_v<Return, Value*>) {
           return &this->bucket[index].value;
-        } else if constexpr (std::is_same<Return, bool>::value) {
+        } else if constexpr (std::is_same_v<Return, bool>) {
           return true;
         }
       }

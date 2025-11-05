@@ -87,7 +87,7 @@ public:
     }
 
     if (--(this->data->count) == 0) {
-      if constexpr (std::is_class<T>::value) {
+      if constexpr (std::is_class_v<T>) {
         this->data->value.~T();
       }
       Allocator{}.deallocate(this->data);
@@ -179,7 +179,7 @@ private:
       return error_codes::BAD_ALLOCATION;
     }
 
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       new (&this->data->value) T;
     }
 
@@ -201,9 +201,9 @@ private:
 
     DS_TRY(this->allocate());
 
-    if constexpr (std::is_rvalue_reference<Data_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Data_>) {
       this->data->value = std::move(data);
-    } else if constexpr (!std::is_class<T>::value) {
+    } else if constexpr (!std::is_class_v<T>) {
       this->data->value = data;
     } else {
       if (is_error(this->data->value.copy(data))) {

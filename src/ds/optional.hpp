@@ -66,7 +66,7 @@ public:
   void destroy() noexcept {
     if (this->set) {
       this->set = false;
-      if constexpr (std::is_class<T>::value) {
+      if constexpr (std::is_class_v<T>) {
         this->val.~T();
       }
     }

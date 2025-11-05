@@ -776,8 +776,8 @@ private:
   usize height = 0U;
 
   constexpr void move(leaf_node&& other) noexcept {
-    if constexpr (std::is_class<Key>::value || std::is_class<Value>::value) {
-      if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key> || std::is_class_v<Value>) {
+      if constexpr (std::is_class_v<Key>) {
         for (u32 i = 0; i < this->size; ++i) {
           this->get_keys()[i] = std::move(other.get_keys()[i]);
         }
@@ -789,7 +789,7 @@ private:
         );
       }
 
-      if constexpr (std::is_class<Value>::value) {
+      if constexpr (std::is_class_v<Value>) {
         for (u32 i = 0; i < this->size; ++i) {
           this->get_values()[i] = std::move(other.get_values()[i]);
         }
@@ -848,7 +848,7 @@ private:
     }
 
     new (node) inner_node{};
-    if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key>) {
       new (node->get_keys())
           Key[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
@@ -874,12 +874,12 @@ private:
     }
 
     new (node) leaf_node{};
-    if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key>) {
       new (node->get_keys())
           Key[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
 
-    if constexpr (std::is_class<Value>::value) {
+    if constexpr (std::is_class_v<Value>) {
       new (node->get_values())
           Value[base_bptree_map<Derived, Key, Value, KeyCompare>::get_degree()];
     }
@@ -1027,9 +1027,9 @@ private:
   template <typename Value_>
   [[nodiscard]] error_code insert_impl(Key key, Value_ value) noexcept {
     Value value_copy{};
-    if constexpr (std::is_rvalue_reference<Value_>::value) {
+    if constexpr (std::is_rvalue_reference_v<Value_>) {
       value_copy = std::move(value);
-    } else if constexpr (std::is_copy_assignable<Value>::value) {
+    } else if constexpr (std::is_copy_assignable_v<Value>) {
       value_copy = value;
     } else {
       DS_TRY(value_copy.copy(value));

@@ -117,7 +117,7 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<Key>::value) {
+    if constexpr (std::is_class_v<Key>) {
       for (usize i = 0; i < this->capacity; ++i) {
         this->bucket[i].~node_type();
       }
@@ -313,7 +313,7 @@ protected:
     DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
-    if constexpr (!std::is_class<Key>::value) {
+    if constexpr (!std::is_class_v<Key>) {
       node.key = key;
     } else {
       DS_TRY(node.key.copy(key));

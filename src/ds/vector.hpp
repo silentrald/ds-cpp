@@ -98,7 +98,7 @@ public:
     }
 
     for (usize i = 0U; i < other.size; ++i) {
-      if constexpr (!std::is_class<T>::value) {
+      if constexpr (!std::is_class_v<T>) {
         this->array[i] = other.array[i];
       } else {
         DS_TRY(this->array[i].copy(other.array[i]));
@@ -123,7 +123,7 @@ public:
       return;
     }
 
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       for (usize i = 0; i < this->capacity; ++i) {
         this->array[i].~T();
       }
@@ -335,7 +335,7 @@ public:
   // === Mutations === //
 
   [[nodiscard]] error_code push(const T& element) noexcept {
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       T e{};
       DS_TRY(e.copy(element));
       return this->push_impl(std::move(e));
@@ -349,7 +349,7 @@ public:
   }
 
   [[nodiscard]] error_code insert(usize index, const T& element) noexcept {
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       T e{};
       DS_TRY(e.copy(element));
       return this->insert_impl(index, std::move(e));
@@ -371,12 +371,12 @@ public:
   [[nodiscard]] error_code resize(usize size) noexcept {
     if (this->array == nullptr) {
       DS_TRY(this->allocate(size));
-      if constexpr (!std::is_class<T>::value) {
+      if constexpr (!std::is_class_v<T>) {
         std::memset(this->array, 0, sizeof(T) * size);
       }
     } else if (this->array) {
       DS_TRY(this->reallocate(size));
-      if constexpr (!std::is_class<T>::value) {
+      if constexpr (!std::is_class_v<T>) {
         // Reinitialize the popped values
         std::memset(this->array, 0, sizeof(T) * (size - this->size));
       }
@@ -496,7 +496,7 @@ protected:
     }
 
     // Data initialization
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       new (this->array) T[new_capacity];
     }
 
@@ -522,7 +522,7 @@ protected:
     }
     this->array = new_array;
 
-    if constexpr (std::is_class<T>::value) {
+    if constexpr (std::is_class_v<T>) {
       new (this->array + this->capacity) T[new_capacity - this->capacity];
     }
 
