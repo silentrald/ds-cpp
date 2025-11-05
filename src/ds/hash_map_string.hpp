@@ -126,7 +126,7 @@ public:
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const string& key, string&& value) noexcept {
-    return this->insert_impl(std::move(key), value);
+    return this->insert_impl(key, std::move(value));
   }
 
   /**
@@ -138,7 +138,7 @@ public:
    *  - error_code from copy for value
    **/
   [[nodiscard]] error_code insert(string&& key, const string& value) noexcept {
-    return this->insert_impl(key, std::move(value));
+    return this->insert_impl(std::move(key), value);
   }
 
   /**
@@ -253,7 +253,7 @@ public:
 
 protected:
   template <typename Value_>
-  [[nodiscard]] inline error_code
+  [[nodiscard]] error_code
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
     DS_TRY(this->check_allocation());
 
@@ -272,7 +272,7 @@ protected:
   }
 
   template <typename Key_>
-  [[nodiscard]] inline error_code
+  [[nodiscard]] error_code
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
     DS_TRY(this->check_allocation());
 
@@ -502,7 +502,7 @@ public:
 
 protected:
   template <typename Value_>
-  [[nodiscard]] inline error_code
+  [[nodiscard]] error_code
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
     DS_TRY(this->check_allocation());
 
@@ -647,7 +647,7 @@ public:
 
 protected:
   template <typename Key_>
-  [[nodiscard]] inline error_code
+  [[nodiscard]] error_code
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
     DS_TRY(this->check_allocation());
 

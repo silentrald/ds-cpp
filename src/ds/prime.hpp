@@ -9,7 +9,6 @@
 #define DS_PRIME_HPP
 
 #include "./types.hpp"
-#include <climits>
 
 namespace ds {
 

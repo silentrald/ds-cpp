@@ -452,7 +452,7 @@ protected:
 
   // === Helpers === //
 
-  [[nodiscard]] inline error_code push_impl(T element) noexcept {
+  [[nodiscard]] error_code push_impl(T element) noexcept {
     DS_TRY(this->check_allocation());
 
     this->array[this->size] = std::move(element);
@@ -461,7 +461,7 @@ protected:
     return error_codes::OK;
   }
 
-  [[nodiscard]] inline error_code insert_impl(usize index, T element) noexcept {
+  [[nodiscard]] error_code insert_impl(usize index, T element) noexcept {
     if (index > this->size) {
       return error_codes::INDEX_OUT_OF_BOUNDS;
     }

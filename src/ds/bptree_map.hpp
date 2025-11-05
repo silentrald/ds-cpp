@@ -1098,7 +1098,7 @@ private:
 
   // === Erase Helpers === //
 
-  inline void remove_traversal(
+  void remove_traversal(
       Key key, inner_node*& ancestor, i32& ancestor_index, leaf_node*& leaf,
       i32& index
   ) noexcept {

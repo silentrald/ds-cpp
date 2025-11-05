@@ -49,11 +49,11 @@ public:
     Key key{};
     usize distance = HASHSET_EMPTY_VALUE;
 
-    inline void to_empty() noexcept {
+    void to_empty() noexcept {
       this->distance = HASHSET_EMPTY_VALUE;
     }
 
-    [[nodiscard]] inline bool is_node_empty() const noexcept {
+    [[nodiscard]] bool is_node_empty() const noexcept {
       return this->distance == HASHSET_EMPTY_VALUE;
     }
   };
@@ -270,11 +270,11 @@ protected:
    * the range of the bucket count
    **/
   template <typename Key_>
-  [[nodiscard]] inline usize calculate_hash_index(Key_ key) const noexcept {
+  [[nodiscard]] usize calculate_hash_index(Key_ key) const noexcept {
     return Hash{}(key) % this->capacity;
   }
 
-  inline void insert_node(node_type&& node) noexcept {
+  void insert_node(node_type&& node) noexcept {
     // NOTE: No infinite loop since 1 node will always be empty in any case
     for (usize index = this->calculate_hash_index<const Key&>(node.key);;) {
       // Place the node on an empty bucket slot
@@ -309,7 +309,7 @@ protected:
    *  - error_codes::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
-  [[nodiscard]] inline error_code insert_impl(const Key& key) noexcept {
+  [[nodiscard]] error_code insert_impl(const Key& key) noexcept {
     DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
@@ -331,13 +331,13 @@ protected:
    *  - error_codes::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
-  [[nodiscard]] inline error_code insert_impl(Key&& key) noexcept {
+  [[nodiscard]] error_code insert_impl(Key&& key) noexcept {
     DS_TRY(this->check_allocation());
     this->insert_node(node_type{.key = std::move(key), .distance = 0U});
     return error_codes::OK;
   }
 
-  template <typename Key_> inline void erase_impl(Key_ key) noexcept {
+  template <typename Key_> void erase_impl(Key_ key) noexcept {
     usize index = this->calculate_hash_index<Key_>(key);
 
     // NOTE: No infinite loop since 1 node will always be empty in any case

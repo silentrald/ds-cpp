@@ -14,16 +14,15 @@
 namespace ds {
 
 template <typename T> struct allocator {
-  [[nodiscard]] inline void* allocate(usize size) const noexcept {
+  [[nodiscard]] void* allocate(usize size) const noexcept {
     return std::malloc(size); // NOLINT
   }
 
-  [[nodiscard]] inline void*
-  reallocate(void* pointer, usize size) const noexcept {
+  [[nodiscard]] void* reallocate(void* pointer, usize size) const noexcept {
     return std::realloc(pointer, size); // NOLINT
   }
 
-  inline void deallocate(void* pointer) const noexcept {
+  void deallocate(void* pointer) const noexcept {
     std::free(pointer); // NOLINT
   }
 };

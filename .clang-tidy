@@ -26,4 +26,5 @@ Checks: >
   -*-pro-type-union-access,
   -bugprone-copy-constructor-init,
   -readability-const-return-type,
-  -misc-no-recursion
+  -misc-no-recursion,
+  -readability-math-missing-parentheses
