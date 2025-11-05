@@ -209,11 +209,11 @@ public:
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] error_code insert(const c8* key, const c8* value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
-    TRY(node.key.copy(key));
-    TRY(node.value.copy(value));
+    DS_TRY(node.key.copy(key));
+    DS_TRY(node.value.copy(value));
     this->insert_node(std::move(node));
 
     return error::OK;
@@ -255,16 +255,16 @@ protected:
   template <typename Value_>
   [[nodiscard]] inline error_code
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     if constexpr (std::is_rvalue_reference<Value_>::value) {
       node_type node{.value = std::move(value), .distance = 0U};
-      TRY(node.key.copy(key));
+      DS_TRY(node.key.copy(key));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
-      TRY(node.value.copy(value));
-      TRY(node.key.copy(key));
+      DS_TRY(node.value.copy(value));
+      DS_TRY(node.key.copy(key));
       this->insert_node(std::move(node));
     }
 
@@ -274,16 +274,16 @@ protected:
   template <typename Key_>
   [[nodiscard]] inline error_code
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     if constexpr (std::is_rvalue_reference<Key_>::value) {
       node_type node{.key = std::move(key), .distance = 0U};
-      TRY(node.value.copy(value));
+      DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
-      TRY(node.key.copy(key));
-      TRY(node.value.copy(value));
+      DS_TRY(node.key.copy(key));
+      DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
     }
 
@@ -504,19 +504,19 @@ protected:
   template <typename Value_>
   [[nodiscard]] inline error_code
   insert_c8_key_impl(const c8* key, Value_ value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     if constexpr (std::is_rvalue_reference<Value_>::value) {
       node_type node{.value = std::move(value), .distance = 0U};
-      TRY(node.key.copy(key));
+      DS_TRY(node.key.copy(key));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
-      TRY(node.key.copy(key));
+      DS_TRY(node.key.copy(key));
       if constexpr (!std::is_class<value_type>::value) {
         node.value = value;
       } else {
-        TRY(node.value.copy(value));
+        DS_TRY(node.value.copy(value));
       }
       this->insert_node(std::move(node));
     }
@@ -649,20 +649,20 @@ protected:
   template <typename Key_>
   [[nodiscard]] inline error_code
   insert_c8_value_impl(Key_ key, const c8* value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     if constexpr (std::is_rvalue_reference<Key_>::value) {
       node_type node{.key = std::move(key), .distance = 0U};
-      TRY(node.value.copy(value));
+      DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
     } else {
       node_type node{.distance = 0U};
       if constexpr (!std::is_class<key_type>::value) {
         node.key = key;
       } else {
-        TRY(node.key.copy(key));
+        DS_TRY(node.key.copy(key));
       }
-      TRY(node.value.copy(value));
+      DS_TRY(node.value.copy(value));
       this->insert_node(std::move(node));
     }
 

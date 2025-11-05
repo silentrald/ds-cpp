@@ -40,7 +40,7 @@ ds::expected<ds::hash_set<Key>, ds::error_code> create_hash_set() {
           REQUIRE(set.get_size() == ++counter);
           REQUIRE(set.get_capacity() >= counter);
         } else {
-          TRY(set.insert(j), ds::to_unexpected);
+          DS_TRY(set.insert(j), ds::to_unexpected);
         }
       }
     }
@@ -392,7 +392,7 @@ create_string_hash_set() {
     // NOLINTNEXTLINE
     const ds::c8* words[] = {"Hello", "My", "Name", "Jeff"};
     for (ds::i64 i = 0; i < 4; ++i) {
-      TRY(set.insert(words[i]), ds::to_unexpected);
+      DS_TRY(set.insert(words[i]), ds::to_unexpected);
     }
   }
 

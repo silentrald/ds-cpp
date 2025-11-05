@@ -68,7 +68,8 @@ using c8 = char;
 
 using error_code = u32;
 
-enum error : u32 {
+// NOLINTNEXTLINE
+enum error : error_code {
   OK = 0,
   BAD_ALLOCATION = 1,
   NULL_VALUE = 2, // Accessing null pointer
@@ -97,13 +98,13 @@ inline unexpected<error_code> to_unexpected(error_code err) noexcept {
 } // namespace ds
 
 // NOLINTNEXTLINE
-#define GET_MACRO(_1, _2, NAME, ...) NAME
+#define DS_GET_MACRO(_1, _2, NAME, ...) NAME
 
 // NOLINTNEXTLINE
-#define TRY(...) GET_MACRO(__VA_ARGS__, TRY2, TRY1)(__VA_ARGS__)
+#define DS_TRY(...) DS_GET_MACRO(__VA_ARGS__, DS_TRY2, DS_TRY1)(__VA_ARGS__)
 
 // NOLINTNEXTLINE
-#define TRY1(expression)                                                       \
+#define DS_TRY1(expression)                                                    \
   {                                                                            \
     auto error = expression;                                                   \
     if (ds::is_error(error)) {                                                 \
@@ -112,7 +113,7 @@ inline unexpected<error_code> to_unexpected(error_code err) noexcept {
   }
 
 // NOLINTNEXTLINE
-#define TRY2(expression, converter)                                            \
+#define DS_TRY2(expression, converter)                                         \
   {                                                                            \
     auto error = expression;                                                   \
     if (ds::is_error(error)) {                                                 \

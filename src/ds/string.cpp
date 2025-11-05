@@ -23,7 +23,7 @@ error_code string::init(const char* str) noexcept {
   }
 
   usize new_size = strlen(str);
-  TRY(this->allocate(new_size + 1));
+  DS_TRY(this->allocate(new_size + 1));
   this->size = new_size;
   strncpy(this->str, str, this->size);
   this->str[this->size] = '\0';
@@ -43,14 +43,14 @@ error_code string::copy(const string& other) noexcept {
   }
 
   if (this->str == nullptr) {
-    TRY(this->allocate(other.capacity));
+    DS_TRY(this->allocate(other.capacity));
     this->size = other.size;
     strncpy(this->str, other.str, this->capacity);
     return error::OK;
   }
 
   if (this->capacity < other.capacity) {
-    TRY(this->reallocate(other.capacity));
+    DS_TRY(this->reallocate(other.capacity));
     this->capacity = other.capacity;
   }
 
@@ -67,7 +67,7 @@ error_code string::copy(const char* str) noexcept {
 
   this->size = strlen(str);
   if (this->capacity < this->size + 1) {
-    TRY(this->reallocate(this->size + 1));
+    DS_TRY(this->reallocate(this->size + 1));
   }
   strncpy(this->str, str, this->size);
   this->str[this->size] = '\0';
@@ -77,9 +77,9 @@ error_code string::copy(const char* str) noexcept {
 
 error_code string::copy(const char* str, usize size) noexcept {
   if (this->str == nullptr) {
-    TRY(this->allocate(size));
+    DS_TRY(this->allocate(size));
   } else if (this->capacity < size) {
-    TRY(this->reallocate(size));
+    DS_TRY(this->reallocate(size));
   }
 
   this->size = size;
@@ -242,7 +242,7 @@ error_code string::reserve(usize size) noexcept {
 }
 
 error_code string::resize(usize size) noexcept {
-  TRY(this->reserve(size));
+  DS_TRY(this->reserve(size));
   this->size = size;
 
   return error::OK;
@@ -261,7 +261,7 @@ void string::clear() noexcept {
 
 error_code string::push(char c) noexcept {
   if (this->size - 1 >= this->capacity) {
-    TRY(this->reallocate(this->capacity + STRING_ALLOWANCE));
+    DS_TRY(this->reallocate(this->capacity + STRING_ALLOWANCE));
   }
 
   this->str[this->size++] = c;
@@ -293,7 +293,7 @@ error_code string::append(const char* str) noexcept {
 
   i32 length = strlen(str);
   if (this->size + length + 1 > this->capacity) {
-    TRY(this->reallocate(this->size + length + STRING_ALLOWANCE));
+    DS_TRY(this->reallocate(this->size + length + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str, length);
@@ -305,7 +305,7 @@ error_code string::append(const char* str) noexcept {
 
 error_code string::append(const char* str, usize size) noexcept {
   if (this->str == nullptr) {
-    TRY(this->allocate(size + 1));
+    DS_TRY(this->allocate(size + 1));
     strncpy(this->str, str, size);
     this->str[size] = '\0';
     this->size = size;
@@ -314,7 +314,7 @@ error_code string::append(const char* str, usize size) noexcept {
 
   usize new_size = this->size + size;
   if (new_size > this->capacity) {
-    TRY(this->reallocate(new_size + STRING_ALLOWANCE));
+    DS_TRY(this->reallocate(new_size + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str, size);
@@ -330,7 +330,7 @@ error_code string::append(const string& str) noexcept {
 
   i32 new_size = this->size + str.size;
   if (new_size > this->capacity) {
-    TRY(this->reallocate(new_size + STRING_ALLOWANCE));
+    DS_TRY(this->reallocate(new_size + STRING_ALLOWANCE));
   }
 
   strncpy(this->str + this->size, str.c_str(), str.size);
@@ -345,7 +345,7 @@ error_code string::append(const string& str) noexcept {
 expected<string, error_code> string::substring(usize start) const noexcept {
   // Out of bounds check
   string str{};
-  TRY(str.allocate(this->size - start), to_unexpected);
+  DS_TRY(str.allocate(this->size - start), to_unexpected);
   str.size = this->size - start;
 
   // Copies the '\0'
@@ -359,7 +359,7 @@ expected<string, error_code> string::substring(usize start) const noexcept {
 expected<string, error_code>
 string::substring(usize start, usize end) const noexcept {
   string str{};
-  TRY(str.allocate(end - start), to_unexpected);
+  DS_TRY(str.allocate(end - start), to_unexpected);
   str.size = end - start;
 
   for (i32 i = start; i < end; ++i) {

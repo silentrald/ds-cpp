@@ -903,7 +903,7 @@ private:
     // NOTE: Check if stack can be replaced, might check chaining since the
     // nodes can be pointed to one another
     vector<inner_node*> stack{};
-    TRY(stack.reserve((this->height - 1) * 2));
+    DS_TRY(stack.reserve((this->height - 1) * 2));
 
     // NOTE: Only the right node only the new element being malloc'ed
     while (true) {
@@ -1032,7 +1032,7 @@ private:
     } else if constexpr (std::is_copy_assignable<Value>::value) {
       value_copy = value;
     } else {
-      TRY(value_copy.copy(value));
+      DS_TRY(value_copy.copy(value));
     }
 
     // Separate this to a function call

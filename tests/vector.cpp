@@ -17,7 +17,7 @@
 ds::expected<ds::vector<ds::i32>, ds::error_code>
 create_vector_i32(const ds::usize N, const ds::usize multiplier) noexcept {
   ds::vector<ds::i32> vector{};
-  TRY(vector.resize(N), ds::to_unexpected);
+  DS_TRY(vector.resize(N), ds::to_unexpected);
 
   for (ds::usize i = 0; i < N; ++i) {
     vector[i] = i * multiplier;
@@ -199,7 +199,7 @@ ds::expected<ds::vector<ds_test::Test>, ds::error_code> create_vector_test(
     const ds::isize N, const ds::isize multiplier, ds::isize* pointer
 ) noexcept {
   ds::vector<ds_test::Test> vector{};
-  TRY(vector.resize(N), ds::to_unexpected);
+  DS_TRY(vector.resize(N), ds::to_unexpected);
 
   for (ds::isize i = 0; i < N; ++i) {
     vector[i] = ds_test::Test{pointer, i * multiplier};
@@ -386,10 +386,10 @@ TEST_CASE("vector<Test> reverse iterators", "[vector]") {
 ds::expected<ds::vector<ds::string>, ds::error_code>
 create_vector_string(const ds::c8** words, ds::usize size) noexcept {
   ds::vector<ds::string> vector{};
-  TRY(vector.resize(size), ds::to_unexpected);
+  DS_TRY(vector.resize(size), ds::to_unexpected);
 
   for (ds::usize i = 0; i < size; ++i) {
-    TRY(vector[i].copy(words[i]), ds::to_unexpected);
+    DS_TRY(vector[i].copy(words[i]), ds::to_unexpected);
   }
 
   return std::move(vector);

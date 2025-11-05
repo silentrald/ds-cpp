@@ -72,7 +72,7 @@ public:
   [[nodiscard]] error_code set(const T& data) noexcept {
     if (this->data) {
       if constexpr (std::is_class<T>::value) {
-        TRY(this->data->copy(data));
+        DS_TRY(this->data->copy(data));
       } else {
         *this->data = data;
       }

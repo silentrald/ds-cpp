@@ -92,16 +92,16 @@ public:
     }
 
     if (this->array == nullptr) {
-      TRY(this->allocate(other.capacity));
+      DS_TRY(this->allocate(other.capacity));
     } else if (this->capacity < other.capacity) {
-      TRY(this->reallocate(other.capacity));
+      DS_TRY(this->reallocate(other.capacity));
     }
 
     for (usize i = 0U; i < other.size; ++i) {
       if constexpr (!std::is_class<T>::value) {
         this->array[i] = other.array[i];
       } else {
-        TRY(this->array[i].copy(other.array[i]));
+        DS_TRY(this->array[i].copy(other.array[i]));
       }
     }
 
@@ -325,9 +325,9 @@ public:
    **/
   [[nodiscard]] error_code reserve(usize new_capacity) noexcept {
     if (this->array == nullptr) {
-      TRY(this->allocate(new_capacity));
+      DS_TRY(this->allocate(new_capacity));
     } else if (new_capacity > this->capacity) {
-      TRY(this->reallocate(new_capacity));
+      DS_TRY(this->reallocate(new_capacity));
     }
     return error::OK;
   }
@@ -337,7 +337,7 @@ public:
   [[nodiscard]] error_code push(const T& element) noexcept {
     if constexpr (std::is_class<T>::value) {
       T e{};
-      TRY(e.copy(element));
+      DS_TRY(e.copy(element));
       return this->push_impl(std::move(e));
     } else {
       return this->push_impl(element);
@@ -351,7 +351,7 @@ public:
   [[nodiscard]] error_code insert(usize index, const T& element) noexcept {
     if constexpr (std::is_class<T>::value) {
       T e{};
-      TRY(e.copy(element));
+      DS_TRY(e.copy(element));
       return this->insert_impl(index, std::move(e));
     } else {
       return this->insert_impl(index, element);
@@ -370,12 +370,12 @@ public:
    **/
   [[nodiscard]] error_code resize(usize size) noexcept {
     if (this->array == nullptr) {
-      TRY(this->allocate(size));
+      DS_TRY(this->allocate(size));
       if constexpr (!std::is_class<T>::value) {
         std::memset(this->array, 0, sizeof(T) * size);
       }
     } else if (this->array) {
-      TRY(this->reallocate(size));
+      DS_TRY(this->reallocate(size));
       if constexpr (!std::is_class<T>::value) {
         // Reinitialize the popped values
         std::memset(this->array, 0, sizeof(T) * (size - this->size));
@@ -453,7 +453,7 @@ protected:
   // === Helpers === //
 
   [[nodiscard]] inline error_code push_impl(T element) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     this->array[this->size] = std::move(element);
     ++this->size;
@@ -466,7 +466,7 @@ protected:
       return error::INDEX_OUT_OF_BOUNDS;
     }
 
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     // Shift
     for (usize i = this->size; i > index; --i) {
@@ -538,9 +538,9 @@ protected:
    **/
   [[nodiscard]] error_code check_allocation() noexcept {
     if (this->array == nullptr) {
-      TRY(this->allocate(VECTOR_INITIAL_SIZE));
+      DS_TRY(this->allocate(VECTOR_INITIAL_SIZE));
     } else if (this->size == this->capacity) {
-      TRY(this->reallocate(this->capacity * 2U));
+      DS_TRY(this->reallocate(this->capacity * 2U));
     }
     return error::OK;
   }

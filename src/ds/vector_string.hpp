@@ -19,7 +19,7 @@ class vector<string, Allocator>
 public:
   [[nodiscard]] error_code push(const string& element) noexcept {
     string str{};
-    TRY(str.copy(element));
+    DS_TRY(str.copy(element));
     return this->push_impl(std::move(str));
   }
 
@@ -29,13 +29,13 @@ public:
 
   [[nodiscard]] error_code push(const c8* element) noexcept {
     string str{};
-    TRY(str.copy(element));
+    DS_TRY(str.copy(element));
     return this->push_impl(std::move(str));
   }
 
   [[nodiscard]] error_code insert(usize index, const string& element) noexcept {
     string str{};
-    TRY(str.copy(element));
+    DS_TRY(str.copy(element));
     return this->insert_impl(index, std::move(str));
   }
 
@@ -45,7 +45,7 @@ public:
 
   [[nodiscard]] error_code insert(usize index, const c8* element) noexcept {
     string str{};
-    TRY(str.copy(element));
+    DS_TRY(str.copy(element));
     return this->insert_impl(index, std::move(str));
   }
 

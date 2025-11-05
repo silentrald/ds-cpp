@@ -371,19 +371,19 @@ protected:
    **/
   [[nodiscard]] inline error_code
   insert_impl(const Key& key, const Value& value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
     if constexpr (!std::is_class<Key>::value) {
       node.key = key;
     } else {
-      TRY(node.key.copy(key));
+      DS_TRY(node.key.copy(key));
     }
 
     if constexpr (!std::is_class<Value>::value) {
       node.value = value;
     } else {
-      TRY(node.value.copy(value));
+      DS_TRY(node.value.copy(value));
     }
     this->insert_node(std::move(node));
 
@@ -400,13 +400,13 @@ protected:
    **/
   [[nodiscard]] inline error_code
   insert_impl(const Key& key, Value&& value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     node_type node{.value = std::move(value), .distance = 0U};
     if constexpr (!std::is_class<Key>::value) {
       node.key = key;
     } else {
-      TRY(node.key.copy(key));
+      DS_TRY(node.key.copy(key));
     }
     this->insert_node(std::move(node));
 
@@ -423,13 +423,13 @@ protected:
    **/
   [[nodiscard]] inline error_code
   insert_impl(Key&& key, const Value& value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     node_type node{.key = std::move(key), .distance = 0U};
     if constexpr (!std::is_class<Value>::value) {
       node.value = value;
     } else {
-      TRY(node.value.copy(value));
+      DS_TRY(node.value.copy(value));
     }
     this->insert_node(std::move(node));
 
@@ -445,7 +445,7 @@ protected:
    **/
   [[nodiscard]] inline error_code
   insert_impl(Key&& key, Value&& value) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     this->insert_node(
         node_type{

@@ -105,7 +105,7 @@ public:
    **/
   [[nodiscard]] error_code init() noexcept {
     if (this->data == nullptr) {
-      TRY(this->allocate());
+      DS_TRY(this->allocate());
     }
 
     return error::OK;
@@ -199,7 +199,7 @@ private:
       this->destroy();
     }
 
-    TRY(this->allocate());
+    DS_TRY(this->allocate());
 
     if constexpr (std::is_rvalue_reference<Data_>::value) {
       this->data->value = std::move(data);

@@ -42,7 +42,7 @@ ds::expected<ds::hash_map<Key, Value>, ds::error_code> create_hash_map() {
           REQUIRE(map.get_size() == ++counter);
           REQUIRE(map.get_capacity() >= counter);
         } else {
-          TRY(map.insert(j, j * 2), ds::to_unexpected);
+          DS_TRY(map.insert(j, j * 2), ds::to_unexpected);
         }
       }
     }
@@ -495,7 +495,7 @@ create_key_string_hash_map() {
     // NOLINTNEXTLINE
     const ds::c8* words[] = {"Hello", "My", "Name", "Jeff"};
     for (ds::i64 i = 0; i < 4; ++i) {
-      TRY(map.insert(words[i], i + 1), ds::to_unexpected);
+      DS_TRY(map.insert(words[i], i + 1), ds::to_unexpected);
     }
   }
 
@@ -731,10 +731,10 @@ create_value_string_hash_map() {
 
     REQUIRE(map.get_size() == 4);
   } else {
-    TRY(map.insert(VS_INDICES[0], "Hello"), ds::to_unexpected);
-    TRY(map.insert(VS_INDICES[1], "My"), ds::to_unexpected);
-    TRY(map.insert(VS_INDICES[2], "Name"), ds::to_unexpected);
-    TRY(map.insert(VS_INDICES[3], "Jeff"), ds::to_unexpected);
+    DS_TRY(map.insert(VS_INDICES[0], "Hello"), ds::to_unexpected);
+    DS_TRY(map.insert(VS_INDICES[1], "My"), ds::to_unexpected);
+    DS_TRY(map.insert(VS_INDICES[2], "Name"), ds::to_unexpected);
+    DS_TRY(map.insert(VS_INDICES[3], "Jeff"), ds::to_unexpected);
   }
 
   return std::move(map);
@@ -984,7 +984,7 @@ create_string_hash_map() {
     REQUIRE(map.get_size() == 9);
   } else {
     for (ds::i32 i = 0; i < 9; ++i) {
-      TRY(map.insert(
+      DS_TRY(map.insert(
               STRING_HASH_MAP_WORDS[i * 2], STRING_HASH_MAP_WORDS[i * 2 + 1]
           ),
           ds::to_unexpected);

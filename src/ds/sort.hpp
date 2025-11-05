@@ -148,7 +148,7 @@ template <typename T> error_code merge_sort(vector<T>& vec) noexcept {
   }
 
   vector<T> auxillary{};
-  TRY(auxillary.resize(vec.get_capacity()));
+  DS_TRY(auxillary.resize(vec.get_capacity()));
 
   if (!_merge_sort_impl(vec.get_data(), vec.get_size(), std::move(auxillary))) {
     vec = std::move(auxillary);
@@ -164,7 +164,7 @@ error_code merge_sort(T* array, const usize size) noexcept {
   }
 
   vector<T> auxillary{};
-  TRY(auxillary.resize(size));
+  DS_TRY(auxillary.resize(size));
 
   if (!_merge_sort_impl(array, size, std::move(auxillary))) {
     for (usize i = 0; i < size; ++i) {

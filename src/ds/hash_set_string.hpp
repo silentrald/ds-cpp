@@ -80,10 +80,10 @@ public:
   }
 
   [[nodiscard]] error_code insert(const c8* key) noexcept {
-    TRY(this->check_allocation());
+    DS_TRY(this->check_allocation());
 
     node_type node{.distance = 0U};
-    TRY(node.key.copy(key));
+    DS_TRY(node.key.copy(key));
     this->insert_node(std::move(node));
 
     return error::OK;
