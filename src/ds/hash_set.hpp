@@ -8,9 +8,9 @@
 #ifndef DS_HASH_SET_HPP
 #define DS_HASH_SET_HPP
 
-#include "./hash.hpp"
-// #include "./hash_map_iterator.hpp"
 #include "./equal.hpp"
+#include "./hash.hpp"
+#include "./hash_set_iterator.hpp"
 #include "prime.hpp"
 #include "types.hpp"
 #include <cstdlib>
@@ -58,10 +58,10 @@ public:
     }
   };
 
-  // using iterator =
-  //     hash_map_iterator<base_hash_set<Derived, Key, Value, Hash, KeyEqual>>;
-  // using citerator = hash_map_const_iterator<
-  //     base_hash_set<Derived, Key, Value, Hash, KeyEqual>>;
+  using iterator =
+      hash_set_iterator<base_hash_set<Derived, Key, Hash, KeyEqual>>;
+  using citerator =
+      hash_set_const_iterator<base_hash_set<Derived, Key, Hash, KeyEqual>>;
 
   base_hash_set() noexcept = default;
   base_hash_set(const base_hash_set&) = delete;
@@ -144,33 +144,41 @@ public:
 
   // === Iterator === //
 
-  // /**
-  //  * Returns an iterator pointing at the first element found
-  //  *
-  //  * @return iterator
-  //  **/
-  // [[nodiscard]] iterator begin() noexcept;
-  //
-  // /**
-  //  * Returns an iterator pointing at the first element found
-  //  *
-  //  * @return citerator
-  //  **/
-  // [[nodiscard]] citerator cbegin() const noexcept;
-  //
-  // /**
-  //  * Returns an iterator pointing to null
-  //  *
-  //  * @return iterator
-  //  **/
-  // [[nodiscard]] iterator end() noexcept;
-  //
-  // /**
-  //  * Returns an iterator pointing to null
-  //  *
-  //  * @return citerator
-  //  **/
-  // [[nodiscard]] citerator cend() const noexcept;
+  /**
+   * Returns an iterator pointing at the first element found
+   *
+   * @return iterator
+   **/
+  [[nodiscard]] iterator begin() noexcept {
+    return iterator{this->bucket, this->capacity};
+  }
+
+  /**
+   * Returns an iterator pointing at the first element found
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator cbegin() const noexcept {
+    return citerator{this->bucket, this->capacity};
+  }
+
+  /**
+   * Returns an iterator pointing to null
+   *
+   * @return iterator
+   **/
+  [[nodiscard]] iterator end() noexcept {
+    return iterator{};
+  }
+
+  /**
+   * Returns an iterator pointing to null
+   *
+   * @return citerator
+   **/
+  [[nodiscard]] citerator cend() const noexcept {
+    return citerator{};
+  }
 
   // === Capacity ===
 

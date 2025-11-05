@@ -332,6 +332,36 @@ TEMPLATE_TEST_CASE(
   test_clear<key_type, false>();
 }
 
+// === Iterating === //
+
+TEST_CASE("hash_set iteration", "[hash_set]") {
+  const ds::i32 MULTIPLIER = 7;
+  ds::i32 array[] = {0, 0, 0, 0, 0};
+  ds::hash_set<ds::i32> map{};
+
+  REQUIRE(ds_test::handle_error(map.insert(0)));
+  REQUIRE(ds_test::handle_error(map.insert(1 * MULTIPLIER)));
+  REQUIRE(ds_test::handle_error(map.insert(2 * MULTIPLIER)));
+  REQUIRE(ds_test::handle_error(map.insert(3 * MULTIPLIER)));
+  REQUIRE(ds_test::handle_error(map.insert(4 * MULTIPLIER)));
+
+  for (auto iterator = map.begin(); iterator != map.end(); ++iterator) {
+    ++array[*iterator / MULTIPLIER];
+  }
+
+  for (ds::i32 i = 0; i < 5; ++i) {
+    REQUIRE(array[i] == 1);
+  }
+
+  for (auto iterator = map.cbegin(); iterator != map.cend(); ++iterator) {
+    ++array[*iterator / MULTIPLIER];
+  }
+
+  for (ds::i32 i = 0; i < 5; ++i) {
+    REQUIRE(array[i] == 2);
+  }
+}
+
 // TODO: Class Types Test
 
 // === Key String Types === //

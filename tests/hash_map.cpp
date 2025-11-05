@@ -433,7 +433,8 @@ TEMPLATE_TEST_CASE(
   REQUIRE(pointer == nullptr);
 }
 
-// Iterating
+// === Iterating === //
+
 TEST_CASE("hash_map iteration", "[hash_map]") {
   const ds::i32 MULTIPLIER = 7;
   ds::i32 array[] = {0, 0, 0, 0, 0};
@@ -452,6 +453,15 @@ TEST_CASE("hash_map iteration", "[hash_map]") {
 
   for (ds::i32 i = 0; i < 5; ++i) {
     REQUIRE(array[i] == 2);
+  }
+
+  for (auto iterator = map.cbegin(); iterator != map.cend(); ++iterator) {
+    ++array[iterator.key() / MULTIPLIER];
+    ++array[iterator.value()];
+  }
+
+  for (ds::i32 i = 0; i < 5; ++i) {
+    REQUIRE(array[i] == 4);
   }
 }
 

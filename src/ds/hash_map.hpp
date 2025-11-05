@@ -447,9 +447,11 @@ protected:
   insert_impl(Key&& key, Value&& value) noexcept {
     TRY(this->check_allocation());
 
-    this->insert_node(node_type{
-        .key = std::move(key), .value = std::move(value), .distance = 0U
-    });
+    this->insert_node(
+        node_type{
+            .key = std::move(key), .value = std::move(value), .distance = 0U
+        }
+    );
 
     return error::OK;
   }
