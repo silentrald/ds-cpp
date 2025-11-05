@@ -73,10 +73,10 @@ public:
    * Copies the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION - bucket resize
+   *  - error_codes::BAD_ALLOCATION - bucket resize
    **/
   [[nodiscard]] error_code copy(const base_hash_set& other) noexcept {
-    return error::NOT_IMPLEMENTED;
+    return error_codes::NOT_IMPLEMENTED;
   }
 
   // === Move ===
@@ -206,8 +206,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION - bucket resize or key copy
-   *  - error::CONTAINER_FULL - max limit of hash_map
+   *  - error_codes::BAD_ALLOCATION - bucket resize or key copy
+   *  - error_codes::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key
    **/
   [[nodiscard]] error_code insert(const Key& key) noexcept {
@@ -218,8 +218,8 @@ public:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION - bucket resize or value copy
-   *  - error::CONTAINER_FULL - max limit of hash_map
+   *  - error_codes::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_codes::CONTAINER_FULL - max limit of hash_map
    **/
   [[nodiscard]] error_code insert(Key&& key) noexcept {
     return this->insert_impl(std::move(key));
@@ -305,8 +305,8 @@ protected:
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION - bucket resize or key/value copy
-   *  - error::CONTAINER_FULL - max limit of hash_map
+   *  - error_codes::BAD_ALLOCATION - bucket resize or key/value copy
+   *  - error_codes::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for key or value
    **/
   [[nodiscard]] inline error_code insert_impl(const Key& key) noexcept {
@@ -320,21 +320,21 @@ protected:
     }
     this->insert_node(std::move(node));
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   /**
    * Inserts a value in the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION - bucket resize or value copy
-   *  - error::CONTAINER_FULL - max limit of hash_map
+   *  - error_codes::BAD_ALLOCATION - bucket resize or value copy
+   *  - error_codes::CONTAINER_FULL - max limit of hash_map
    *  - error_code from copy for value
    **/
   [[nodiscard]] inline error_code insert_impl(Key&& key) noexcept {
     DS_TRY(this->check_allocation());
     this->insert_node(node_type{.key = std::move(key), .distance = 0U});
-    return error::OK;
+    return error_codes::OK;
   }
 
   template <typename Key_> inline void erase_impl(Key_ key) noexcept {
@@ -413,7 +413,7 @@ protected:
    * Check if the allocation can handle any mutation done to the hash map
    *
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code check_allocation() noexcept {
     if (this->bucket == nullptr) {
@@ -421,14 +421,14 @@ protected:
     }
 
     if (this->size >= HASHSET_MAX_SIZE) {
-      return error::CONTAINER_FULL;
+      return error_codes::CONTAINER_FULL;
     }
 
     if (this->size >= this->max_size) {
       return this->reallocate(this->capacity * 2U + 1U);
     }
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   /**
@@ -438,7 +438,7 @@ protected:
     // NOLINTNEXTLINE
     this->bucket = (node_type*)std::malloc(new_capacity * sizeof(node_type));
     if (this->bucket == nullptr) {
-      return error::BAD_ALLOCATION;
+      return error_codes::BAD_ALLOCATION;
     }
 
     new (this->bucket) node_type[new_capacity];
@@ -446,7 +446,7 @@ protected:
     this->capacity = new_capacity;
     this->max_size = new_capacity * HASHSET_LOAD_FACTOR;
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   [[nodiscard]] error_code reallocate(usize new_capacity) noexcept {
@@ -455,7 +455,7 @@ protected:
         // NOLINTNEXTLINE
         (node_type*)std::malloc(new_capacity * sizeof(node_type));
     if (new_bucket == nullptr) {
-      return error::BAD_ALLOCATION;
+      return error_codes::BAD_ALLOCATION;
     }
 
     new (new_bucket) node_type[new_capacity];
@@ -477,7 +477,7 @@ protected:
     }
 
     std::free(new_bucket); // NOLINT
-    return error::OK;
+    return error_codes::OK;
   }
 };
 

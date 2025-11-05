@@ -67,7 +67,7 @@ public:
 
   /**
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(const T& data) noexcept {
     if (this->data) {
@@ -77,12 +77,12 @@ public:
         *this->data = data;
       }
 
-      return error::OK;
+      return error_codes::OK;
     }
 
     this->data = static_cast<T*>(Allocator{}.allocate(sizeof(T)));
     if (this->data == nullptr) {
-      return error::BAD_ALLOCATION;
+      return error_codes::BAD_ALLOCATION;
     }
 
     if constexpr (std::is_class<T>::value) {
@@ -99,18 +99,18 @@ public:
       *this->data = data;
     }
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   /**
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(T&& data) noexcept {
     if (this->data == nullptr) {
       this->data = (T*)std::malloc(sizeof(T)); // NOLINT
       if (this->data == nullptr) {
-        return error::BAD_ALLOCATION;
+        return error_codes::BAD_ALLOCATION;
       }
 
       if constexpr (std::is_class<T>::value) {
@@ -119,7 +119,7 @@ public:
     }
 
     *this->data = std::move(data);
-    return error::OK;
+    return error_codes::OK;
   }
 
   // === Observers === //

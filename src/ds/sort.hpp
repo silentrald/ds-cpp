@@ -144,7 +144,7 @@ void bubble_sort(T* array, const usize size) noexcept {
 
 template <typename T> error_code merge_sort(vector<T>& vec) noexcept {
   if (is_sorted(vec.get_data(), vec.get_size())) {
-    return error::OK;
+    return error_codes::OK;
   }
 
   vector<T> auxillary{};
@@ -154,13 +154,13 @@ template <typename T> error_code merge_sort(vector<T>& vec) noexcept {
     vec = std::move(auxillary);
   }
 
-  return error::OK;
+  return error_codes::OK;
 }
 
 template <typename T, typename Compare = compare<T>>
 error_code merge_sort(T* array, const usize size) noexcept {
   if (is_sorted(array, size)) {
-    return error::OK;
+    return error_codes::OK;
   }
 
   vector<T> auxillary{};
@@ -172,7 +172,7 @@ error_code merge_sort(T* array, const usize size) noexcept {
     }
   }
 
-  return error::OK;
+  return error_codes::OK;
 }
 
 } // namespace ds

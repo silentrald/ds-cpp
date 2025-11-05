@@ -46,7 +46,7 @@ TEST_CASE("string copy", "[string]") {
 
   expected = str.at(12);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::INDEX_OUT_OF_BOUNDS);
+  REQUIRE(expected.error() == ds::error_codes::INDEX_OUT_OF_BOUNDS);
 
   str[0] = 'h';
   str[6] = 'w';
@@ -73,7 +73,7 @@ TEST_CASE("string push and pop", "[string]") {
 
   auto expected = str.pop_safe();
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::CONTAINER_EMPTY);
+  REQUIRE(expected.error() == ds::error_codes::CONTAINER_EMPTY);
 }
 
 // === Empty String === //

@@ -73,7 +73,7 @@ Test& Test::operator=(Test&& other) noexcept {
 
 ds::error_code Test::copy(const Test& other) noexcept {
   if (this == &other) {
-    return ds::error::OK;
+    return ds::error_codes::OK;
   }
 
   this->value = other.value;
@@ -86,7 +86,7 @@ ds::error_code Test::copy(const Test& other) noexcept {
   }
   this->pointer = other.pointer;
 
-  return ds::error::OK;
+  return ds::error_codes::OK;
 }
 
 // === Destructor === //

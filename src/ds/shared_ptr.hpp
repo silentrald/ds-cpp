@@ -57,22 +57,22 @@ public:
    * Copies another shared_ptr to this one and incrementing the counter by one
    *
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code copy(const shared_ptr& other) noexcept {
     if (&other == this || this->data == other.data) {
-      return error::OK;
+      return error_codes::OK;
     }
 
     this->destroy();
     if (other.data == nullptr) {
-      return error::OK;
+      return error_codes::OK;
     }
 
     this->data = other.data;
     ++(this->data->count);
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   // === Destructor === //
@@ -101,21 +101,21 @@ public:
    * Initializes an object with an empty constructor
    *
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code init() noexcept {
     if (this->data == nullptr) {
       DS_TRY(this->allocate());
     }
 
-    return error::OK;
+    return error_codes::OK;
   }
 
   /**
    * Set the value of the shared_ptr
    *
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(const T& data) noexcept {
     return this->set_impl<const T&>(data);
@@ -125,7 +125,7 @@ public:
    * Set the value of the shared_ptr
    *
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   [[nodiscard]] error_code set(T&& data) noexcept {
     return this->set_impl<T&&>(std::move(data));
@@ -176,7 +176,7 @@ private:
     this->data =
         static_cast<data_type*>(Allocator{}.allocate(sizeof(data_type)));
     if (this->data == nullptr) {
-      return error::BAD_ALLOCATION;
+      return error_codes::BAD_ALLOCATION;
     }
 
     if constexpr (std::is_class<T>::value) {
@@ -184,14 +184,14 @@ private:
     }
 
     this->data->count = 1U;
-    return error::OK;
+    return error_codes::OK;
   }
 
   // === Initializers === //
 
   /**
    * @errors
-   *  - error::BAD_ALLOCATION
+   *  - error_codes::BAD_ALLOCATION
    **/
   template <typename Data_>
   [[nodiscard]] error_code set_impl(Data_ data) noexcept {
@@ -211,11 +211,11 @@ private:
         Allocator{}.deallocate(this->data);
         this->data = nullptr;
 
-        return error::BAD_ALLOCATION;
+        return error_codes::BAD_ALLOCATION;
       }
     }
 
-    return error::OK;
+    return error_codes::OK;
   }
 };
 

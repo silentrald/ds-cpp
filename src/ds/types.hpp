@@ -69,7 +69,7 @@ using c8 = char;
 using error_code = u32;
 
 // NOLINTNEXTLINE
-enum error : error_code {
+enum error_codes : error_code {
   OK = 0,
   BAD_ALLOCATION = 1,
   NULL_VALUE = 2, // Accessing null pointer
@@ -83,7 +83,7 @@ enum error : error_code {
 };
 
 inline bool is_error(error_code err) noexcept {
-  return err != error::OK;
+  return err != error_codes::OK;
 }
 
 template <typename T>

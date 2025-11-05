@@ -157,7 +157,7 @@ void test_access_non_existing() {
 
     expected = map.at(key);
     REQUIRE_FALSE(expected);
-    REQUIRE(expected.error() == ds::error::NOT_FOUND);
+    REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
     REQUIRE(map[key] == nullptr);
 
@@ -427,7 +427,7 @@ TEMPLATE_TEST_CASE(
 
   ds::expected<value_type*, ds::error_code> expected = map.at(0);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   value_type* pointer = map[0];
   REQUIRE(pointer == nullptr);
@@ -547,7 +547,7 @@ TEST_CASE("hash_map<string, i64> access non-existing", "[hash_map]") {
 
   expected = map.at("Hi");
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   pointer = map["There"];
   REQUIRE(pointer == nullptr);
@@ -555,7 +555,7 @@ TEST_CASE("hash_map<string, i64> access non-existing", "[hash_map]") {
   REQUIRE(ds_test::handle_error(string.copy("Some")));
   expected = map.at(string);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   REQUIRE(ds_test::handle_error(string.copy("World")));
   pointer = map[string];
@@ -685,11 +685,11 @@ TEST_CASE("hash_map<string, i64> is empty", "[hash_map]") {
 
   expected = map.at("test");
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   expected = map.at(string);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   pointer = map["test"];
   REQUIRE(pointer == nullptr);
@@ -787,7 +787,7 @@ TEST_CASE("hash_map<i64, string> access non-existing", "[hash_map]") {
 
   expected = map.at(-1);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   pointer = map[-100];
   REQUIRE(pointer == nullptr);
@@ -795,7 +795,7 @@ TEST_CASE("hash_map<i64, string> access non-existing", "[hash_map]") {
   REQUIRE(ds_test::handle_error(string.copy("Some")));
   expected = map.at(-200);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   REQUIRE(ds_test::handle_error(string.copy("World")));
   pointer = map[0];
@@ -905,7 +905,7 @@ TEST_CASE("hash_map<i64, string> is empty", "[hash_map]") {
 
   ds::expected<ds::string*, ds::error_code> expected = map.at(0);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   ds::string* pointer = map[0];
   REQUIRE(pointer == nullptr);
@@ -1043,12 +1043,12 @@ TEST_CASE("hash_map<string, string> access non-existing", "[hash_map]") {
 
   expected = map.at(STRING_HASH_MAP_WORDS[1]);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[3])));
   expected = map.at(string1);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   pointer = map[STRING_HASH_MAP_WORDS[5]];
   REQUIRE(pointer == nullptr);
@@ -1219,11 +1219,11 @@ TEST_CASE("hash_map<string, string> is empty", "[hash_map]") {
 
   expected = map.at("test");
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   expected = map.at(string);
   REQUIRE_FALSE(expected);
-  REQUIRE(expected.error() == ds::error::NOT_FOUND);
+  REQUIRE(expected.error() == ds::error_codes::NOT_FOUND);
 
   pointer = map["test"];
   REQUIRE(pointer == nullptr);
