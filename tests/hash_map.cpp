@@ -13,7 +13,6 @@
 #include "ds/string.hpp"
 #include "ds/types.hpp"
 #include "main.hpp"
-#include <cstdlib>
 #include <cstring>
 #include <tuple>
 
@@ -434,6 +433,28 @@ TEMPLATE_TEST_CASE(
   REQUIRE(pointer == nullptr);
 }
 
+// Iterating
+TEST_CASE("hash_map iteration", "[hash_map]") {
+  const ds::i32 MULTIPLIER = 7;
+  ds::i32 array[] = {0, 0, 0, 0, 0};
+  ds::hash_map<ds::i32, ds::i32> map{};
+
+  REQUIRE(ds_test::handle_error(map.insert(0, 0)));
+  REQUIRE(ds_test::handle_error(map.insert(1 * MULTIPLIER, 1)));
+  REQUIRE(ds_test::handle_error(map.insert(2 * MULTIPLIER, 2)));
+  REQUIRE(ds_test::handle_error(map.insert(3 * MULTIPLIER, 3)));
+  REQUIRE(ds_test::handle_error(map.insert(4 * MULTIPLIER, 4)));
+
+  for (auto iterator = map.begin(); iterator != map.end(); ++iterator) {
+    ++array[iterator.key() / MULTIPLIER];
+    ++array[iterator.value()];
+  }
+
+  for (ds::i32 i = 0; i < 5; ++i) {
+    REQUIRE(array[i] == 2);
+  }
+}
+
 // TODO: Class Types Test
 
 // === Key String Types === //
@@ -691,7 +712,8 @@ create_value_string_hash_map() {
     REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[1], string)));
 
     REQUIRE(ds_test::handle_error(string.copy("Name")));
-    REQUIRE(ds_test::handle_error(map.insert(VS_INDICES[2], std::move(string)))
+    REQUIRE(
+        ds_test::handle_error(map.insert(VS_INDICES[2], std::move(string)))
     );
 
     std::strcpy(characters, "Jeff");
@@ -897,22 +919,28 @@ create_string_hash_map() {
 
   if constexpr (Check) {
     // const c8* key
-    REQUIRE(ds_test::handle_error(
-        map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[1])
-    ));
+    REQUIRE(
+        ds_test::handle_error(
+            map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[1])
+        )
+    );
 
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[3])));
-    REQUIRE(ds_test::handle_error(map.insert(STRING_HASH_MAP_WORDS[2], string1))
+    REQUIRE(
+        ds_test::handle_error(map.insert(STRING_HASH_MAP_WORDS[2], string1))
     );
 
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[5])));
-    REQUIRE(ds_test::handle_error(
-        map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
-    ));
+    REQUIRE(
+        ds_test::handle_error(
+            map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
+        )
+    );
 
     // const ds::string& key
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[6])));
-    REQUIRE(ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[7]))
+    REQUIRE(
+        ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[7]))
     );
 
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[8])));
@@ -925,9 +953,11 @@ create_string_hash_map() {
 
     // ds::string&& key
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[12])));
-    REQUIRE(ds_test::handle_error(
-        map.insert(std::move(string1), STRING_HASH_MAP_WORDS[13])
-    ));
+    REQUIRE(
+        ds_test::handle_error(
+            map.insert(std::move(string1), STRING_HASH_MAP_WORDS[13])
+        )
+    );
 
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[14])));
     REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[15])));
@@ -935,9 +965,11 @@ create_string_hash_map() {
 
     REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[16])));
     REQUIRE(ds_test::handle_error(string2.copy(STRING_HASH_MAP_WORDS[17])));
-    REQUIRE(ds_test::handle_error(
-        map.insert(std::move(string1), std::move(string2))
-    ));
+    REQUIRE(
+        ds_test::handle_error(
+            map.insert(std::move(string1), std::move(string2))
+        )
+    );
 
     REQUIRE(map.get_size() == 9);
   } else {
@@ -1033,7 +1065,8 @@ TEST_CASE("hash_map<string, string> remove existing", "[hash_map]") {
     if (i & 1) {
       map.remove(STRING_HASH_MAP_WORDS[i * 2]);
     } else {
-      REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[i * 2]))
+      REQUIRE(
+          ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[i * 2]))
       );
       map.remove(string1);
     }
@@ -1079,9 +1112,11 @@ TEST_CASE("hash_map<string, string> reinserting", "[hash_map]") {
   });
 
   // const c8* key
-  REQUIRE(ds_test::handle_error(
-      map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[17])
-  ));
+  REQUIRE(
+      ds_test::handle_error(
+          map.insert(STRING_HASH_MAP_WORDS[0], STRING_HASH_MAP_WORDS[17])
+      )
+  );
   REQUIRE(map.get_size() == 9);
 
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[15])));
@@ -1089,14 +1124,17 @@ TEST_CASE("hash_map<string, string> reinserting", "[hash_map]") {
   REQUIRE(map.get_size() == 9);
 
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[13])));
-  REQUIRE(ds_test::handle_error(
-      map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
-  ));
+  REQUIRE(
+      ds_test::handle_error(
+          map.insert(STRING_HASH_MAP_WORDS[4], std::move(string1))
+      )
+  );
   REQUIRE(map.get_size() == 9);
 
   // const ds::string& key
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[6])));
-  REQUIRE(ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[11]))
+  REQUIRE(
+      ds_test::handle_error(map.insert(string1, STRING_HASH_MAP_WORDS[11]))
   );
   REQUIRE(map.get_size() == 9);
 
@@ -1112,9 +1150,11 @@ TEST_CASE("hash_map<string, string> reinserting", "[hash_map]") {
 
   // ds::string&& key
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[12])));
-  REQUIRE(ds_test::handle_error(
-      map.insert(std::move(string1), STRING_HASH_MAP_WORDS[5])
-  ));
+  REQUIRE(
+      ds_test::handle_error(
+          map.insert(std::move(string1), STRING_HASH_MAP_WORDS[5])
+      )
+  );
   REQUIRE(map.get_size() == 9);
 
   REQUIRE(ds_test::handle_error(string1.copy(STRING_HASH_MAP_WORDS[14])));

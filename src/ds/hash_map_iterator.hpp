@@ -15,49 +15,26 @@ namespace ds {
 template <typename HashMap> class hash_map_iterator {
 public:
   using key_type = typename HashMap::key_type;
-  using key_ptr = key_type*;
-  using key_ref = key_type&;
-  using key_cref = const key_type&;
-
   using value_type = typename HashMap::value_type;
-  using value_ptr = value_type*;
-  using value_ref = value_type&;
-  using value_cref = const value_type&;
-
   using node_type = typename HashMap::node_type;
-  using node_ptr = node_type*;
-
-  using container = typename HashMap::bucket_container;
-  using container_ptr = container*;
 
 private:
-  container_ptr base = nullptr;
-  node_ptr ptr = nullptr;
-  i32 index = 0;
+  node_type* bucket = nullptr;
+  node_type* ptr = nullptr;
+  usize index = 0;
+  usize capacity = 0;
 
   void find_next_element() noexcept {
     if (this->ptr == nullptr) {
       return;
     }
 
-    // If there is another node on the linked list
-    if (this->ptr->next) {
-      this->ptr = this->ptr->next;
-      return;
-    }
-
-    ++this->index; // Move the index cursor
-
     // Find a bucket with a node
-    node_ptr node = nullptr;
-    while (this->index < this->base->size()) {
-      node = (*this->base)[this->index];
-      if (node) {
-        this->ptr = node;
+    while (++this->index < this->capacity) {
+      this->ptr = this->bucket + this->index;
+      if (!this->ptr->is_node_empty()) {
         return;
       }
-
-      ++this->index;
     }
 
     // No more nodes
@@ -67,31 +44,28 @@ private:
 public:
   hash_map_iterator() noexcept = default;
 
-  explicit hash_map_iterator(container_ptr base) noexcept : base(base) {
+  explicit hash_map_iterator(node_type* bucket, usize capacity) noexcept
+      : bucket(bucket), capacity(capacity) {
     // Find the first element
-    for (auto* node : *this->base) {
-      if (node) {
-        this->ptr = node;
+    for (this->index = 0; this->index < capacity; ++this->index) {
+      this->ptr = bucket + this->index;
+      if (!this->ptr->is_node_empty()) {
         return;
       }
-
-      ++this->index;
     }
+    this->ptr = nullptr;
   }
 
-  explicit hash_map_iterator(container_ptr base, key_ptr ptr) noexcept
-      : base(base), ptr(ptr) {}
-
   // === Element Access === //
-  key_cref key() const noexcept {
+  const key_type& key() const noexcept {
     return this->ptr->key;
   }
 
-  value_ref value() noexcept {
+  value_type& value() noexcept {
     return this->ptr->value;
   }
 
-  value_cref value() const noexcept {
+  const value_type& value() const noexcept {
     return this->ptr->value;
   }
 
@@ -124,49 +98,26 @@ public:
 template <typename HashMap> class hash_map_const_iterator {
 public:
   using key_type = typename HashMap::key_type;
-  using key_ptr = key_type*;
-  using key_ref = key_type&;
-  using key_cref = const key_type&;
-
   using value_type = typename HashMap::value_type;
-  using value_ptr = value_type*;
-  using value_ref = value_type&;
-  using value_cref = const value_type&;
-
   using node_type = typename HashMap::node_type;
-  using node_ptr = node_type*;
-
-  using container = typename HashMap::bucket_container;
-  using container_cptr = const container*;
 
 private:
-  container_cptr base;
-  node_ptr ptr = nullptr;
-  i32 index = 0;
+  node_type* bucket = nullptr;
+  node_type* ptr = nullptr;
+  usize index = 0;
+  usize capacity = 0;
 
   void find_next_element() noexcept {
     if (this->ptr == nullptr) {
       return;
     }
 
-    // If there is another node on the linked list
-    if (this->ptr->next) {
-      this->ptr = this->ptr->next;
-      return;
-    }
-
-    ++this->index; // Move the index cursor
-
     // Find a bucket with a node
-    node_ptr node = nullptr;
-    while (this->index < this->base->size()) {
-      node = (*this->base)[this->index];
-      if (node) {
-        this->ptr = node;
+    while (++this->index < this->capacity) {
+      this->ptr = this->bucket + this->index;
+      if (!this->ptr->is_node_empty()) {
         return;
       }
-
-      ++this->index;
     }
 
     // No more nodes
@@ -176,29 +127,24 @@ private:
 public:
   hash_map_const_iterator() noexcept = default;
 
-  explicit hash_map_const_iterator(container_cptr base) noexcept : base(base) {
+  explicit hash_map_const_iterator(node_type* bucket, usize capacity) noexcept
+      : bucket(bucket), capacity(capacity) {
     // Find the first element
-    node_ptr node = nullptr;
-    while (this->index < this->base->size()) {
-      node = (*this->base)[this->index];
-      if (node) {
-        this->ptr = node;
+    for (this->index = 0; this->index < capacity; ++this->index) {
+      this->ptr = bucket + this->index;
+      if (!this->ptr->is_node_empty()) {
         return;
       }
-
-      ++this->index;
     }
+    this->ptr = nullptr;
   }
 
-  explicit hash_map_const_iterator(container_cptr base, key_ptr ptr) noexcept
-      : base(base), ptr(ptr) {}
-
   // === Element Access === //
-  key_cref key() const noexcept {
+  const key_type& key() const noexcept {
     return this->ptr->key;
   }
 
-  value_cref value() const noexcept {
+  const value_type& value() const noexcept {
     return this->ptr->value;
   }
 
