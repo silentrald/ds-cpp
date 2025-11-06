@@ -74,15 +74,15 @@ public:
 
   // === Null === //
 
-  explicit optional(const null_t& rhs) noexcept {}
-  explicit optional(null_t&& rhs) noexcept {};
+  optional(const null_t& rhs) noexcept {} //NOLINT
+  optional(null_t&& _rhs) noexcept {} // NOLINT
 
   optional& operator=(const null_t& rhs) noexcept {
     this->destroy();
     return *this;
   }
 
-  optional& operator=(null_t&& rhs) noexcept {
+  optional& operator=(null_t&& _rhs) noexcept { // NOLINT
     this->destroy();
     return *this;
   }
